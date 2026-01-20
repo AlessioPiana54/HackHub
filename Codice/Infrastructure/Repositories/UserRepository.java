@@ -20,6 +20,11 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
+    public void edit(User user) {
+        db.editUser(user);
+    }
+
+    @Override
     public User findById(String id) {
         return db.getUser(id);
     }
@@ -32,5 +37,10 @@ public class UserRepository implements IUserRepository {
     @Override
     public List<User> findAll() {
         return db.getAllUsers();
+    }
+
+    @Override
+    public void deleteById(String id) {
+        db.deleteUser(id);
     }
 }

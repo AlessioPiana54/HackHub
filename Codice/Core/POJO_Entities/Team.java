@@ -18,9 +18,20 @@ public class Team {
         this.membri = new ArrayList<>();
         this.membri.add(leaderSquadra);
     }
-    
-    public String getId() { return id; }
-    public String getNomeTeam() { return nomeTeam; }
-    public User getLeaderSquadra() { return leaderSquadra; }
-    public List<User> getMembri() { return membri; }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getNomeTeam() {
+        return nomeTeam;
+    }
+
+    public User getLeaderSquadra() {
+        return leaderSquadra;
+    }
+
+    public List<User> getMembri() {
+        return membri;
+    }
 }

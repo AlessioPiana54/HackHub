@@ -23,17 +23,17 @@ public class Hackathon {
     // Riferimenti diretti a User
     private User organizzatore;
     private User giudice;
-    
+
     // Liste
     private List<User> mentori;
     private List<Team> teamIscritti;
 
     public Hackathon(String nome, String regolamento, LocalDateTime inizioIscrizioni,
-                     LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio,
-                     LocalDateTime dataFine, String luogo, double premioInDenaro,
-                     int dimensioneMaxTeam, User organizzatore, User giudice, List<User> mentori,
-                     StatoHackathon stato) {
-        
+            LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio,
+            LocalDateTime dataFine, String luogo, double premioInDenaro,
+            int dimensioneMaxTeam, User organizzatore, User giudice, List<User> mentori,
+            StatoHackathon stato) {
+
         // Genera un ID Randomico
         this.id = UUID.randomUUID().toString();
         this.nome = nome;
@@ -49,7 +49,7 @@ public class Hackathon {
         this.giudice = giudice;
         this.mentori = (mentori != null) ? mentori : new ArrayList<>(); // (se null si inizializza la lista vuota)
         this.stato = stato;
-        
+
         // Default
         this.dataCreazione = LocalDateTime.now();
         this.mentori = new ArrayList<>();
@@ -57,9 +57,23 @@ public class Hackathon {
     }
 
     // Getters e Setters essenziali per il Service
-    public String getId() { return id; }
-    public String getNome() { return nome; }
-    public User getOrganizzatore() { return organizzatore; }
-    public User getGiudice() { return giudice; }
-    public StatoHackathon getStato() { return stato; }
+    public String getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public User getOrganizzatore() {
+        return organizzatore;
+    }
+
+    public User getGiudice() {
+        return giudice;
+    }
+
+    public StatoHackathon getStato() {
+        return stato;
+    }
 }

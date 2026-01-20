@@ -17,27 +17,11 @@ public class CreaHackathonRequest {
     private String idGiudice;
     private List<String> idMentori;
 
-    // Costruttore vuoto e Getters
-    public CreaHackathonRequest() {}
-    public String getNome() { return nome; }
-    public String getRegolamento() { return regolamento; }
-    public LocalDateTime getInizioIscrizioni() { return inizioIscrizioni; }
-    public LocalDateTime getScadenzaIscrizioni() { return scadenzaIscrizioni; }
-    public LocalDateTime getDataInizio() { return dataInizio; }
-    public LocalDateTime getDataFine() { return dataFine; }
-    public String getLuogo() { return luogo; }
-    public double getPremioInDenaro() { return premioInDenaro; }
-    public int getDimensioneMaxTeam() { return dimensioneMaxTeam; }
-    public String getIdOrganizzatore() { return idOrganizzatore; }
-    public String getIdGiudice() { return idGiudice; }
-    public List<String> getIdMentori() { return idMentori; }
-
-    // COSTRUTTORE
-    public CreaHackathonRequest(String nome, String regolamento, LocalDateTime inizioIscrizioni, 
-                                LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio, 
-                                LocalDateTime dataFine, String luogo, double premioInDenaro, 
-                                int dimensioneMaxTeam, String idOrganizzatore, String idGiudice, 
-                                List<String> idMentori) {
+    public CreaHackathonRequest(String nome, String regolamento, LocalDateTime inizioIscrizioni,
+            LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio,
+            LocalDateTime dataFine, String luogo, double premioInDenaro,
+            int dimensioneMaxTeam, String idOrganizzatore, String idGiudice,
+            List<String> idMentori) {
         this.nome = nome;
         this.regolamento = regolamento;
         this.inizioIscrizioni = inizioIscrizioni;
@@ -50,5 +34,53 @@ public class CreaHackathonRequest {
         this.idOrganizzatore = idOrganizzatore;
         this.idGiudice = idGiudice;
         this.idMentori = idMentori;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getRegolamento() {
+        return regolamento;
+    }
+
+    public LocalDateTime getInizioIscrizioni() {
+        return inizioIscrizioni;
+    }
+
+    public LocalDateTime getScadenzaIscrizioni() {
+        return scadenzaIscrizioni;
+    }
+
+    public LocalDateTime getDataInizio() {
+        return dataInizio;
+    }
+
+    public LocalDateTime getDataFine() {
+        return dataFine;
+    }
+
+    public String getLuogo() {
+        return luogo;
+    }
+
+    public double getPremioInDenaro() {
+        return premioInDenaro;
+    }
+
+    public int getDimensioneMaxTeam() {
+        return dimensioneMaxTeam;
+    }
+
+    public String getIdOrganizzatore() {
+        return idOrganizzatore;
+    }
+
+    public String getIdGiudice() {
+        return idGiudice;
+    }
+
+    public List<String> getIdMentori() {
+        return idMentori;
     }
 }

@@ -19,14 +19,40 @@ public class User {
         this.ruolo = ruolo;
     }
 
+    // Costruttore per ricostruzione/aggiornamento (mantiene ID esistente)
+    public User(String id, String nome, String cognome, String email, Ruolo ruolo) {
+        if (id == null || id.isEmpty()) {
+            throw new IllegalArgumentException("ID non può essere nullo o vuoto per questo costruttore");
+        }
+        this.id = id;
+        this.nome = nome;
+        this.cognome = cognome;
+        this.email = email;
+        this.ruolo = ruolo;
+    }
+
     public boolean haRuolo(Ruolo ruoloRichiesto) {
         return this.ruolo == ruoloRichiesto;
     }
 
     // Getters
-    public String getId() { return id; }
-    public String getNome() { return nome; }
-    public String getCognome() { return cognome; }
-    public String getEmail() { return email; }
-    public Ruolo getRuolo() { return ruolo; }
+    public String getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getCognome() {
+        return cognome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public Ruolo getRuolo() {
+        return ruolo;
+    }
 }
