@@ -8,6 +8,7 @@ import java.util.Map;
 import Core.POJO_Entities.Hackathon;
 import Core.POJO_Entities.Team;
 import Core.POJO_Entities.User;
+import Core.POJO_Entities.Sottomissione;
 
 public class InMemoryDatabase {
     // Singleton pattern semplificato per accesso condiviso
@@ -23,6 +24,7 @@ public class InMemoryDatabase {
     private Map<String, Hackathon> hackathons = new HashMap<>();
     private Map<String, User> users = new HashMap<>();
     private Map<String, Team> teams = new HashMap<>();
+    private Map<String, Sottomissione> sottomissioni = new HashMap<>();
 
     // --- USERS ---
     public void saveUser(User user) {
@@ -109,5 +111,50 @@ public class InMemoryDatabase {
 
     public void deleteTeam(String id) {
         teams.remove(id);
+    }
+
+    // --- SOTTOMISSIONI ---
+    public void salvaSottomissione(Sottomissione s) {
+        sottomissioni.put(s.getId(), s);
+    }
+
+    public void editSottomissione(Sottomissione s) {
+        if (sottomissioni.containsKey(s.getId())) {
+            sottomissioni.put(s.getId(), s);
+        } else {
+            throw new IllegalArgumentException("Sottomissione non trovata: " + s.getId());
+        }
+    }
+
+    public Sottomissione getSottomissione(String id) {
+        return sottomissioni.get(id);
+    }
+
+    public List<Sottomissione> getAllSottomissioni() {
+        return new ArrayList<>(sottomissioni.values());
+    }
+
+    public void deleteSottomissione(String id) {
+        sottomissioni.remove(id);
+    }
+
+    public List<Sottomissione> getSottomissioniByHackathon(String idHackathon) {
+        List<Sottomissione> result = new ArrayList<>();
+        for (Sottomissione s : sottomissioni.values()) {
+            if (s.getHackathon().getId().equals(idHackathon)) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
+
+    public List<Sottomissione> getSottomissioniByTeam(String idTeam) {
+        List<Sottomissione> result = new ArrayList<>();
+        for (Sottomissione s : sottomissioni.values()) {
+            if (s.getTeam().getId().equals(idTeam)) {
+                result.add(s);
+            }
+        }
+        return result;
     }
 }

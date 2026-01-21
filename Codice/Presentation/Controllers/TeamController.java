@@ -5,13 +5,13 @@ import java.util.List;
 import Application.Requests.CreaTeamRequest;
 import Application.Services.TeamService;
 import Core.POJO_Entities.Team;
-import Presentation.Validators.CreaTeamValidator;
+import Presentation.Validators.TeamValidator;
 
 public class TeamController {
     private final TeamService teamService;
-    private final CreaTeamValidator creaTeamValidator;
+    private final TeamValidator creaTeamValidator;
 
-    public TeamController(TeamService teamService, CreaTeamValidator creaTeamValidator) {
+    public TeamController(TeamService teamService, TeamValidator creaTeamValidator) {
         this.teamService = teamService;
         this.creaTeamValidator = creaTeamValidator;
     }
@@ -19,7 +19,7 @@ public class TeamController {
     // METODO ACCESSIBILE SOLO DA UN UTENTE SENZA TEAM
     public Object creaTeam(CreaTeamRequest request) {
         // 1. Validazione Input (Validation Pipeline)
-        List<String> validationErrors = creaTeamValidator.validate(request);
+        List<String> validationErrors = creaTeamValidator.validateCreation(request);
         if (!validationErrors.isEmpty()) {
             // Ritorna un errore 400 Bad Request simulato
             return "Errore 400: Validazione fallita -> " + String.join(", ", validationErrors);

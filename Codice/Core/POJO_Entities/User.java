@@ -19,7 +19,7 @@ public class User {
         this.ruolo = ruolo;
     }
 
-    // Costruttore per ricostruzione/aggiornamento (mantiene ID esistente)
+    // COSTRUTTORE SOLO A SCOPO DI TEST
     public User(String id, String nome, String cognome, String email, Ruolo ruolo) {
         if (id == null || id.isEmpty()) {
             throw new IllegalArgumentException("ID non può essere nullo o vuoto per questo costruttore");

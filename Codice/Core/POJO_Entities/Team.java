@@ -10,6 +10,7 @@ public class Team {
     private User leaderSquadra;
     private List<User> membri;
 
+    // COSTRUTTORE SOLO A SCOPO DI TEST
     public Team(String nomeTeam, User leaderSquadra) {
         // Genera un ID Randomico
         this.id = UUID.randomUUID().toString();

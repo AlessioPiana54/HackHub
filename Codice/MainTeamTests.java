@@ -6,7 +6,7 @@ import Infrastructure.Databases.InMemoryDatabase;
 import Infrastructure.Repositories.TeamRepository;
 import Infrastructure.Repositories.UserRepository;
 import Presentation.Controllers.TeamController;
-import Presentation.Validators.CreaTeamValidator;
+import Presentation.Validators.TeamValidator;
 
 public class MainTeamTests {
 
@@ -33,7 +33,7 @@ public class MainTeamTests {
         InMemoryDatabase db = InMemoryDatabase.getInstance();
         userRepo = new UserRepository(db);
         teamRepo = new TeamRepository(db);
-        CreaTeamValidator validator = new CreaTeamValidator();
+        TeamValidator validator = new TeamValidator();
         TeamService service = new TeamService(teamRepo, userRepo);
         controller = new TeamController(service, validator);
 

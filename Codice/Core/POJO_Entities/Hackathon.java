@@ -28,6 +28,7 @@ public class Hackathon {
     private List<User> mentori;
     private List<Team> teamIscritti;
 
+    // COSTRUTTORE SOLO A SCOPO DI TEST
     public Hackathon(String nome, String regolamento, LocalDateTime inizioIscrizioni,
             LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio,
             LocalDateTime dataFine, String luogo, double premioInDenaro,
@@ -47,12 +48,11 @@ public class Hackathon {
         this.dimensioneMaxTeam = dimensioneMaxTeam;
         this.organizzatore = organizzatore;
         this.giudice = giudice;
-        this.mentori = (mentori != null) ? mentori : new ArrayList<>(); // (se null si inizializza la lista vuota)
+        this.mentori = mentori;
         this.stato = stato;
 
         // Default
         this.dataCreazione = LocalDateTime.now();
-        this.mentori = new ArrayList<>();
         this.teamIscritti = new ArrayList<>();
     }
 
@@ -75,5 +75,13 @@ public class Hackathon {
 
     public StatoHackathon getStato() {
         return stato;
+    }
+
+    public LocalDateTime getDataInizio() {
+        return dataInizio;
+    }
+
+    public LocalDateTime getDataFine() {
+        return dataFine;
     }
 }
