@@ -27,6 +27,7 @@ public class TestValutazione {
     static TeamRepository teamRepo;
     static HackathonRepository hackathonRepo;
     static SottomissioneRepository sottomissioneRepo;
+    static Infrastructure.Repositories.PartecipazioneRepository partecipazioneRepo;
 
     static User giudice;
     static User leader;
@@ -51,8 +52,9 @@ public class TestValutazione {
         teamRepo = new TeamRepository(db);
         hackathonRepo = new HackathonRepository(db);
         sottomissioneRepo = new SottomissioneRepository(db);
+        partecipazioneRepo = new Infrastructure.Repositories.PartecipazioneRepository(db);
 
-        service = new SottomissioneService(sottomissioneRepo, hackathonRepo, teamRepo, userRepo);
+        service = new SottomissioneService(sottomissioneRepo, hackathonRepo, teamRepo, userRepo, partecipazioneRepo);
         sottomissioneValidator = new SottomissioneValidator();
         valutazioneValidator = new ValutazioneValidator();
         controller = new SottomissioneController(service, sottomissioneValidator, valutazioneValidator);
@@ -73,8 +75,12 @@ public class TestValutazione {
                 new User("Org", "Org", "o@o.com", Ruolo.ORGANIZZATORE), giudice, null, StatoHackathon.IN_VALUTAZIONE);
         hackathonRepo.save(hackathon);
 
+        // Create Partecipazione first
+        Core.POJO_Entities.Partecipazione p = new Core.POJO_Entities.Partecipazione(team, hackathon);
+        partecipazioneRepo.save(p);
+
         // Sottomissione
-        sottomissione = new Sottomissione(hackathon, team, leader, "http://repo", "My Project");
+        sottomissione = new Sottomissione(p, leader, "http://repo", "My Project");
         sottomissioneRepo.save(sottomissione);
     }
 

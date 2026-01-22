@@ -13,6 +13,8 @@ public class MainTeamTests {
     static TeamController controller;
     static UserRepository userRepo;
     static TeamRepository teamRepo;
+    static Infrastructure.Repositories.HackathonRepository hackathonRepo;
+    static Infrastructure.Repositories.PartecipazioneRepository partecipazioneRepo;
     static User utenteSenzaTeam;
     static User utenteGiaInTeam;
 
@@ -33,8 +35,11 @@ public class MainTeamTests {
         InMemoryDatabase db = InMemoryDatabase.getInstance();
         userRepo = new UserRepository(db);
         teamRepo = new TeamRepository(db);
+        hackathonRepo = new Infrastructure.Repositories.HackathonRepository(db);
+        partecipazioneRepo = new Infrastructure.Repositories.PartecipazioneRepository(db);
+
         TeamValidator validator = new TeamValidator();
-        TeamService service = new TeamService(teamRepo, userRepo);
+        TeamService service = new TeamService(teamRepo, userRepo, hackathonRepo, partecipazioneRepo);
         controller = new TeamController(service, validator);
 
         // Setup Utenti

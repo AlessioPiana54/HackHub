@@ -25,6 +25,7 @@ public class InMemoryDatabase {
     private Map<String, User> users = new HashMap<>();
     private Map<String, Team> teams = new HashMap<>();
     private Map<String, Sottomissione> sottomissioni = new HashMap<>();
+    private Map<String, Core.POJO_Entities.Partecipazione> partecipazioni = new HashMap<>();
 
     // --- USERS ---
     public void saveUser(User user) {
@@ -141,7 +142,7 @@ public class InMemoryDatabase {
     public List<Sottomissione> getSottomissioniByHackathon(String idHackathon) {
         List<Sottomissione> result = new ArrayList<>();
         for (Sottomissione s : sottomissioni.values()) {
-            if (s.getHackathon().getId().equals(idHackathon)) {
+            if (s.getPartecipazione().getHackathon().getId().equals(idHackathon)) {
                 result.add(s);
             }
         }
@@ -151,10 +152,47 @@ public class InMemoryDatabase {
     public List<Sottomissione> getSottomissioniByTeam(String idTeam) {
         List<Sottomissione> result = new ArrayList<>();
         for (Sottomissione s : sottomissioni.values()) {
-            if (s.getTeam().getId().equals(idTeam)) {
+            if (s.getPartecipazione().getTeam().getId().equals(idTeam)) {
                 result.add(s);
             }
         }
         return result;
+    }
+
+    // --- PARTECIPAZIONI ---
+    public void savePartecipazione(Core.POJO_Entities.Partecipazione p) {
+        partecipazioni.put(p.getId(), p);
+    }
+
+    public Core.POJO_Entities.Partecipazione getPartecipazione(String id) {
+        return partecipazioni.get(id);
+    }
+
+    public List<Core.POJO_Entities.Partecipazione> getAllPartecipazioni() {
+        return new ArrayList<>(partecipazioni.values());
+    }
+
+    public List<Core.POJO_Entities.Partecipazione> getPartecipazioniByTeam(String idTeam) {
+        List<Core.POJO_Entities.Partecipazione> result = new ArrayList<>();
+        for (Core.POJO_Entities.Partecipazione p : partecipazioni.values()) {
+            if (p.getTeam().getId().equals(idTeam)) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    public List<Core.POJO_Entities.Partecipazione> getPartecipazioniByHackathon(String idHackathon) {
+        List<Core.POJO_Entities.Partecipazione> result = new ArrayList<>();
+        for (Core.POJO_Entities.Partecipazione p : partecipazioni.values()) {
+            if (p.getHackathon().getId().equals(idHackathon)) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    public void deletePartecipazione(String id) {
+        partecipazioni.remove(id);
     }
 }

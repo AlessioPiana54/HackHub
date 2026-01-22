@@ -3,7 +3,9 @@ package Presentation.Controllers;
 import java.util.List;
 
 import Application.Requests.CreaTeamRequest;
+import Application.Requests.IscriviTeamRequest;
 import Application.Services.TeamService;
+import Core.POJO_Entities.Partecipazione;
 import Core.POJO_Entities.Team;
 import Presentation.Validators.TeamValidator;
 
@@ -35,6 +37,23 @@ public class TeamController {
 
         } catch (Exception e) {
             // Gestione errori di dominio (es. Utente non trovato, Ruoli errati)
+            return "Errore 500: " + e.getMessage();
+        }
+    }
+
+    // METODO ACCESSIBILE SOLO DAL LEADER DEL TEAM
+    public Object iscriviTeam(IscriviTeamRequest request) {
+        // Validazione Input (potrebbe servire un nuovo validator o semplice null check)
+        if (request.getIdTeam() == null || request.getIdHackathon() == null || request.getIdRichiedente() == null
+                || request.getIdTeam().isEmpty() || request.getIdHackathon().isEmpty()
+                || request.getIdRichiedente().isEmpty()) {
+            return "Errore 400: Validazione fallita -> ID mancanti";
+        }
+
+        try {
+            Partecipazione p = teamService.iscriviTeam(request);
+            return "Successo 200: Team iscritto con ID Partecipazione " + p.getId();
+        } catch (Exception e) {
             return "Errore 500: " + e.getMessage();
         }
     }

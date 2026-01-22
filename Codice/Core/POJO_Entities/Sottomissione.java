@@ -5,8 +5,7 @@ import java.util.UUID;
 
 public class Sottomissione {
     private String id;
-    private Hackathon hackathon;
-    private Team team;
+    private Partecipazione partecipazione;
     private User mittente; // Membro o Leader
     private String linkProgetto; // URL repository o altro
     private String descrizione;
@@ -14,10 +13,9 @@ public class Sottomissione {
     private Valutazione valutazione;
 
     // COSTRUTTORE SOLO A SCOPO DI TEST
-    public Sottomissione(Hackathon hackathon, Team team, User mittente, String linkProgetto, String descrizione) {
+    public Sottomissione(Partecipazione partecipazione, User mittente, String linkProgetto, String descrizione) {
         this.id = UUID.randomUUID().toString();
-        this.hackathon = hackathon;
-        this.team = team;
+        this.partecipazione = partecipazione;
         this.mittente = mittente;
         this.linkProgetto = linkProgetto;
         this.descrizione = descrizione;
@@ -31,12 +29,8 @@ public class Sottomissione {
         return id;
     }
 
-    public Hackathon getHackathon() {
-        return hackathon;
-    }
-
-    public Team getTeam() {
-        return team;
+    public Partecipazione getPartecipazione() {
+        return partecipazione;
     }
 
     public User getMittente() {

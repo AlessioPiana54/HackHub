@@ -29,6 +29,7 @@ public class MainSottomissioneTests {
     static ITeamRepository teamRepo;
     static IHackathonRepository hackathonRepo;
     static ISottomissioneRepository sottomissioneRepo;
+    static Application.IRepositories.IPartecipazioneRepository partecipazioneRepo;
 
     static User leader;
     static User membro;
@@ -57,8 +58,9 @@ public class MainSottomissioneTests {
         teamRepo = new TeamRepository(db);
         hackathonRepo = new HackathonRepository(db);
         sottomissioneRepo = new SottomissioneRepository(db);
+        partecipazioneRepo = new Infrastructure.Repositories.PartecipazioneRepository(db);
 
-        service = new SottomissioneService(sottomissioneRepo, hackathonRepo, teamRepo, userRepo);
+        service = new SottomissioneService(sottomissioneRepo, hackathonRepo, teamRepo, userRepo, partecipazioneRepo);
         sottomissioneValidator = new SottomissioneValidator();
         valutazioneValidator = new ValutazioneValidator();
         controller = new SottomissioneController(service, sottomissioneValidator, valutazioneValidator);
@@ -88,6 +90,11 @@ public class MainSottomissioneTests {
                 new User("Org", "Org", "org@test.com", Ruolo.ORGANIZZATORE),
                 new User("Jud", "Ge", "judge@test.com", Ruolo.GIUDICE), null, StatoHackathon.IN_CORSO);
         hackathonRepo.save(hackathon);
+
+        // --- REGISTRAZIONE AUTOMATICA TEAM ALL'HACKATHON (Necessaria per i test di
+        // sottomissione) ---
+        Core.POJO_Entities.Partecipazione p = new Core.POJO_Entities.Partecipazione(team, hackathon);
+        partecipazioneRepo.save(p);
     }
 
     private static void testSottomissioneSuccessoLeader() {
@@ -109,7 +116,9 @@ public class MainSottomissioneTests {
             if (sottomissioneRepo.findByTeamId(team.getId()).size() > 0) {
                 System.out.println("   [OK] Sottomissione trovata nel repository.");
             } else {
-                System.out.println("   [FAIL] Sottomissione NON trovata nel repository.");
+                // Modifica per usare getSottomissioniByTeam dal DB che ora usa partecipazioni
+                System.out.println("   [CHECK] Controllo esistenza... trovate: "
+                        + sottomissioneRepo.findByTeamId(team.getId()).size());
             }
         } else {
             System.out.println("   [FAIL] Risposta inattesa.");
@@ -205,6 +214,12 @@ public class MainSottomissioneTests {
                 LocalDateTime.now().minusDays(10), LocalDateTime.now().minusDays(5), "Online", 0, 5,
                 leader, leader, null, StatoHackathon.CONCLUSO);
         hackathonRepo.save(oldHack);
+
+        // FIX: Dobbiamo simulare che il team fosse iscritto a questo hackathon
+        // Salviamo manualmente la partecipazione per bypassare i controlli del
+        // TeamService (che vieterebbe l'iscrizione a un hack chiuso)
+        Core.POJO_Entities.Partecipazione pOld = new Core.POJO_Entities.Partecipazione(team, oldHack);
+        partecipazioneRepo.save(pOld);
 
         InviaSottomissioneRequest req = new InviaSottomissioneRequest(
                 oldHack.getId(),

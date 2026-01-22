@@ -26,7 +26,6 @@ public class Hackathon {
 
     // Liste
     private List<User> mentori;
-    private List<Team> teamIscritti;
 
     // COSTRUTTORE SOLO A SCOPO DI TEST
     public Hackathon(String nome, String regolamento, LocalDateTime inizioIscrizioni,
@@ -53,7 +52,6 @@ public class Hackathon {
 
         // Default
         this.dataCreazione = LocalDateTime.now();
-        this.teamIscritti = new ArrayList<>();
     }
 
     // Getters e Setters essenziali per il Service
@@ -71,6 +69,10 @@ public class Hackathon {
 
     public User getGiudice() {
         return giudice;
+    }
+
+    public List<User> getMentori() {
+        return mentori;
     }
 
     public StatoHackathon getStato() {

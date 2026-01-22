@@ -3,17 +3,29 @@ package Application.Services;
 import Application.IRepositories.ITeamRepository;
 import Application.IRepositories.IUserRepository;
 import Application.Requests.CreaTeamRequest;
+import Application.Requests.IscriviTeamRequest;
 import Core.Enums.Ruolo;
+import Core.Enums.StatoHackathon;
+import Core.POJO_Entities.Hackathon;
+import Application.IRepositories.IHackathonRepository;
+import Application.IRepositories.IPartecipazioneRepository;
+import Core.POJO_Entities.Partecipazione;
 import Core.POJO_Entities.Team;
+import java.util.List;
 import Core.POJO_Entities.User;
 
 public class TeamService {
     private final ITeamRepository teamRepository;
     private final IUserRepository userRepository;
+    private final IHackathonRepository hackathonRepository;
+    private final IPartecipazioneRepository partecipazioneRepository;
 
-    public TeamService(ITeamRepository teamRepository, IUserRepository userRepo) {
+    public TeamService(ITeamRepository teamRepository, IUserRepository userRepo, IHackathonRepository hackathonRepo,
+            IPartecipazioneRepository partecipazioneRepo) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepo;
+        this.hackathonRepository = hackathonRepo;
+        this.partecipazioneRepository = partecipazioneRepo;
     }
 
     public Team creaTeam(CreaTeamRequest request) {
@@ -58,5 +70,37 @@ public class TeamService {
         teamRepository.save(nuovoTeam);
 
         return nuovoTeam;
+    }
+
+    public Partecipazione iscriviTeam(IscriviTeamRequest request) {
+        Team team = teamRepository.findById(request.getIdTeam());
+        if (team == null)
+            throw new IllegalArgumentException("Team non trovato");
+
+        // Regola: Solo il LEADER DEL TEAM può iscrivere il team
+        if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(request.getIdRichiedente())) {
+            throw new SecurityException("Solo il Leader del Team può effettuare l'iscrizione.");
+        }
+
+        Hackathon hackathon = hackathonRepository.findById(request.getIdHackathon());
+        if (hackathon == null)
+            throw new IllegalArgumentException("Hackathon non trovato");
+
+        // Regola: Hackathon deve essere in fase di iscrizione
+        if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
+            throw new IllegalArgumentException("Le iscrizioni per questo Hackathon non sono aperte.");
+        }
+
+        // Regola: Team iscritto ad un solo Hackathon per volta (non Concluso)
+        List<Partecipazione> partecipazioni = partecipazioneRepository.findByTeamId(request.getIdTeam());
+        for (Partecipazione p : partecipazioni) {
+            if (p.getHackathon().getStato() != StatoHackathon.CONCLUSO) {
+                throw new IllegalArgumentException("Il Team è già iscritto ad un Hackathon attivo.");
+            }
+        }
+
+        Partecipazione p = new Partecipazione(team, hackathon);
+        partecipazioneRepository.save(p);
+        return p;
     }
 }

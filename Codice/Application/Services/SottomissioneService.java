@@ -8,24 +8,29 @@ import Application.Requests.CreaValutazioneRequest;
 import Application.Requests.InviaSottomissioneRequest;
 import Core.Enums.Ruolo;
 import Core.POJO_Entities.Hackathon;
+import Core.POJO_Entities.Partecipazione;
 import Core.POJO_Entities.Sottomissione;
 import Core.POJO_Entities.Team;
 import Core.POJO_Entities.User;
 import Core.POJO_Entities.Valutazione;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class SottomissioneService {
     private ISottomissioneRepository sottomissioneRepo;
     private IHackathonRepository hackathonRepo;
     private ITeamRepository teamRepo;
     private IUserRepository userRepo;
+    private Application.IRepositories.IPartecipazioneRepository partecipazioneRepo;
 
     public SottomissioneService(ISottomissioneRepository sottomissioneRepo, IHackathonRepository hackathonRepo,
-            ITeamRepository teamRepo, IUserRepository userRepo) {
+            ITeamRepository teamRepo, IUserRepository userRepo,
+            Application.IRepositories.IPartecipazioneRepository partecipazioneRepo) {
         this.sottomissioneRepo = sottomissioneRepo;
         this.hackathonRepo = hackathonRepo;
         this.teamRepo = teamRepo;
         this.userRepo = userRepo;
+        this.partecipazioneRepo = partecipazioneRepo;
     }
 
     public Sottomissione inviaSottomissione(InviaSottomissioneRequest request) {
@@ -60,6 +65,18 @@ public class SottomissioneService {
             throw new IllegalArgumentException("Solo membri o leader di un team possono inviare sottomissioni.");
         }
 
+        // Controllo Partecipazione attiva per questo Hackathon e Team
+        List<Partecipazione> partecipazioni = partecipazioneRepo
+                .findByTeamId(team.getId());
+        Partecipazione partecipazioneAttiva = partecipazioni.stream()
+                .filter(p -> p.getHackathon().getId().equals(hackathon.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (partecipazioneAttiva == null) {
+            throw new IllegalArgumentException("Il team non è iscritto a questo Hackathon.");
+        }
+
         // Controllo stato e date Hackathon
         LocalDateTime now = LocalDateTime.now();
         if (hackathon.getStato() != Core.Enums.StatoHackathon.IN_CORSO ||
@@ -71,8 +88,7 @@ public class SottomissioneService {
 
         // 4. Creazione Sottomissione
         Sottomissione sottomissione = new Sottomissione(
-                hackathon,
-                team,
+                partecipazioneAttiva,
                 user,
                 request.getLinkProgetto(),
                 request.getDescrizione());
@@ -95,7 +111,7 @@ public class SottomissioneService {
             throw new IllegalArgumentException("Giudice non trovato.");
         }
 
-        Hackathon hackathon = sottomissione.getHackathon();
+        Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
         // 2. Controllo che l'utente sia effettivamente il Giudice dell'Hackathon
         if (hackathon.getGiudice() == null || !hackathon.getGiudice().getId().equals(giudice.getId())) {
