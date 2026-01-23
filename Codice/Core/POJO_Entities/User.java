@@ -31,10 +31,6 @@ public class User {
         this.ruolo = ruolo;
     }
 
-    public boolean haRuolo(Ruolo ruoloRichiesto) {
-        return this.ruolo == ruoloRichiesto;
-    }
-
     // Getters
     public String getId() {
         return id;

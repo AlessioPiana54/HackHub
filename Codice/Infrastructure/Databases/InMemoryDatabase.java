@@ -26,6 +26,24 @@ public class InMemoryDatabase {
     private Map<String, Team> teams = new HashMap<>();
     private Map<String, Sottomissione> sottomissioni = new HashMap<>();
     private Map<String, Core.POJO_Entities.Partecipazione> partecipazioni = new HashMap<>();
+    private Map<String, Core.POJO_Entities.Invito> inviti = new HashMap<>();
+
+    // --- INVITI ---
+    public void saveInvito(Core.POJO_Entities.Invito invito) {
+        inviti.put(invito.getId(), invito);
+    }
+
+    public Core.POJO_Entities.Invito getInvito(String id) {
+        return inviti.get(id);
+    }
+
+    public void deleteInvito(String id) {
+        inviti.remove(id);
+    }
+
+    public List<Core.POJO_Entities.Invito> getAllInviti() {
+        return new ArrayList<>(inviti.values());
+    }
 
     // --- USERS ---
     public void saveUser(User user) {

@@ -39,10 +39,10 @@ public class HackathonService {
         }
 
         // 3. Validazione Ruoli (Business Logic pura)
-        if (!organizzatore.haRuolo(Ruolo.ORGANIZZATORE)) {
+        if (organizzatore.getRuolo() != Ruolo.ORGANIZZATORE) {
             throw new SecurityException("L'utente specificato come organizzatore non ha i permessi necessari.");
         }
-        if (!giudice.haRuolo(Ruolo.GIUDICE)) {
+        if (giudice.getRuolo() != Ruolo.GIUDICE) {
             throw new IllegalArgumentException("L'utente specificato come giudice non ha il ruolo di GIUDICE.");
         }
 
@@ -55,7 +55,7 @@ public class HackathonService {
                 throw new IllegalArgumentException("Mentore con ID " + idMentore + " non trovato.");
             }
             // Validazione Ruolo
-            if (!mentore.haRuolo(Ruolo.MENTORE)) {
+            if (mentore.getRuolo() != Ruolo.MENTORE) {
                 throw new IllegalArgumentException(
                         "L'utente " + mentore.getNome() + " non ha il ruolo di MENTORE.");
             }

@@ -10,6 +10,8 @@ public class Team {
     private User leaderSquadra;
     private List<User> membri;
 
+    private List<Invito> invitiInSospeso;
+
     // COSTRUTTORE SOLO A SCOPO DI TEST
     public Team(String nomeTeam, User leaderSquadra) {
         // Genera un ID Randomico
@@ -18,6 +20,7 @@ public class Team {
         this.leaderSquadra = leaderSquadra;
         this.membri = new ArrayList<>();
         this.membri.add(leaderSquadra);
+        this.invitiInSospeso = new ArrayList<>();
     }
 
     public String getId() {
@@ -34,5 +37,9 @@ public class Team {
 
     public List<User> getMembri() {
         return membri;
+    }
+    
+    public List<Invito> getInvitiInSospeso() {
+        return invitiInSospeso;
     }
 }

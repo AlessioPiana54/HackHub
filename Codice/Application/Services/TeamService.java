@@ -46,7 +46,7 @@ public class TeamService {
         }
 
         // 3. Validazione Ruoli (Business Logic pura)
-        if (!new_leader.haRuolo(Ruolo.UTENTE_SENZA_TEAM)) {
+        if (new_leader.getRuolo() != Ruolo.UTENTE_SENZA_TEAM) {
             throw new SecurityException("L'utente specificato non ha i permessi necessari.");
         }
 
