@@ -2,12 +2,12 @@ package Application.Requests;
 
 public class CreaInvitoRequest {
     private String teamId;
-    private String userDestinatarioId;
+    private String emailDestinatario;
     private String userMittenteId;
 
-    public CreaInvitoRequest(String teamId, String userDestinatarioId, String userMittenteId) {
+    public CreaInvitoRequest(String teamId, String emailDestinatario, String userMittenteId) {
         this.teamId = teamId;
-        this.userDestinatarioId = userDestinatarioId;
+        this.emailDestinatario = emailDestinatario;
         this.userMittenteId = userMittenteId;
     }
 
@@ -15,8 +15,8 @@ public class CreaInvitoRequest {
         return teamId;
     }
 
-    public String getUserDestinatarioId() {
-        return userDestinatarioId;
+    public String getEmailDestinatario() {
+        return emailDestinatario;
     }
 
     public String getUserMittenteId() {

@@ -5,7 +5,6 @@ import Application.Requests.RispostaInvitoRequest;
 import Application.Services.InvitoService;
 import Core.POJO_Entities.Invito;
 
-
 public class InvitoController {
     private final InvitoService invitoService;
 
@@ -16,9 +15,9 @@ public class InvitoController {
     // METODO ACCESSIBILE SOLO DA UN LEADER DEL TEAM O UN MEMBRO DEL TEAM
     public Object inviaInvito(CreaInvitoRequest request) {
         // Validazione Input (potrebbe servire un nuovo validator o semplice null check)
-        if (request.getTeamId() == null || request.getUserDestinatarioId() == null
+        if (request.getTeamId() == null || request.getEmailDestinatario() == null
                 || request.getUserMittenteId() == null
-                || request.getTeamId().isEmpty() || request.getUserDestinatarioId().isEmpty()
+                || request.getTeamId().isEmpty() || request.getEmailDestinatario().isEmpty()
                 || request.getUserMittenteId().isEmpty()) {
             return "Errore 400: Validazione fallita -> ID mancanti";
         }
@@ -38,8 +37,8 @@ public class InvitoController {
     public Object gestisciRispostaInvito(RispostaInvitoRequest rispostaInvitoRequest) {
         // Validazione Input (potrebbe servire un nuovo validator o semplice null check)
         if (rispostaInvitoRequest.getInvitoId() == null || rispostaInvitoRequest.isAccettato() == null
-        || rispostaInvitoRequest.getUserId() == null || rispostaInvitoRequest.getInvitoId().isEmpty() 
-        || rispostaInvitoRequest.getUserId().isEmpty()) {
+                || rispostaInvitoRequest.getUserId() == null || rispostaInvitoRequest.getInvitoId().isEmpty()
+                || rispostaInvitoRequest.getUserId().isEmpty()) {
             return "Errore 400: Validazione fallita -> ID mancanti";
         }
         try {

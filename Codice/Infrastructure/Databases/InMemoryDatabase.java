@@ -9,6 +9,7 @@ import Core.POJO_Entities.Hackathon;
 import Core.POJO_Entities.Team;
 import Core.POJO_Entities.User;
 import Core.POJO_Entities.Sottomissione;
+import Core.POJO_Entities.Segnalazione;
 
 public class InMemoryDatabase {
     // Singleton pattern semplificato per accesso condiviso
@@ -27,6 +28,7 @@ public class InMemoryDatabase {
     private Map<String, Sottomissione> sottomissioni = new HashMap<>();
     private Map<String, Core.POJO_Entities.Partecipazione> partecipazioni = new HashMap<>();
     private Map<String, Core.POJO_Entities.Invito> inviti = new HashMap<>();
+    private Map<String, Segnalazione> segnalazioni = new HashMap<>();
 
     // --- INVITI ---
     public void saveInvito(Core.POJO_Entities.Invito invito) {
@@ -212,5 +214,28 @@ public class InMemoryDatabase {
 
     public void deletePartecipazione(String id) {
         partecipazioni.remove(id);
+    }
+
+    // --- SEGNALAZIONI ---
+    public void saveSegnalazione(Segnalazione s) {
+        segnalazioni.put(s.getId(), s);
+    }
+
+    public Segnalazione getSegnalazione(String id) {
+        return segnalazioni.get(id);
+    }
+
+    public List<Segnalazione> getAllSegnalazioni() {
+        return new ArrayList<>(segnalazioni.values());
+    }
+
+    public List<Segnalazione> getSegnalazioniByHackathon(String idHackathon) {
+        List<Segnalazione> result = new ArrayList<>();
+        for (Segnalazione s : segnalazioni.values()) {
+            if (s.getPartecipazione().getHackathon().getId().equals(idHackathon)) {
+                result.add(s);
+            }
+        }
+        return result;
     }
 }
