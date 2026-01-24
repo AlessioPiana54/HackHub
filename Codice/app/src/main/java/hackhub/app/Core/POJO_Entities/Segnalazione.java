@@ -1,0 +1,62 @@
+package hackhub.app.Core.POJO_Entities;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "segnalazioni")
+public class Segnalazione {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne
+    @JoinColumn(name = "partecipazione_id")
+    private Partecipazione partecipazione;
+
+    @ManyToOne
+    @JoinColumn(name = "mentore_id")
+    private User mentore;
+
+    @ManyToOne
+    @JoinColumn(name = "hackathon_id")
+    private Hackathon hackathon;
+
+    private String descrizione;
+    private LocalDateTime dataSegnalazione;
+
+    public Segnalazione() {
+    }
+
+    public Segnalazione(Partecipazione partecipazione, User mentore, String descrizione) {
+        this.partecipazione = partecipazione;
+        this.mentore = mentore;
+        this.descrizione = descrizione;
+        this.dataSegnalazione = LocalDateTime.now();
+        this.hackathon = partecipazione.getHackathon();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Partecipazione getPartecipazione() {
+        return partecipazione;
+    }
+
+    public User getMentore() {
+        return mentore;
+    }
+
+    public String getDescrizione() {
+        return descrizione;
+    }
+
+    public LocalDateTime getDataSegnalazione() {
+        return dataSegnalazione;
+    }
+
+    public Team getTeam() {
+        return partecipazione.getTeam();
+    }
+}
