@@ -15,4 +15,6 @@ public interface IPartecipazioneRepository {
     List<Partecipazione> findByHackathonId(String hackathonId);
 
     void deleteById(String id);
+
+    Partecipazione findByTeamAndHackathon(String teamId, String hackathonId);
 }

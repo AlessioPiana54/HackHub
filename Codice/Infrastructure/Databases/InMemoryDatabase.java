@@ -10,6 +10,7 @@ import Core.POJO_Entities.Team;
 import Core.POJO_Entities.User;
 import Core.POJO_Entities.Sottomissione;
 import Core.POJO_Entities.Segnalazione;
+import Core.POJO_Entities.RichiestaSupporto;
 
 public class InMemoryDatabase {
     // Singleton pattern semplificato per accesso condiviso
@@ -234,6 +235,31 @@ public class InMemoryDatabase {
         for (Segnalazione s : segnalazioni.values()) {
             if (s.getPartecipazione().getHackathon().getId().equals(idHackathon)) {
                 result.add(s);
+            }
+        }
+        return result;
+    }
+
+    // --- RICHIESTE SUPPORTO ---
+    private Map<String, RichiestaSupporto> richiesteSupporto = new HashMap<>();
+
+    public void saveRichiestaSupporto(RichiestaSupporto r) {
+        richiesteSupporto.put(r.getId(), r);
+    }
+
+    public RichiestaSupporto getRichiestaSupporto(String id) {
+        return richiesteSupporto.get(id);
+    }
+
+    public List<RichiestaSupporto> getAllRichiesteSupporto() {
+        return new ArrayList<>(richiesteSupporto.values());
+    }
+
+    public List<RichiestaSupporto> getRichiesteSupportoByHackathon(String idHackathon) {
+        List<RichiestaSupporto> result = new ArrayList<>();
+        for (RichiestaSupporto r : richiesteSupporto.values()) {
+            if (r.getPartecipazione().getHackathon().getId().equals(idHackathon)) {
+                result.add(r);
             }
         }
         return result;

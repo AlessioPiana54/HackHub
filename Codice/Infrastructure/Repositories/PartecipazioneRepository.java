@@ -41,4 +41,12 @@ public class PartecipazioneRepository implements IPartecipazioneRepository {
     public void deleteById(String id) {
         db.deletePartecipazione(id);
     }
+
+    @Override
+    public Partecipazione findByTeamAndHackathon(String teamId, String hackathonId) {
+        return db.getPartecipazioniByTeam(teamId).stream()
+                .filter(p -> p.getHackathon().getId().equals(hackathonId))
+                .findFirst()
+                .orElse(null);
+    }
 }
