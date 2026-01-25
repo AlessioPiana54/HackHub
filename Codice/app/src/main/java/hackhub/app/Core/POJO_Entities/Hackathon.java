@@ -85,6 +85,10 @@ public class Hackathon {
         return stato;
     }
 
+    public void setStato(StatoHackathon stato) {
+        this.stato = stato;
+    }
+
     public LocalDateTime getDataInizio() {
         return dataInizio;
     }
@@ -116,4 +120,8 @@ public class Hackathon {
     public LocalDateTime getDataCreazione() {
         return dataCreazione;
     }
+
+    @Version
+    private Long version;
+
 }
