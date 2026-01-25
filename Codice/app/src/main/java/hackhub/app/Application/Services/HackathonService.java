@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import hackhub.app.Application.IRepositories.IHackathonRepository;
 import hackhub.app.Application.IRepositories.IUserRepository;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
+import hackhub.app.Core.Builders.HackathonBuilder;
 import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -57,19 +58,18 @@ public class HackathonService {
             statoIniziale = StatoHackathon.IN_ATTESA;
         }
 
-        Hackathon nuovoHackathon = new Hackathon(
-                request.getNome(),
-                request.getRegolamento(),
-                request.getInizioIscrizioni(),
-                request.getScadenzaIscrizioni(),
-                request.getDataInizio(),
-                request.getDataFine(),
-                request.getLuogo(),
-                request.getPremioInDenaro(),
-                organizzatore,
-                giudice,
-                listaMentori,
-                statoIniziale);
+        Hackathon nuovoHackathon = new HackathonBuilder()
+                .setNome(request.getNome())
+                .setRegolamento(request.getRegolamento())
+                .setPeriodoIscrizione(request.getInizioIscrizioni(), request.getScadenzaIscrizioni())
+                .setDurata(request.getDataInizio(), request.getDataFine())
+                .setLuogo(request.getLuogo())
+                .setPremioInDenaro(request.getPremioInDenaro())
+                .setOrganizzatore(organizzatore)
+                .setGiudice(giudice)
+                .setMentori(listaMentori)
+                .setStato(statoIniziale)
+                .build();
 
         hackathonRepository.save(nuovoHackathon);
 
