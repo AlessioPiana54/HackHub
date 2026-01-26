@@ -59,6 +59,6 @@ public class SegnalazioneService {
                 if (!h.getOrganizzatore().getId().equals(idOrganizer)) {
                         throw new SecurityException("Solo l'organizzatore può vedere le segnalazioni.");
                 }
-                return segnalazioneRepo.findByHackathonId(idHackathon);
+                return segnalazioneRepo.findByPartecipazioneHackathonId(idHackathon);
         }
 }

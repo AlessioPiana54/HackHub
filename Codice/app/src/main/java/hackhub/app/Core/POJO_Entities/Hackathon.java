@@ -121,6 +121,7 @@ public class Hackathon {
         return dataCreazione;
     }
 
+    // @Version per il controllo di concorrenza
     @Version
     private Long version;
 

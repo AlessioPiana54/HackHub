@@ -47,10 +47,13 @@ public class HackathonScheduler {
     }
 
     private boolean manageInAttesa(Hackathon hackathon, LocalDateTime now) {
+        // Da "In Attesa" a "In Iscrizione"
         if (now.isAfter(hackathon.getInizioIscrizioni()) && now.isBefore(hackathon.getScadenzaIscrizioni())) {
             hackathon.setStato(StatoHackathon.IN_ISCRIZIONE);
             return true;
-        } else if (now.isAfter(hackathon.getDataInizio()) && now.isBefore(hackathon.getDataFine())) {
+        }
+        // Da "In Attesa" a "In Corso"
+        else if (now.isAfter(hackathon.getDataInizio()) && now.isBefore(hackathon.getDataFine())) {
             hackathon.setStato(StatoHackathon.IN_CORSO);
             return true;
         }
@@ -58,10 +61,13 @@ public class HackathonScheduler {
     }
 
     private boolean manageInIscrizione(Hackathon hackathon, LocalDateTime now) {
+        // Da "In Iscrizione" a "In Attesa"
         if (now.isAfter(hackathon.getScadenzaIscrizioni()) && now.isBefore(hackathon.getDataInizio())) {
             hackathon.setStato(StatoHackathon.IN_ATTESA);
             return true;
-        } else if (now.isAfter(hackathon.getDataInizio()) && now.isBefore(hackathon.getDataFine())) {
+        }
+        // Da "In Iscrizione" a "In Corso"
+        else if (now.isAfter(hackathon.getDataInizio()) && now.isBefore(hackathon.getDataFine())) {
             hackathon.setStato(StatoHackathon.IN_CORSO);
             return true;
         }
@@ -69,6 +75,7 @@ public class HackathonScheduler {
     }
 
     private boolean manageInCorso(Hackathon hackathon, LocalDateTime now) {
+        // Da "In Corso" a "In Valutazione"
         if (now.isAfter(hackathon.getDataFine())) {
             hackathon.setStato(StatoHackathon.IN_VALUTAZIONE);
             return true;

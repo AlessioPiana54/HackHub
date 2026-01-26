@@ -15,19 +15,14 @@ public class RichiestaSupporto {
     private Partecipazione partecipazione;
 
     @ManyToOne
-    @JoinColumn(name = "team_id")
-    private Team team;
-
-    @ManyToOne
-    @JoinColumn(name = "hackathon_id")
-    private Hackathon hackathon;
-
-    @ManyToOne
     @JoinColumn(name = "richiedente_id")
     private User richiedente;
 
     private String descrizione;
     private LocalDateTime dataRichiesta;
+
+    private String linkCall;
+    private LocalDateTime dataCall;
 
     public RichiestaSupporto() {
     }
@@ -37,12 +32,18 @@ public class RichiestaSupporto {
         this.richiedente = richiedente;
         this.descrizione = descrizione;
         this.dataRichiesta = LocalDateTime.now();
-        this.team = partecipazione.getTeam();
-        this.hackathon = partecipazione.getHackathon();
     }
 
     public String getId() {
         return id;
+    }
+
+    public Hackathon getHackathon() {
+        return partecipazione.getHackathon();
+    }
+
+    public Team getTeam() {
+        return partecipazione.getTeam();
     }
 
     public Partecipazione getPartecipazione() {
@@ -59,5 +60,21 @@ public class RichiestaSupporto {
 
     public LocalDateTime getDataRichiesta() {
         return dataRichiesta;
+    }
+
+    public String getLinkCall() {
+        return linkCall;
+    }
+
+    public void setLinkCall(String linkCall) {
+        this.linkCall = linkCall;
+    }
+
+    public LocalDateTime getDataCall() {
+        return dataCall;
+    }
+
+    public void setDataCall(LocalDateTime dataCall) {
+        this.dataCall = dataCall;
     }
 }

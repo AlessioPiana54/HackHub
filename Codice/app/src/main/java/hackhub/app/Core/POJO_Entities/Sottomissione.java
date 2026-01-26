@@ -15,14 +15,6 @@ public class Sottomissione {
     private Partecipazione partecipazione;
 
     @ManyToOne
-    @JoinColumn(name = "hackathon_id")
-    private Hackathon hackathon;
-
-    @ManyToOne
-    @JoinColumn(name = "team_id")
-    private Team team;
-
-    @ManyToOne
     @JoinColumn(name = "mittente_id")
     private User mittente; // Membro o Leader
 
@@ -35,8 +27,6 @@ public class Sottomissione {
 
     public Sottomissione(Partecipazione partecipazione, User mittente, String linkProgetto, String descrizione) {
         this.partecipazione = partecipazione;
-        this.hackathon = partecipazione.getHackathon();
-        this.team = partecipazione.getTeam();
         this.mittente = mittente;
         this.linkProgetto = linkProgetto;
         this.descrizione = descrizione;
@@ -48,11 +38,11 @@ public class Sottomissione {
     }
 
     public Hackathon getHackathon() {
-        return hackathon;
+        return partecipazione.getHackathon();
     }
 
     public Team getTeam() {
-        return team;
+        return partecipazione.getTeam();
     }
 
     public Partecipazione getPartecipazione() {

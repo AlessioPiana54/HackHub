@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface ISegnalazioneRepository extends JpaRepository<Segnalazione, String> {
-    List<Segnalazione> findByHackathonId(String hackathonId);
+    List<Segnalazione> findByPartecipazioneHackathonId(String hackathonId);
 }

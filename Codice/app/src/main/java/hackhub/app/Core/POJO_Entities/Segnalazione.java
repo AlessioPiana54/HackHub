@@ -18,10 +18,6 @@ public class Segnalazione {
     @JoinColumn(name = "mentore_id")
     private User mentore;
 
-    @ManyToOne
-    @JoinColumn(name = "hackathon_id")
-    private Hackathon hackathon;
-
     private String descrizione;
     private LocalDateTime dataSegnalazione;
 
@@ -33,7 +29,6 @@ public class Segnalazione {
         this.mentore = mentore;
         this.descrizione = descrizione;
         this.dataSegnalazione = LocalDateTime.now();
-        this.hackathon = partecipazione.getHackathon();
     }
 
     public String getId() {
@@ -58,5 +53,9 @@ public class Segnalazione {
 
     public Team getTeam() {
         return partecipazione.getTeam();
+    }
+
+    public Hackathon getHackathon() {
+        return partecipazione.getHackathon();
     }
 }

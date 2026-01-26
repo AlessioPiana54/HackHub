@@ -2,6 +2,7 @@ package hackhub.app.Presentation.Validators;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
@@ -67,6 +68,10 @@ public class HackathonValidator {
             // l'evento è iniziato
             if (request.getInizioIscrizioni().isAfter(request.getDataInizio())) {
                 errors.add("L'inizio delle iscrizioni non può essere successivo all'inizio dell'evento.");
+            }
+            // 5. Controllo Date Passate: Le iscrizioni non possono iniziare nel passato
+            if (request.getInizioIscrizioni().isBefore(LocalDateTime.now())) {
+                errors.add("La data di inizio iscrizioni non può essere nel passato.");
             }
         }
     }

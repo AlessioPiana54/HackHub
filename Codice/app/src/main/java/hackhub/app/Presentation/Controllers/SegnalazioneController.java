@@ -34,6 +34,9 @@ public class SegnalazioneController {
 
     @GetMapping
     public ResponseEntity<?> getSegnalazioni(@RequestParam String hackathonId, @RequestParam String organizerId) {
+        if (hackathonId.trim().isEmpty() || organizerId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
+        }
         List<Segnalazione> segnalazioni = service.getSegnalazioni(hackathonId, organizerId);
         return ResponseEntity.ok(segnalazioni);
     }
