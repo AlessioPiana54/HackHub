@@ -32,4 +32,13 @@ public class HackathonController {
         Hackathon hackathon = hackathonService.creaHackathon(request);
         return ResponseEntity.ok(hackathon);
     }
+
+    @PostMapping("/termina-valutazione")
+    public ResponseEntity<?> terminaValutazione(@RequestParam String hackathonId, @RequestParam String giudiceId) {
+        if (hackathonId.trim().isEmpty() || giudiceId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
+        }
+        boolean success = hackathonService.terminaFaseValutazione(hackathonId, giudiceId);
+        return ResponseEntity.ok(success);
+    }
 }

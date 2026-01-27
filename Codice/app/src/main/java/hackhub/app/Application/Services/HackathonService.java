@@ -9,6 +9,7 @@ import hackhub.app.Core.Builders.HackathonBuilder;
 import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
+import hackhub.app.Core.POJO_Entities.Sottomissione;
 import hackhub.app.Core.POJO_Entities.User;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,7 +74,31 @@ public class HackathonService {
         return nuovoHackathon;
     }
 
-    public List<Hackathon> visualizzaTutti() {
-        return unitOfWork.hackathonRepository().findAll();
+    public boolean terminaFaseValutazione(String hackathonId, String giudiceId) {
+        Hackathon hackathon = unitOfWork.hackathonRepository().findById(hackathonId)
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+
+        if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {
+            throw new IllegalStateException("L'Hackathon non è in fase di valutazione");
+        }
+
+        if (!hackathon.getGiudice().getId().equals(giudiceId)) {
+            throw new SecurityException("Solo il giudice dell'Hackathon può terminare la valutazione");
+        }
+
+        List<Sottomissione> sottomissioni = unitOfWork.sottomissioneRepository()
+                .findByPartecipazioneHackathonId(hackathonId);
+
+        for (Sottomissione s : sottomissioni) {
+            boolean valutata = unitOfWork.valutazioneRepository().existsBySottomissioneId(s.getId());
+            if (!valutata) {
+                throw new IllegalStateException(
+                        "Non tutte le sottomissioni sono state valutate. Impossibile terminare la fase di valutazione.");
+            }
+        }
+
+        hackathon.setStato(StatoHackathon.IN_PREMIAZIONE);
+        unitOfWork.hackathonRepository().save(hackathon);
+        return true;
     }
 }
