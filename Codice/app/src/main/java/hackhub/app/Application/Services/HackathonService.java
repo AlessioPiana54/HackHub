@@ -3,8 +3,7 @@ package hackhub.app.Application.Services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import hackhub.app.Application.IRepositories.IHackathonRepository;
-import hackhub.app.Application.IRepositories.IUserRepository;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Core.Builders.HackathonBuilder;
 import hackhub.app.Core.Enums.Ruolo;
@@ -18,19 +17,17 @@ import java.util.List;
 @Transactional
 public class HackathonService {
 
-    private final IHackathonRepository hackathonRepository;
-    private final IUserRepository userRepository;
+    private final IUnitOfWork unitOfWork;
 
     @Autowired
-    public HackathonService(IHackathonRepository hackathonRepo, IUserRepository userRepo) {
-        this.hackathonRepository = hackathonRepo;
-        this.userRepository = userRepo;
+    public HackathonService(IUnitOfWork unitOfWork) {
+        this.unitOfWork = unitOfWork;
     }
 
     public Hackathon creaHackathon(CreaHackathonRequest request) {
-        User organizzatore = userRepository.findById(request.getIdOrganizzatore())
+        User organizzatore = unitOfWork.userRepository().findById(request.getIdOrganizzatore())
                 .orElseThrow(() -> new IllegalArgumentException("Organizzatore non trovato nel database."));
-        User giudice = userRepository.findById(request.getIdGiudice())
+        User giudice = unitOfWork.userRepository().findById(request.getIdGiudice())
                 .orElseThrow(() -> new IllegalArgumentException("Giudice non trovato nel database."));
 
         if (organizzatore.getRuolo() != Ruolo.ORGANIZZATORE) {
@@ -40,7 +37,7 @@ public class HackathonService {
             throw new IllegalArgumentException("L'utente specificato come giudice non ha il ruolo di GIUDICE.");
         }
 
-        List<User> listaMentori = userRepository.findAllById(request.getIdMentori());
+        List<User> listaMentori = unitOfWork.userRepository().findAllById(request.getIdMentori());
         if (listaMentori.size() != request.getIdMentori().size()) {
             throw new IllegalArgumentException("Uno o più mentori non trovati.");
         }
@@ -71,12 +68,12 @@ public class HackathonService {
                 .setStato(statoIniziale)
                 .build();
 
-        hackathonRepository.save(nuovoHackathon);
+        unitOfWork.hackathonRepository().save(nuovoHackathon);
 
         return nuovoHackathon;
     }
 
     public List<Hackathon> visualizzaTutti() {
-        return hackathonRepository.findAll();
+        return unitOfWork.hackathonRepository().findAll();
     }
 }

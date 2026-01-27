@@ -1,10 +1,11 @@
 package hackhub.app.Application.IRepositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 
-@Repository
-public interface IValutazioneRepository extends JpaRepository<Valutazione, String> {
+public interface IValutazioneRepository {
     boolean existsBySottomissioneId(String sottomissioneId);
+
+    Valutazione save(Valutazione valutazione);
+
+    java.util.Optional<Valutazione> findById(String id);
 }

@@ -3,10 +3,7 @@ package hackhub.app.Application.Services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import hackhub.app.Application.IRepositories.IInvitoRepository;
-import hackhub.app.Application.IRepositories.IPartecipazioneRepository;
-import hackhub.app.Application.IRepositories.ITeamRepository;
-import hackhub.app.Application.IRepositories.IUserRepository;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
 import hackhub.app.Core.Enums.Ruolo;
@@ -21,27 +18,20 @@ import java.util.List;
 @Service
 @Transactional
 public class InvitoService {
-    private final IInvitoRepository invitoRepository;
-    private final ITeamRepository teamRepository;
-    private final IUserRepository userRepository;
-    private final IPartecipazioneRepository partecipazioneRepository;
+    private final IUnitOfWork unitOfWork;
 
     @Autowired
-    public InvitoService(IInvitoRepository invitoRepository, ITeamRepository teamRepository,
-            IUserRepository userRepository, IPartecipazioneRepository partecipazioneRepository) {
-        this.invitoRepository = invitoRepository;
-        this.teamRepository = teamRepository;
-        this.userRepository = userRepository;
-        this.partecipazioneRepository = partecipazioneRepository;
+    public InvitoService(IUnitOfWork unitOfWork) {
+        this.unitOfWork = unitOfWork;
     }
 
     public Invito inviaInvito(CreaInvitoRequest request) {
-        Team team = teamRepository.findById(request.getTeamId())
+        Team team = unitOfWork.teamRepository().findById(request.getTeamId())
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
-        User mittente = userRepository.findById(request.getUserMittenteId())
+        User mittente = unitOfWork.userRepository().findById(request.getUserMittenteId())
                 .orElseThrow(() -> new IllegalArgumentException("Mittente non trovato"));
 
-        User destinatario = userRepository.findByEmail(request.getEmailDestinatario());
+        User destinatario = unitOfWork.userRepository().findByEmail(request.getEmailDestinatario());
         if (destinatario == null)
             throw new IllegalArgumentException("Destinatario non trovato");
 
@@ -58,7 +48,7 @@ public class InvitoService {
 
         // Aggiornamento lato inverso non necessario con JPA se salvo l'Invito nel DB.
 
-        invitoRepository.save(invito);
+        unitOfWork.invitoRepository().save(invito);
 
         // teamRepository.save(team);
         // Non necessario, basta salvare invito.
@@ -67,10 +57,10 @@ public class InvitoService {
     }
 
     public void gestisciRisposta(RispostaInvitoRequest request) {
-        Invito invito = invitoRepository.findById(request.getInvitoId())
+        Invito invito = unitOfWork.invitoRepository().findById(request.getInvitoId())
                 .orElseThrow(() -> new IllegalArgumentException("Invito non trovato"));
 
-        User user = userRepository.findById(request.getUserId())
+        User user = unitOfWork.userRepository().findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
 
         if (!invito.getDestinatario().getId().equals(user.getId())) {
@@ -87,7 +77,7 @@ public class InvitoService {
     private void accettaInvito(Invito invito, User user) {
         Team team = invito.getTeam();
 
-        List<Partecipazione> partecipazioni = partecipazioneRepository.findByTeamId(team.getId());
+        List<Partecipazione> partecipazioni = unitOfWork.partecipazioneRepository().findByTeamId(team.getId());
         for (Partecipazione p : partecipazioni) {
             Hackathon h = p.getHackathon();
             if (h.getStato() == StatoHackathon.IN_CORSO ||
@@ -103,12 +93,12 @@ public class InvitoService {
 
         // team.getInvitiInSospeso().remove(invito); viene fatto automaticamente
 
-        userRepository.save(user); // è in realtà un update
-        teamRepository.save(team); // è in realtà un update
-        invitoRepository.delete(invito);
+        unitOfWork.userRepository().save(user); // è in realtà un update
+        unitOfWork.teamRepository().save(team); // è in realtà un update
+        unitOfWork.invitoRepository().delete(invito);
     }
 
     private void rifiutaInvito(Invito invito) {
-        invitoRepository.delete(invito);
+        unitOfWork.invitoRepository().delete(invito);
     }
 }
