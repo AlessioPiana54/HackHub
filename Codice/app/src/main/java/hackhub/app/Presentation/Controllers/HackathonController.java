@@ -44,6 +44,14 @@ public class HackathonController {
         return ResponseEntity.ok("Fase di valutazione terminata. Hackathon ora in fase di premiazione.");
     }
 
+    @GetMapping("/{hackathonId}/classifica")
+    public ResponseEntity<?> getClassifica(@PathVariable String hackathonId, @RequestParam String requesterId) {
+        if (hackathonId.trim().isEmpty() || requesterId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
+        }
+        return ResponseEntity.ok(hackathonService.getClassifica(hackathonId, requesterId));
+    }
+
     @PostMapping("/{hackathonId}/vincitore")
     public ResponseEntity<String> proclamaVincitore(@PathVariable String hackathonId, @RequestParam String teamId,
             @RequestParam String organizzatoreId) {
