@@ -2,9 +2,13 @@ package hackhub.app.Application.Services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
+import hackhub.app.Application.Strategies.LinkStrategyContext;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -17,13 +21,19 @@ import hackhub.app.Core.POJO_Entities.Valutazione;
 @Transactional
 public class SottomissioneService {
     private final IUnitOfWork unitOfWork;
+    private final LinkStrategyContext linkStrategyContext;
 
     @Autowired
-    public SottomissioneService(IUnitOfWork unitOfWork) {
+    public SottomissioneService(IUnitOfWork unitOfWork,
+            LinkStrategyContext linkStrategyContext) {
         this.unitOfWork = unitOfWork;
+        this.linkStrategyContext = linkStrategyContext;
     }
 
     public Sottomissione inviaSottomissione(InviaSottomissioneRequest request) {
+        if (!linkStrategyContext.validate(request.getLinkProgetto(), List.of("GitHub"))) {
+            throw new IllegalArgumentException("Il link del progetto deve essere un link GitHub valido.");
+        }
         User utente = unitOfWork.userRepository().findById(request.getIdUtente())
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
 

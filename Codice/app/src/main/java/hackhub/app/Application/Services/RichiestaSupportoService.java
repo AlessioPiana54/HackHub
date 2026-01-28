@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
+import hackhub.app.Application.Strategies.LinkStrategyContext;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
 import hackhub.app.Core.POJO_Entities.User;
@@ -18,10 +19,13 @@ import static java.util.stream.Collectors.toList;
 @Transactional
 public class RichiestaSupportoService {
         private final IUnitOfWork unitOfWork;
+        private final LinkStrategyContext linkStrategyContext;
 
         @Autowired
-        public RichiestaSupportoService(IUnitOfWork unitOfWork) {
+        public RichiestaSupportoService(IUnitOfWork unitOfWork,
+                        LinkStrategyContext linkStrategyContext) {
                 this.unitOfWork = unitOfWork;
+                this.linkStrategyContext = linkStrategyContext;
         }
 
         public RichiestaSupporto creaRichiesta(CreaRichiestaSupportoRequest request) {
@@ -65,6 +69,10 @@ public class RichiestaSupportoService {
         }
 
         public RichiestaSupporto proponiCall(ProponiCallRequest request) {
+                if (!linkStrategyContext.validate(request.getLinkCall(), java.util.List.of("Google Meet", "Webex"))) {
+                        throw new IllegalArgumentException("Il link della call deve essere di Google Meet o Webex.");
+                }
+
                 RichiestaSupporto richiesta = unitOfWork.richiestaSupportoRepository()
                                 .findById(request.getRichiestaId())
                                 .orElseThrow(() -> new IllegalArgumentException("Richiesta di supporto non trovata"));

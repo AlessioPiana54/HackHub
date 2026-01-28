@@ -2,7 +2,6 @@ package hackhub.app.Core.Builders;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.ArrayList;
 
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -19,7 +18,7 @@ public class HackathonBuilder implements IHackathonBuilder {
     private double premioInDenaro;
     private User organizzatore;
     private User giudice;
-    private List<User> mentori = new ArrayList<>();
+    private List<User> mentori;
     private StatoHackathon stato;
 
     @Override
