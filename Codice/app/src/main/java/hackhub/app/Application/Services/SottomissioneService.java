@@ -44,6 +44,10 @@ public class SottomissioneService {
             throw new SecurityException("L'utente non fa parte del team.");
         }
 
+        if (unitOfWork.sottomissioneRepository().existsByPartecipazioneId(partecipazioneAttiva.getId())) {
+            throw new IllegalStateException("Il team ha già inviato una sottomissione per questo hackathon.");
+        }
+
         Sottomissione sottomissione = new Sottomissione(partecipazioneAttiva, utente, request.getLinkProgetto(),
                 request.getDescrizione());
         unitOfWork.sottomissioneRepository().save(sottomissione);

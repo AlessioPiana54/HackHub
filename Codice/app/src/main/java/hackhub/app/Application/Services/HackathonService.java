@@ -3,6 +3,8 @@ package hackhub.app.Application.Services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import hackhub.app.Application.IServices.IPaymentService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Core.Builders.HackathonBuilder;
@@ -10,19 +12,26 @@ import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Sottomissione;
+import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
+import hackhub.app.Core.POJO_Entities.Valutazione;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class HackathonService {
 
     private final IUnitOfWork unitOfWork;
+    private final IPaymentService paymentService;
 
     @Autowired
-    public HackathonService(IUnitOfWork unitOfWork) {
+    public HackathonService(IUnitOfWork unitOfWork, IPaymentService paymentService) {
         this.unitOfWork = unitOfWork;
+        this.paymentService = paymentService;
     }
 
     public Hackathon creaHackathon(CreaHackathonRequest request) {
@@ -74,7 +83,7 @@ public class HackathonService {
         return nuovoHackathon;
     }
 
-    public boolean terminaFaseValutazione(String hackathonId, String giudiceId) {
+    public void terminaFaseValutazione(String hackathonId, String giudiceId) {
         Hackathon hackathon = unitOfWork.hackathonRepository().findById(hackathonId)
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
 
@@ -89,9 +98,18 @@ public class HackathonService {
         List<Sottomissione> sottomissioni = unitOfWork.sottomissioneRepository()
                 .findByPartecipazioneHackathonId(hackathonId);
 
+        // Recupero tutte le valutazioni in una sola query
+        List<Valutazione> valutazioni = unitOfWork.valutazioneRepository()
+                .findAllBySottomissione_Partecipazione_Hackathon_Id(hackathonId);
+
+        // Uso un Set di ID sottomissione per verificare rapidamente se una
+        // sottomissione è stata valutata
+        Set<String> sottomissioniValutateIds = valutazioni.stream()
+                .map(v -> v.getSottomissione().getId())
+                .collect(Collectors.toSet());
+
         for (Sottomissione s : sottomissioni) {
-            boolean valutata = unitOfWork.valutazioneRepository().existsBySottomissioneId(s.getId());
-            if (!valutata) {
+            if (!sottomissioniValutateIds.contains(s.getId())) {
                 throw new IllegalStateException(
                         "Non tutte le sottomissioni sono state valutate. Impossibile terminare la fase di valutazione.");
             }
@@ -99,6 +117,40 @@ public class HackathonService {
 
         hackathon.setStato(StatoHackathon.IN_PREMIAZIONE);
         unitOfWork.hackathonRepository().save(hackathon);
-        return true;
+    }
+
+    public void proclamaVincitore(String hackathonId, String teamId, String organizzatoreId) {
+        Hackathon hackathon = unitOfWork.hackathonRepository().findById(hackathonId)
+                .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
+
+        if (!hackathon.getOrganizzatore().getId().equals(organizzatoreId)) {
+            throw new SecurityException("Solo l'organizzatore può proclamare il vincitore.");
+        }
+
+        if (hackathon.getStato() != StatoHackathon.IN_PREMIAZIONE) {
+            throw new IllegalStateException("L'Hackathon non è in fase di premiazione.");
+        }
+
+        Team team = unitOfWork.teamRepository().findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Team non trovato."));
+
+        boolean haSottomesso = unitOfWork.sottomissioneRepository()
+                .existsByPartecipazione_Hackathon_IdAndPartecipazione_Team_Id(hackathonId, teamId);
+        if (!haSottomesso) {
+            throw new IllegalArgumentException(
+                    "Il team selezionato non è iscritto o non ha effettuato sottomissioni per questo Hackathon.");
+        }
+
+        // Process Payment (Il Process Payment, in una reale implementazione, potrebbe
+        // lanciare eccezioni)
+        try {
+            paymentService.processPayment(team.getLeaderSquadra().getId(), hackathon.getPremioInDenaro());
+        } catch (Exception e) {
+            throw new IllegalStateException("Errore durante il pagamento: " + e.getMessage(), e);
+        }
+
+        hackathon.setVincitore(team);
+        hackathon.setStato(StatoHackathon.CONCLUSO);
+        unitOfWork.hackathonRepository().save(hackathon);
     }
 }

@@ -75,10 +75,9 @@ public class HackathonServiceTest {
         when(valutazioneRepository.existsBySottomissioneId("sub1")).thenReturn(true);
 
         // Act
-        boolean result = hackathonService.terminaFaseValutazione(HACKATHON_ID, GIUDICE_ID);
+        hackathonService.terminaFaseValutazione(HACKATHON_ID, GIUDICE_ID);
 
         // Assert
-        assertTrue(result);
         assertEquals(StatoHackathon.IN_PREMIAZIONE, hackathon.getStato());
         verify(hackathonRepository).save(hackathon);
     }

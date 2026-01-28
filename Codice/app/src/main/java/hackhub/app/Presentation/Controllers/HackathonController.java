@@ -3,6 +3,7 @@ package hackhub.app.Presentation.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Application.Services.HackathonService;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -33,12 +34,23 @@ public class HackathonController {
         return ResponseEntity.ok(hackathon);
     }
 
-    @PostMapping("/termina-valutazione")
-    public ResponseEntity<?> terminaValutazione(@RequestParam String hackathonId, @RequestParam String giudiceId) {
+    @PostMapping("/{hackathonId}/terminaValutazione")
+    public ResponseEntity<String> terminaFaseValutazione(@PathVariable String hackathonId,
+            @RequestParam String giudiceId) {
         if (hackathonId.trim().isEmpty() || giudiceId.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
         }
-        boolean success = hackathonService.terminaFaseValutazione(hackathonId, giudiceId);
-        return ResponseEntity.ok(success);
+        hackathonService.terminaFaseValutazione(hackathonId, giudiceId);
+        return ResponseEntity.ok("Fase di valutazione terminata. Hackathon ora in fase di premiazione.");
+    }
+
+    @PostMapping("/{hackathonId}/vincitore")
+    public ResponseEntity<String> proclamaVincitore(@PathVariable String hackathonId, @RequestParam String teamId,
+            @RequestParam String organizzatoreId) {
+        if (hackathonId.trim().isEmpty() || teamId.trim().isEmpty() || organizzatoreId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
+        }
+        hackathonService.proclamaVincitore(hackathonId, teamId, organizzatoreId);
+        return ResponseEntity.ok("Vincitore proclamato e Hackathon concluso.");
     }
 }

@@ -33,6 +33,10 @@ public class Hackathon {
     @JoinColumn(name = "giudice_id")
     private User giudice;
 
+    @ManyToOne
+    @JoinColumn(name = "vincitore_id")
+    private Team vincitore;
+
     // Liste
     @ManyToMany
     @JoinTable(name = "hackathon_mentori", joinColumns = @JoinColumn(name = "hackathon_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
@@ -75,6 +79,14 @@ public class Hackathon {
 
     public User getGiudice() {
         return giudice;
+    }
+
+    public Team getVincitore() {
+        return vincitore;
+    }
+
+    public void setVincitore(Team vincitore) {
+        this.vincitore = vincitore;
     }
 
     public List<User> getMentori() {

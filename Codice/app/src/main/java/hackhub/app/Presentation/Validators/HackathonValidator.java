@@ -42,9 +42,6 @@ public class HackathonValidator {
         if (request.getPremioInDenaro() < 0) {
             errors.add("Il premio in denaro non può essere negativo.");
         }
-        if (request.getDimensioneMaxTeam() <= 0) {
-            errors.add("La dimensione del team deve essere maggiore di zero.");
-        }
 
         // Validazione Date Completa
         if (request.getInizioIscrizioni() == null || request.getScadenzaIscrizioni() == null ||
