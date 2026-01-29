@@ -25,10 +25,10 @@ public class InvitoService {
         this.unitOfWork = unitOfWork;
     }
 
-    public Invito inviaInvito(CreaInvitoRequest request) {
+    public Invito inviaInvito(CreaInvitoRequest request, String mittenteId) {
         Team team = unitOfWork.teamRepository().findById(request.getTeamId())
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
-        User mittente = unitOfWork.userRepository().findById(request.getUserMittenteId())
+        User mittente = unitOfWork.userRepository().findById(mittenteId)
                 .orElseThrow(() -> new IllegalArgumentException("Mittente non trovato"));
 
         User destinatario = unitOfWork.userRepository().findByEmail(request.getEmailDestinatario());
@@ -56,11 +56,11 @@ public class InvitoService {
         return invito;
     }
 
-    public void gestisciRisposta(RispostaInvitoRequest request) {
+    public void gestisciRisposta(RispostaInvitoRequest request, String userId) {
         Invito invito = unitOfWork.invitoRepository().findById(request.getInvitoId())
                 .orElseThrow(() -> new IllegalArgumentException("Invito non trovato"));
 
-        User user = unitOfWork.userRepository().findById(request.getUserId())
+        User user = unitOfWork.userRepository().findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
 
         if (!invito.getDestinatario().getId().equals(user.getId())) {
@@ -88,12 +88,13 @@ public class InvitoService {
             }
         }
 
-        user.setRuolo(Ruolo.MEMBRO_TEAM);
-        team.getMembri().add(user); // Necessario per aggiornare la relazione @ManyToMany
+        User updatedUser = new User(user.getId(), user.getNome(), user.getCognome(), user.getEmail(),
+                user.getPassword(), Ruolo.MEMBRO_TEAM);
+        team.getMembri().add(updatedUser); // Necessario per aggiornare la relazione @ManyToMany
 
         // team.getInvitiInSospeso().remove(invito); viene fatto automaticamente
 
-        unitOfWork.userRepository().save(user); // è in realtà un update
+        unitOfWork.userRepository().save(updatedUser); // è in realtà un update
         unitOfWork.teamRepository().save(team); // è in realtà un update
         unitOfWork.invitoRepository().delete(invito);
     }

@@ -3,12 +3,10 @@ package hackhub.app.Application.Requests;
 public class CreaInvitoRequest {
     private String teamId;
     private String emailDestinatario;
-    private String userMittenteId;
 
-    public CreaInvitoRequest(String teamId, String emailDestinatario, String userMittenteId) {
+    public CreaInvitoRequest(String teamId, String emailDestinatario) {
         this.teamId = teamId;
         this.emailDestinatario = emailDestinatario;
-        this.userMittenteId = userMittenteId;
     }
 
     public String getTeamId() {
@@ -19,7 +17,4 @@ public class CreaInvitoRequest {
         return emailDestinatario;
     }
 
-    public String getUserMittenteId() {
-        return userMittenteId;
-    }
 }

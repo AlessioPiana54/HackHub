@@ -30,11 +30,11 @@ public class SottomissioneService {
         this.linkStrategyContext = linkStrategyContext;
     }
 
-    public Sottomissione inviaSottomissione(InviaSottomissioneRequest request) {
+    public Sottomissione inviaSottomissione(InviaSottomissioneRequest request, String utenteId) {
         if (!linkStrategyContext.validate(request.getLinkProgetto(), List.of("GitHub"))) {
             throw new IllegalArgumentException("Il link del progetto deve essere un link GitHub valido.");
         }
-        User utente = unitOfWork.userRepository().findById(request.getIdUtente())
+        User utente = unitOfWork.userRepository().findById(utenteId)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
 
         Partecipazione partecipazioneAttiva = unitOfWork.partecipazioneRepository()
@@ -64,7 +64,7 @@ public class SottomissioneService {
         return sottomissione;
     }
 
-    public Valutazione valutaSottomissione(CreaValutazioneRequest request) {
+    public Valutazione valutaSottomissione(CreaValutazioneRequest request, String giudiceId) {
         Sottomissione sottomissione = unitOfWork.sottomissioneRepository().findById(request.getIdSottomissione())
                 .orElseThrow(() -> new IllegalArgumentException("Sottomissione non trovata"));
 
@@ -74,7 +74,7 @@ public class SottomissioneService {
             throw new IllegalStateException("L'Hackathon non è in fase di valutazione.");
         }
 
-        User giudice = unitOfWork.userRepository().findById(request.getIdGiudice())
+        User giudice = unitOfWork.userRepository().findById(giudiceId)
                 .orElseThrow(() -> new IllegalArgumentException("Giudice non trovato"));
 
         if (!hackathon.getGiudice().getId().equals(giudice.getId())) {

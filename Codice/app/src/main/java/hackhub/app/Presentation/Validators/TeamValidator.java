@@ -27,10 +27,6 @@ public class TeamValidator {
         }
 
         // 3. Validazione Leader Squadra
-        String leader = request.getLeaderSquadra();
-        if (leader == null || leader.trim().isEmpty()) {
-            errors.add("L'ID del leader della squadra è obbligatorio.");
-        }
 
         return errors;
     }

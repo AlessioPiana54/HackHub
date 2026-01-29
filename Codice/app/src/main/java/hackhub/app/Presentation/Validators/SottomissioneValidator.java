@@ -24,10 +24,6 @@ public class SottomissioneValidator {
             errors.add("L'ID del Team è obbligatorio.");
         }
 
-        if (request.getIdUtente() == null || request.getIdUtente().trim().isEmpty()) {
-            errors.add("L'ID dell'Utente è obbligatorio.");
-        }
-
         if (request.getLinkProgetto() == null || request.getLinkProgetto().trim().isEmpty()) {
             errors.add("Il link al progetto è obbligatorio.");
         }

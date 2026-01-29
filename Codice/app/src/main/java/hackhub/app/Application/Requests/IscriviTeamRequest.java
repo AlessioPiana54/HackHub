@@ -4,12 +4,9 @@ public class IscriviTeamRequest {
     private String idTeam;
     private String idHackathon;
 
-    private String idRichiedente;
-
-    public IscriviTeamRequest(String idTeam, String idHackathon, String idRichiedente) {
+    public IscriviTeamRequest(String idTeam, String idHackathon) {
         this.idTeam = idTeam;
         this.idHackathon = idHackathon;
-        this.idRichiedente = idRichiedente;
     }
 
     public String getIdTeam() {
@@ -20,7 +17,4 @@ public class IscriviTeamRequest {
         return idHackathon;
     }
 
-    public String getIdRichiedente() {
-        return idRichiedente;
-    }
 }

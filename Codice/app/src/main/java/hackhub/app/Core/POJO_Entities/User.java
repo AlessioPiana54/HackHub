@@ -13,6 +13,7 @@ public class User {
     private String nome;
     private String cognome;
     private String email;
+    private String password;
 
     @Enumerated(EnumType.STRING)
     private Ruolo ruolo;
@@ -20,14 +21,15 @@ public class User {
     public User() {
     }
 
-    public User(String nome, String cognome, String email, Ruolo ruolo) {
+    public User(String nome, String cognome, String email, String password, Ruolo ruolo) {
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;
+        this.password = password;
         this.ruolo = ruolo;
     }
 
-    public User(String id, String nome, String cognome, String email, Ruolo ruolo) {
+    public User(String id, String nome, String cognome, String email, String password, Ruolo ruolo) {
         if (id == null || id.isEmpty()) {
             throw new IllegalArgumentException("ID non può essere nullo o vuoto per questo costruttore");
         }
@@ -35,6 +37,7 @@ public class User {
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;
+        this.password = password;
         this.ruolo = ruolo;
     }
 
@@ -54,11 +57,11 @@ public class User {
         return email;
     }
 
-    public Ruolo getRuolo() {
-        return ruolo;
+    public String getPassword() {
+        return password;
     }
 
-    public void setRuolo(Ruolo ruolo) {
-        this.ruolo = ruolo;
+    public Ruolo getRuolo() {
+        return ruolo;
     }
 }

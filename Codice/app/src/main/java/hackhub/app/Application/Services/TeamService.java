@@ -24,8 +24,8 @@ public class TeamService {
         this.unitOfWork = unitOfWork;
     }
 
-    public Team creaTeam(CreaTeamRequest request) {
-        User new_leader = unitOfWork.userRepository().findById(request.getLeaderSquadra())
+    public Team creaTeam(CreaTeamRequest request, String leaderId) {
+        User new_leader = unitOfWork.userRepository().findById(leaderId)
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato nel database."));
 
         if (unitOfWork.teamRepository().existsByNomeTeam(request.getNomeTeam())) {
@@ -36,20 +36,21 @@ public class TeamService {
             throw new SecurityException("L'utente specificato non ha i permessi necessari.");
         }
 
-        new_leader.setRuolo(Ruolo.LEADER_TEAM);
-        unitOfWork.userRepository().save(new_leader);
+        User updatedLeader = new User(new_leader.getId(), new_leader.getNome(), new_leader.getCognome(),
+                new_leader.getEmail(), new_leader.getPassword(), Ruolo.LEADER_TEAM);
+        unitOfWork.userRepository().save(updatedLeader);
 
-        Team nuovoTeam = new Team(request.getNomeTeam(), new_leader);
+        Team nuovoTeam = new Team(request.getNomeTeam(), updatedLeader);
         unitOfWork.teamRepository().save(nuovoTeam);
 
         return nuovoTeam;
     }
 
-    public Partecipazione iscriviTeam(IscriviTeamRequest request) {
+    public Partecipazione iscriviTeam(IscriviTeamRequest request, String richiedenteId) {
         Team team = unitOfWork.teamRepository().findById(request.getIdTeam())
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
 
-        if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(request.getIdRichiedente())) {
+        if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(richiedenteId)) {
             throw new SecurityException("Solo il Leader del Team può effettuare l'iscrizione.");
         }
 

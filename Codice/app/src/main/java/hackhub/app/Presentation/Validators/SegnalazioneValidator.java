@@ -22,9 +22,6 @@ public class SegnalazioneValidator {
         if (request.getIdTeam() == null || request.getIdTeam().trim().isEmpty()) {
             errors.add("ID Team obbligatorio.");
         }
-        if (request.getIdMentore() == null || request.getIdMentore().trim().isEmpty()) {
-            errors.add("ID Mentore obbligatorio.");
-        }
         if (request.getDescrizione() == null || request.getDescrizione().trim().isEmpty()) {
             errors.add("La descrizione è obbligatoria.");
         }

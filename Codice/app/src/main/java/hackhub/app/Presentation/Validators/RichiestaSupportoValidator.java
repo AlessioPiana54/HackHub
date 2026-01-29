@@ -23,9 +23,6 @@ public class RichiestaSupportoValidator {
         if (request.getTeamId() == null || request.getTeamId().trim().isEmpty()) {
             errors.add("ID Team obbligatorio.");
         }
-        if (request.getRichiedenteId() == null || request.getRichiedenteId().trim().isEmpty()) {
-            errors.add("ID Richiedente obbligatorio.");
-        }
         if (request.getDescrizione() == null || request.getDescrizione().trim().isEmpty()) {
             errors.add("La descrizione è obbligatoria.");
         }
@@ -44,9 +41,6 @@ public class RichiestaSupportoValidator {
 
         if (request.getRichiestaId() == null || request.getRichiestaId().trim().isEmpty()) {
             errors.add("ID Richiesta Supporto obbligatorio.");
-        }
-        if (request.getMentorId() == null || request.getMentorId().trim().isEmpty()) {
-            errors.add("ID Mentore obbligatorio.");
         }
         if (request.getLinkCall() == null || request.getLinkCall().trim().isEmpty()) {
             errors.add("Il link per la call è obbligatorio.");

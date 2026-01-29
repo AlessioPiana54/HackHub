@@ -14,10 +14,6 @@ public class ValutazioneValidator {
             errors.add("ID Sottomissione mancante.");
         }
 
-        if (request.getIdGiudice() == null || request.getIdGiudice().isEmpty()) {
-            errors.add("ID Giudice mancante.");
-        }
-
         if (request.getVoto() < 0 || request.getVoto() > 10) {
             errors.add("Il voto deve essere compreso tra 0 e 10.");
         }

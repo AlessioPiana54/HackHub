@@ -21,10 +21,10 @@ public class SegnalazioneService {
                 this.unitOfWork = unitOfWork;
         }
 
-        public Segnalazione creaSegnalazione(CreaSegnalazioneRequest request) {
-                User mentore = unitOfWork.userRepository().findById(request.getIdMentore())
+        public Segnalazione creaSegnalazione(CreaSegnalazioneRequest request, String mentoreId) {
+                User mentore = unitOfWork.userRepository().findById(mentoreId)
                                 .orElseThrow(() -> new IllegalArgumentException(
-                                                "Mentore non trovato: " + request.getIdMentore()));
+                                                "Mentore non trovato: " + mentoreId));
                 Partecipazione partecipazione = unitOfWork.partecipazioneRepository()
                                 .findByTeamIdAndHackathonId(request.getIdTeam(), request.getIdHackathon())
                                 .orElseThrow(() -> new IllegalArgumentException(

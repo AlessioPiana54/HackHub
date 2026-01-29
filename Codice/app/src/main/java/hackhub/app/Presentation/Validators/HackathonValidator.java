@@ -22,9 +22,6 @@ public class HackathonValidator {
         if (request.getNome() == null || request.getNome().trim().isEmpty()) {
             errors.add("Il campo Nome è obbligatorio.");
         }
-        if (request.getIdOrganizzatore() == null || request.getIdOrganizzatore().trim().isEmpty()) {
-            errors.add("ID Organizzatore obbligatorio.");
-        }
         if (request.getIdGiudice() == null || request.getIdGiudice().trim().isEmpty()) {
             errors.add("ID Giudice obbligatorio.");
         }

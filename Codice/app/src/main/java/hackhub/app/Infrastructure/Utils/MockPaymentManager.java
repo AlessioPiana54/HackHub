@@ -1,10 +1,11 @@
-package hackhub.app.Infrastructure.ExternalServices;
+package hackhub.app.Infrastructure.Utils;
 
-import hackhub.app.Application.IServices.IPaymentService;
 import org.springframework.stereotype.Service;
 
+import hackhub.app.Application.Utils.IPaymentManager;
+
 @Service
-public class MockPaymentService implements IPaymentService {
+public class MockPaymentManager implements IPaymentManager {
 
     @Override
     public void processPayment(String userId, double amount) {

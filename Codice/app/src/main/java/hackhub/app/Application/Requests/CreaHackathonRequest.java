@@ -12,14 +12,13 @@ public class CreaHackathonRequest {
     private LocalDateTime dataFine;
     private String luogo;
     private double premioInDenaro;
-    private String idOrganizzatore;
     private String idGiudice;
     private List<String> idMentori;
 
     public CreaHackathonRequest(String nome, String regolamento, LocalDateTime inizioIscrizioni,
             LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio,
             LocalDateTime dataFine, String luogo, double premioInDenaro,
-            String idOrganizzatore, String idGiudice,
+            String idGiudice,
             List<String> idMentori) {
         this.nome = nome;
         this.regolamento = regolamento;
@@ -29,7 +28,6 @@ public class CreaHackathonRequest {
         this.dataFine = dataFine;
         this.luogo = luogo;
         this.premioInDenaro = premioInDenaro;
-        this.idOrganizzatore = idOrganizzatore;
         this.idGiudice = idGiudice;
         this.idMentori = idMentori;
     }
@@ -64,10 +62,6 @@ public class CreaHackathonRequest {
 
     public double getPremioInDenaro() {
         return premioInDenaro;
-    }
-
-    public String getIdOrganizzatore() {
-        return idOrganizzatore;
     }
 
     public String getIdGiudice() {

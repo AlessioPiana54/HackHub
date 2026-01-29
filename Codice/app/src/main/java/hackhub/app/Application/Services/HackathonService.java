@@ -5,9 +5,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import hackhub.app.Application.DTOs.ClassificaTeamDTO;
-import hackhub.app.Application.IServices.IPaymentService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
+import hackhub.app.Application.Utils.IPaymentManager;
 import hackhub.app.Core.Builders.HackathonBuilder;
 import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.Enums.StatoHackathon;
@@ -29,16 +29,16 @@ import java.util.stream.Collectors;
 public class HackathonService {
 
     private final IUnitOfWork unitOfWork;
-    private final IPaymentService paymentService;
+    private final IPaymentManager paymentService;
 
     @Autowired
-    public HackathonService(IUnitOfWork unitOfWork, IPaymentService paymentService) {
+    public HackathonService(IUnitOfWork unitOfWork, IPaymentManager paymentService) {
         this.unitOfWork = unitOfWork;
         this.paymentService = paymentService;
     }
 
-    public Hackathon creaHackathon(CreaHackathonRequest request) {
-        User organizzatore = unitOfWork.userRepository().findById(request.getIdOrganizzatore())
+    public Hackathon creaHackathon(CreaHackathonRequest request, String organizzatoreId) {
+        User organizzatore = unitOfWork.userRepository().findById(organizzatoreId)
                 .orElseThrow(() -> new IllegalArgumentException("Organizzatore non trovato nel database."));
         User giudice = unitOfWork.userRepository().findById(request.getIdGiudice())
                 .orElseThrow(() -> new IllegalArgumentException("Giudice non trovato nel database."));

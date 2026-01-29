@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaTeamRequest;
 import hackhub.app.Application.Requests.IscriviTeamRequest;
 import hackhub.app.Application.Services.TeamService;
+import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Presentation.Validators.TeamValidator;
@@ -17,27 +19,42 @@ public class TeamController {
 
     private final TeamService teamService;
     private final TeamValidator teamValidator;
+    private final ISessionManager sessionManager;
 
     @Autowired
-    public TeamController(TeamService teamService, TeamValidator teamValidator) {
+    public TeamController(TeamService teamService, TeamValidator teamValidator,
+            ISessionManager sessionManager) {
         this.teamService = teamService;
         this.teamValidator = teamValidator;
+        this.sessionManager = sessionManager;
     }
 
     @PostMapping("/crea")
-    public ResponseEntity<?> creaTeam(@RequestBody CreaTeamRequest request) {
+    public ResponseEntity<?> creaTeam(@RequestHeader("Authorization") String token,
+            @RequestBody CreaTeamRequest request) {
+        User user = sessionManager.getUser(token);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Utente non autenticato.");
+        }
+
         List<String> errors = teamValidator.validateCreation(request);
         if (!errors.isEmpty()) {
             return ResponseEntity.badRequest().body("Errore Validazione: " + String.join(", ", errors));
         }
 
-        Team team = teamService.creaTeam(request);
+        Team team = teamService.creaTeam(request, user.getId());
         return ResponseEntity.ok(team);
     }
 
     @PostMapping("/iscrivi")
-    public ResponseEntity<?> iscriviTeam(@RequestBody IscriviTeamRequest request) {
-        Partecipazione partecipazione = teamService.iscriviTeam(request);
+    public ResponseEntity<?> iscriviTeam(@RequestHeader("Authorization") String token,
+            @RequestBody IscriviTeamRequest request) {
+        User user = sessionManager.getUser(token);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Utente non autenticato.");
+        }
+
+        Partecipazione partecipazione = teamService.iscriviTeam(request, user.getId());
         return ResponseEntity.ok(partecipazione);
     }
 }

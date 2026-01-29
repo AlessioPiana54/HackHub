@@ -21,9 +21,6 @@ public class InvitoValidator {
         if (request.getTeamId() == null || request.getTeamId().trim().isEmpty()) {
             errors.add("ID Team mancante.");
         }
-        if (request.getUserMittenteId() == null || request.getUserMittenteId().trim().isEmpty()) {
-            errors.add("ID Mittente mancante.");
-        }
         if (request.getEmailDestinatario() == null || request.getEmailDestinatario().trim().isEmpty()) {
             errors.add("Email destinatario mancante.");
         }
@@ -45,9 +42,6 @@ public class InvitoValidator {
 
         if (request.getInvitoId() == null || request.getInvitoId().trim().isEmpty()) {
             errors.add("ID Invito mancante.");
-        }
-        if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
-            errors.add("ID Utente mancante.");
         }
         if (request.isAccettato() == null) {
             errors.add("Esito risposta mancante.");

@@ -28,20 +28,20 @@ public class RichiestaSupportoService {
                 this.linkStrategyContext = linkStrategyContext;
         }
 
-        public RichiestaSupporto creaRichiesta(CreaRichiestaSupportoRequest request) {
+        public RichiestaSupporto creaRichiesta(CreaRichiestaSupportoRequest request, String richiedenteId) {
                 Partecipazione partecipazione = unitOfWork.partecipazioneRepository()
                                 .findByTeamIdAndHackathonId(request.getTeamId(), request.getHackathonId())
                                 .orElseThrow(
                                                 () -> new IllegalArgumentException(
                                                                 "Nessuna partecipazione trovata per il team e hackathon specificati."));
 
-                User richiedente = unitOfWork.userRepository().findById(request.getRichiedenteId())
+                User richiedente = unitOfWork.userRepository().findById(richiedenteId)
                                 .orElseThrow(() -> new IllegalArgumentException("Utente richiedente non trovato."));
 
                 boolean isLeader = partecipazione.getTeam().getLeaderSquadra().getId()
-                                .equals(request.getRichiedenteId());
+                                .equals(richiedenteId);
                 boolean isMembro = partecipazione.getTeam().getMembri().stream()
-                                .anyMatch(m -> m.getId().equals(request.getRichiedenteId()));
+                                .anyMatch(m -> m.getId().equals(richiedenteId));
 
                 if (!isLeader && !isMembro) {
                         throw new SecurityException("L'utente richiedente non appartiene al team partecipante.");
@@ -68,7 +68,7 @@ public class RichiestaSupportoService {
                 return unitOfWork.richiestaSupportoRepository().findByPartecipazioneHackathonId(hackathonId);
         }
 
-        public RichiestaSupporto proponiCall(ProponiCallRequest request) {
+        public RichiestaSupporto proponiCall(ProponiCallRequest request, String mentorId) {
                 if (!linkStrategyContext.validate(request.getLinkCall(), java.util.List.of("Google Meet", "Webex"))) {
                         throw new IllegalArgumentException("Il link della call deve essere di Google Meet o Webex.");
                 }
@@ -80,7 +80,7 @@ public class RichiestaSupportoService {
                 Hackathon hackathon = richiesta.getHackathon();
 
                 boolean isMentor = hackathon.getMentori().stream()
-                                .anyMatch(m -> m.getId().equals(request.getMentorId()));
+                                .anyMatch(m -> m.getId().equals(mentorId));
 
                 if (!isMentor) {
                         throw new SecurityException(
