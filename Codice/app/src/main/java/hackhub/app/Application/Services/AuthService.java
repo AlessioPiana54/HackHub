@@ -52,4 +52,8 @@ public class AuthService {
 
         return sessionManager.createSession(user);
     }
+
+    public void logout(String token) {
+        sessionManager.invalidateSession(token);
+    }
 }

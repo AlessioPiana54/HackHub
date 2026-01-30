@@ -45,4 +45,13 @@ public class AuthController {
         String token = authService.login(request);
         return ResponseEntity.ok(java.util.Collections.singletonMap("token", token));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        if (token != null && !token.isEmpty()) {
+            authService.logout(token);
+            return ResponseEntity.ok("Logout effettuato con successo.");
+        }
+        return ResponseEntity.badRequest().body("Token mancante.");
+    }
 }
