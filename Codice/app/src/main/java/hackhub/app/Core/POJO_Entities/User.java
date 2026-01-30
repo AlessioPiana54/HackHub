@@ -64,4 +64,8 @@ public class User {
     public Ruolo getRuolo() {
         return ruolo;
     }
+
+    public void setRuolo(Ruolo ruolo) {
+        this.ruolo = ruolo;
+    }
 }

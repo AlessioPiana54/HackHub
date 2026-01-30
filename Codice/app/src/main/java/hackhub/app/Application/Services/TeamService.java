@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaTeamRequest;
-import hackhub.app.Application.Requests.IscriviTeamRequest;
 import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -36,32 +35,31 @@ public class TeamService {
             throw new SecurityException("L'utente specificato non ha i permessi necessari.");
         }
 
-        User updatedLeader = new User(new_leader.getId(), new_leader.getNome(), new_leader.getCognome(),
-                new_leader.getEmail(), new_leader.getPassword(), Ruolo.LEADER_TEAM);
-        unitOfWork.userRepository().save(updatedLeader);
+        new_leader.setRuolo(Ruolo.LEADER_TEAM);
+        unitOfWork.userRepository().save(new_leader);
 
-        Team nuovoTeam = new Team(request.getNomeTeam(), updatedLeader);
+        Team nuovoTeam = new Team(request.getNomeTeam(), new_leader);
         unitOfWork.teamRepository().save(nuovoTeam);
 
         return nuovoTeam;
     }
 
-    public Partecipazione iscriviTeam(IscriviTeamRequest request, String richiedenteId) {
-        Team team = unitOfWork.teamRepository().findById(request.getIdTeam())
+    public Partecipazione iscriviTeam(String teamId, String hackathonId, String richiedenteId) {
+        Team team = unitOfWork.teamRepository().findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
 
         if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(richiedenteId)) {
             throw new SecurityException("Solo il Leader del Team può effettuare l'iscrizione.");
         }
 
-        Hackathon hackathon = unitOfWork.hackathonRepository().findById(request.getIdHackathon())
+        Hackathon hackathon = unitOfWork.hackathonRepository().findById(hackathonId)
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
 
         if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
             throw new IllegalArgumentException("Le iscrizioni per questo Hackathon non sono aperte.");
         }
 
-        List<Partecipazione> partecipazioni = unitOfWork.partecipazioneRepository().findByTeamId(request.getIdTeam());
+        List<Partecipazione> partecipazioni = unitOfWork.partecipazioneRepository().findByTeamId(teamId);
         for (Partecipazione p : partecipazioni) {
             if (p.getHackathon().getStato() != StatoHackathon.CONCLUSO) {
                 throw new IllegalArgumentException("Il Team è già iscritto ad un Hackathon attivo.");
@@ -71,5 +69,35 @@ public class TeamService {
         Partecipazione p = new Partecipazione(team, hackathon);
         unitOfWork.partecipazioneRepository().save(p);
         return p;
+    }
+
+    public void abbandonaTeam(String teamId, String memberId) {
+        Team team = unitOfWork.teamRepository().findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
+
+        User member = unitOfWork.userRepository().findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+
+        // Check if the user is part of the team
+        boolean isMember = team.getMembri().stream()
+                .anyMatch(m -> m.getId().equals(memberId));
+
+        if (!isMember) {
+            throw new IllegalArgumentException("L'utente non fa parte di questo Team.");
+        }
+
+        // Check if the user is the leader
+        if (team.getLeaderSquadra().getId().equals(memberId)) {
+            throw new IllegalArgumentException("Il Leader deve cedere il ruolo prima di abbandonare il team.");
+        }
+
+        // Remove member from team
+        team.getMembri().removeIf(m -> m.getId().equals(memberId));
+        unitOfWork.teamRepository().save(team);
+
+        // Update user role
+        // Update user role
+        member.setRuolo(Ruolo.UTENTE_SENZA_TEAM);
+        unitOfWork.userRepository().save(member);
     }
 }

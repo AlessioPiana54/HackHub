@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaTeamRequest;
-import hackhub.app.Application.Requests.IscriviTeamRequest;
 import hackhub.app.Application.Services.TeamService;
 import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.User;
@@ -48,13 +47,33 @@ public class TeamController {
 
     @PostMapping("/iscrivi")
     public ResponseEntity<?> iscriviTeam(@RequestHeader("Authorization") String token,
-            @RequestBody IscriviTeamRequest request) {
+            @RequestParam String teamId, @RequestParam String hackathonId) {
         User user = sessionManager.getUser(token);
         if (user == null) {
             return ResponseEntity.status(401).body("Utente non autenticato.");
         }
 
-        Partecipazione partecipazione = teamService.iscriviTeam(request, user.getId());
+        if (hackathonId.trim().isEmpty() || teamId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
+        }
+
+        Partecipazione partecipazione = teamService.iscriviTeam(teamId, hackathonId, user.getId());
         return ResponseEntity.ok(partecipazione);
+    }
+
+    @PostMapping("/abbandona")
+    public ResponseEntity<?> abbandonaTeam(@RequestHeader("Authorization") String token,
+            @RequestParam String teamId) {
+        User user = sessionManager.getUser(token);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Utente non autenticato.");
+        }
+
+        if (teamId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
+        }
+
+        teamService.abbandonaTeam(teamId, user.getId());
+        return ResponseEntity.ok("Hai abbandonato il team con successo.");
     }
 }

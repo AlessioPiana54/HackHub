@@ -88,13 +88,12 @@ public class InvitoService {
             }
         }
 
-        User updatedUser = new User(user.getId(), user.getNome(), user.getCognome(), user.getEmail(),
-                user.getPassword(), Ruolo.MEMBRO_TEAM);
-        team.getMembri().add(updatedUser); // Necessario per aggiornare la relazione @ManyToMany
+        user.setRuolo(Ruolo.MEMBRO_TEAM);
+        team.getMembri().add(user); // Necessario per aggiornare la relazione @ManyToMany
 
         // team.getInvitiInSospeso().remove(invito); viene fatto automaticamente
 
-        unitOfWork.userRepository().save(updatedUser); // è in realtà un update
+        unitOfWork.userRepository().save(user); // è in realtà un update
         unitOfWork.teamRepository().save(team); // è in realtà un update
         unitOfWork.invitoRepository().delete(invito);
     }
