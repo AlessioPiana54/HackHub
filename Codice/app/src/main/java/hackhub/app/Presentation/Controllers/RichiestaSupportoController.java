@@ -45,9 +45,9 @@ public class RichiestaSupportoController {
         return ResponseEntity.ok(richiesta);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getRichiestePerMentore(@PathVariable(required = false) String dummy,
-            @RequestParam String hackathonId, @RequestHeader("Authorization") String token) {
+    @GetMapping("/mentore")
+    public ResponseEntity<?> getRichiestePerMentore(@RequestParam String hackathonId,
+            @RequestHeader("Authorization") String token) {
         User user = sessionManager.getUser(token);
         if (user == null) {
             return ResponseEntity.status(401).body("Utente non autenticato.");
@@ -77,7 +77,7 @@ public class RichiestaSupportoController {
         return ResponseEntity.ok(richiesta);
     }
 
-    @GetMapping("/visualizza-richieste-con-risposta-team")
+    @GetMapping("/visualizza-proposte-call")
     public ResponseEntity<?> getRichiesteGestitePerTeam(@RequestParam String hackathonId, @RequestParam String teamId,
             @RequestHeader("Authorization") String token) {
         User user = sessionManager.getUser(token);

@@ -45,9 +45,9 @@ public class TeamController {
         return ResponseEntity.ok(team);
     }
 
-    @PostMapping("/iscrivi")
+    @PostMapping("/{teamId}/iscrivi")
     public ResponseEntity<?> iscriviTeam(@RequestHeader("Authorization") String token,
-            @RequestParam String teamId, @RequestParam String hackathonId) {
+            @PathVariable String teamId, @RequestParam String hackathonId) {
         User user = sessionManager.getUser(token);
         if (user == null) {
             return ResponseEntity.status(401).body("Utente non autenticato.");
@@ -61,9 +61,9 @@ public class TeamController {
         return ResponseEntity.ok(partecipazione);
     }
 
-    @PostMapping("/abbandona")
+    @PostMapping("/{teamId}/abbandona")
     public ResponseEntity<?> abbandonaTeam(@RequestHeader("Authorization") String token,
-            @RequestParam String teamId) {
+            @PathVariable String teamId) {
         User user = sessionManager.getUser(token);
         if (user == null) {
             return ResponseEntity.status(401).body("Utente non autenticato.");

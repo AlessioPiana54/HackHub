@@ -81,6 +81,6 @@ Per ispezionare il database H2 in memoria:
 
 ## 👥 Autori
 
-Luca Soricetti
-Alessio Pianaroli
-Davide Perruolo
+* Luca Soricetti
+* Alessio Pianaroli
+* Davide Perruolo
