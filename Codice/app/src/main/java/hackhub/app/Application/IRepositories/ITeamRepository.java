@@ -1,6 +1,7 @@
 package hackhub.app.Application.IRepositories;
 
 import hackhub.app.Core.POJO_Entities.Team;
+import java.util.Optional;
 
 public interface ITeamRepository {
     /**
@@ -25,5 +26,5 @@ public interface ITeamRepository {
      * @param id Identificativo univoco del team.
      * @return Optional contenente il team se trovato.
      */
-    java.util.Optional<Team> findById(String id);
+    Optional<Team> findById(String id);
 }
