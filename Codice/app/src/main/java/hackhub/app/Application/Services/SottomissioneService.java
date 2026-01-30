@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
+import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
 import hackhub.app.Application.Strategies.LinkStrategyContext;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Core.Enums.StatoHackathon;
@@ -90,5 +91,37 @@ public class SottomissioneService {
 
         unitOfWork.valutazioneRepository().save(valutazione);
         return valutazione;
+    }
+
+    public Sottomissione modificaSottomissione(ModificaSottomissioneRequest request, String utenteId) {
+        Sottomissione sottomissione = unitOfWork.sottomissioneRepository().findById(request.getIdSottomissione())
+                .orElseThrow(() -> new IllegalArgumentException("Sottomissione non trovata"));
+
+        if (!linkStrategyContext.validate(request.getLinkProgetto(), List.of("GitHub"))) {
+            throw new IllegalArgumentException("Il link del progetto deve essere un link GitHub valido.");
+        }
+
+        Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
+        if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
+            throw new IllegalStateException("L'Hackathon non è in corso, impossibile modificare la sottomissione.");
+        }
+
+        User utente = unitOfWork.userRepository().findById(utenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+
+        boolean isMembro = sottomissione.getPartecipazione().getTeam().getMembri().stream()
+                .anyMatch(u -> u.getId().equals(utente.getId()));
+        boolean isLeader = sottomissione.getPartecipazione().getTeam().getLeaderSquadra().getId()
+                .equals(utente.getId());
+
+        if (!isMembro && !isLeader) {
+            throw new SecurityException("L'utente non fa parte del team.");
+        }
+
+        sottomissione.setLinkProgetto(request.getLinkProgetto());
+        sottomissione.setDescrizione(request.getDescrizione());
+
+        unitOfWork.sottomissioneRepository().save(sottomissione);
+        return sottomissione;
     }
 }

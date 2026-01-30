@@ -57,8 +57,16 @@ public class Sottomissione {
         return linkProgetto;
     }
 
+    public void setLinkProgetto(String linkProgetto) {
+        this.linkProgetto = linkProgetto;
+    }
+
     public String getDescrizione() {
         return descrizione;
+    }
+
+    public void setDescrizione(String descrizione) {
+        this.descrizione = descrizione;
     }
 
     public LocalDateTime getDataSottomissione() {

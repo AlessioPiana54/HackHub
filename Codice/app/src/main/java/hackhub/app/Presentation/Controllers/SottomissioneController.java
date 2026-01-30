@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
+import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
 import hackhub.app.Application.Services.SottomissioneService;
 import hackhub.app.Core.POJO_Entities.Sottomissione;
 import hackhub.app.Application.Utils.ISessionManager;
@@ -48,6 +49,23 @@ public class SottomissioneController {
         }
 
         Sottomissione sottomissione = sottomissioneService.inviaSottomissione(request, user.getId());
+        return ResponseEntity.ok(sottomissione);
+    }
+
+    @PutMapping("/modifica")
+    public ResponseEntity<?> modificaSottomissione(@RequestHeader("Authorization") String token,
+            @RequestBody ModificaSottomissioneRequest request) {
+        User user = sessionManager.getUser(token);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Utente non autenticato.");
+        }
+
+        List<String> errors = sottomissioneValidator.validateModification(request);
+        if (!errors.isEmpty()) {
+            return ResponseEntity.badRequest().body("Errore Validazione: " + String.join(", ", errors));
+        }
+
+        Sottomissione sottomissione = sottomissioneService.modificaSottomissione(request, user.getId());
         return ResponseEntity.ok(sottomissione);
     }
 
