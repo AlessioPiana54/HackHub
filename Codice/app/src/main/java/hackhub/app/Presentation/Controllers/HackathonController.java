@@ -10,6 +10,7 @@ import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.HackathonValidator;
+import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import java.util.List;
 
 @RestController
@@ -26,6 +27,11 @@ public class HackathonController {
         this.hackathonService = hackathonService;
         this.hackathonValidator = hackathonValidator;
         this.sessionManager = sessionManager;
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<HackathonSummaryDTO>> getHackathons() {
+        return ResponseEntity.ok(hackathonService.getPublicHackathons());
     }
 
     @PostMapping("/crea")

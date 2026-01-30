@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import hackhub.app.Application.DTOs.ClassificaTeamDTO;
+import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Application.Utils.IPaymentManager;
@@ -206,5 +207,23 @@ public class HackathonService {
         hackathon.setVincitore(team);
         hackathon.setStato(StatoHackathon.CONCLUSO);
         unitOfWork.hackathonRepository().save(hackathon);
+    }
+
+    public List<HackathonSummaryDTO> getPublicHackathons() {
+        List<Hackathon> allHackathons = unitOfWork.hackathonRepository().findAll();
+        List<HackathonSummaryDTO> result = new ArrayList<>();
+
+        for (Hackathon h : allHackathons) {
+            result.add(new HackathonSummaryDTO(
+                    h.getNome(),
+                    h.getRegolamento(),
+                    h.getDataInizio(),
+                    h.getDataFine(),
+                    h.getLuogo(),
+                    h.getPremioInDenaro(),
+                    h.getStato(),
+                    h.getOrganizzatore().getNome()));
+        }
+        return result;
     }
 }
