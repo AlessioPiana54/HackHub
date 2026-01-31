@@ -6,25 +6,18 @@ import hackhub.app.Application.Requests.CreaSegnalazioneRequest;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SegnalazioneValidator {
+public class SegnalazioneValidator extends AbstractValidator {
 
     public List<String> validateCreation(CreaSegnalazioneRequest request) {
         List<String> errors = new ArrayList<>();
 
-        if (request == null) {
-            errors.add("La richiesta non può essere nulla.");
+        if (!validateRequestNotNull(request, errors)) {
             return errors;
         }
 
-        if (request.getIdHackathon() == null || request.getIdHackathon().trim().isEmpty()) {
-            errors.add("ID Hackathon obbligatorio.");
-        }
-        if (request.getIdTeam() == null || request.getIdTeam().trim().isEmpty()) {
-            errors.add("ID Team obbligatorio.");
-        }
-        if (request.getDescrizione() == null || request.getDescrizione().trim().isEmpty()) {
-            errors.add("La descrizione è obbligatoria.");
-        }
+        validateRequired(request.getIdHackathon(), "ID Hackathon obbligatorio.", errors);
+        validateRequired(request.getIdTeam(), "ID Team obbligatorio.", errors);
+        validateRequired(request.getDescrizione(), "La descrizione è obbligatoria.", errors);
 
         return errors;
     }

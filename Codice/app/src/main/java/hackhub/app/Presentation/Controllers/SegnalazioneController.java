@@ -12,49 +12,51 @@ import hackhub.app.Presentation.Validators.SegnalazioneValidator;
 import hackhub.app.Application.DTOs.SegnalazioneDTO;
 import java.util.List;
 
+/**
+ * Controller per la gestione delle segnalazioni.
+ */
 @RestController
 @RequestMapping("/api/segnalazioni")
-public class SegnalazioneController {
+public class SegnalazioneController extends AbstractController {
     private final SegnalazioneService service;
     private final SegnalazioneValidator validator;
-    private final ISessionManager sessionManager;
 
     @Autowired
     public SegnalazioneController(SegnalazioneService service, SegnalazioneValidator validator,
             ISessionManager sessionManager) {
+        super(sessionManager);
         this.service = service;
         this.validator = validator;
-        this.sessionManager = sessionManager;
     }
 
+    /**
+     * Crea una nuova segnalazione.
+     *
+     * @param token   Il token di autorizzazione dell'utente segnalante.
+     * @param request I dati della segnalazione.
+     * @return La segnalazione creata o un errore di validazione.
+     */
     @PostMapping("/crea")
     public ResponseEntity<?> creaSegnalazione(@RequestHeader("Authorization") String token,
             @RequestBody CreaSegnalazioneRequest request) {
-        User user = sessionManager.getUser(token);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Utente non autenticato.");
-        }
-
-        List<String> errors = validator.validateCreation(request);
-        if (!errors.isEmpty()) {
-            return ResponseEntity.badRequest().body("Errore Validazione: " + String.join(", ", errors));
-        }
-
+        User user = getAuthenticatedUser(token);
+        validateRequest(validator.validateCreation(request));
         Segnalazione segnalazione = service.creaSegnalazione(request, user.getId());
         return ResponseEntity.ok(segnalazione);
     }
 
+    /**
+     * Recupera le segnalazioni relative a un hackathon.
+     *
+     * @param hackathonId L'ID dell'hackathon.
+     * @param token       Il token di autorizzazione dell'organizzatore.
+     * @return Una lista di Segnalazioni.
+     */
     @GetMapping
     public ResponseEntity<?> getSegnalazioni(@RequestParam String hackathonId,
             @RequestHeader("Authorization") String token) {
-        User user = sessionManager.getUser(token);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Utente non autenticato.");
-        }
-
-        if (hackathonId.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
-        }
+        User user = getAuthenticatedUser(token);
+        validateIds(hackathonId);
         List<SegnalazioneDTO> segnalazioni = service.getSegnalazioni(hackathonId, user.getId());
         return ResponseEntity.ok(segnalazioni);
     }

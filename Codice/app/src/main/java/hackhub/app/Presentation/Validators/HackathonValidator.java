@@ -8,33 +8,24 @@ import org.springframework.stereotype.Component;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 
 @Component
-public class HackathonValidator {
+public class HackathonValidator extends AbstractValidator {
 
     public List<String> validateCreation(CreaHackathonRequest request) {
         List<String> errors = new ArrayList<>();
 
-        if (request == null) {
-            errors.add("La richiesta non può essere nulla.");
+        if (!validateRequestNotNull(request, errors)) {
             return errors;
         }
 
         // Validazione Campi Obbligatori
-        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
-            errors.add("Il campo Nome è obbligatorio.");
-        }
-        if (request.getIdGiudice() == null || request.getIdGiudice().trim().isEmpty()) {
-            errors.add("ID Giudice obbligatorio.");
-        }
+        validateRequired(request.getNome(), "Il campo Nome è obbligatorio.", errors);
+        validateRequired(request.getRegolamento(), "Il regolamento è obbligatorio.", errors);
+        validateRequired(request.getLuogo(), "Il luogo è obbligatorio.", errors);
+        validateRequired(request.getIdGiudice(), "ID Giudice obbligatorio.", errors);
         if (request.getIdMentori() == null || request.getIdMentori().isEmpty()) {
             errors.add("Deve essere presente almeno un mentore.");
         }
 
-        validateCommon(request, errors);
-
-        return errors;
-    }
-
-    private void validateCommon(CreaHackathonRequest request, List<String> errors) {
         // Validazione Numerica
         if (request.getPremioInDenaro() < 0) {
             errors.add("Il premio in denaro non può essere negativo.");
@@ -68,5 +59,7 @@ public class HackathonValidator {
                 errors.add("La data di inizio iscrizioni non può essere nel passato.");
             }
         }
+
+        return errors;
     }
 }

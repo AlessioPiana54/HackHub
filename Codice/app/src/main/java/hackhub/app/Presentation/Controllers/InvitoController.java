@@ -10,54 +10,53 @@ import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Invito;
 import hackhub.app.Presentation.Validators.InvitoValidator;
-import java.util.List;
 
+/**
+ * Controller per la gestione degli inviti.
+ */
 @RestController
 @RequestMapping("/api/inviti")
-public class InvitoController {
+public class InvitoController extends AbstractController {
 
     private final InvitoService invitoService;
     private final InvitoValidator invitoValidator;
-    private final ISessionManager sessionManager;
 
     @Autowired
     public InvitoController(InvitoService invitoService, InvitoValidator invitoValidator,
             ISessionManager sessionManager) {
+        super(sessionManager);
         this.invitoService = invitoService;
         this.invitoValidator = invitoValidator;
-        this.sessionManager = sessionManager;
     }
 
+    /**
+     * Invia un nuovo invito.
+     *
+     * @param token   Il token di autorizzazione del mittente.
+     * @param request I dati per invitare un utente.
+     * @return L'invito creato o un errore di validazione.
+     */
     @PostMapping("/invia")
     public ResponseEntity<?> inviaInvito(@RequestHeader("Authorization") String token,
             @RequestBody CreaInvitoRequest request) {
-        User user = sessionManager.getUser(token);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Utente non autenticato.");
-        }
-
-        List<String> errors = invitoValidator.validateCreation(request);
-        if (!errors.isEmpty()) {
-            return ResponseEntity.badRequest().body("Errore Validazione: " + String.join(", ", errors));
-        }
-
+        User user = getAuthenticatedUser(token);
+        validateRequest(invitoValidator.validateCreation(request));
         Invito invito = invitoService.inviaInvito(request, user.getId());
         return ResponseEntity.ok(invito);
     }
 
+    /**
+     * Risponde a un invito ricevuto.
+     *
+     * @param token   Il token di autorizzazione dell'utente invitato.
+     * @param request I dati relativi alla risposta (accettazione o rifiuto).
+     * @return Un messaggio di conferma.
+     */
     @PostMapping("/risposta")
     public ResponseEntity<?> rispondiInvito(@RequestHeader("Authorization") String token,
             @RequestBody RispostaInvitoRequest request) {
-        User user = sessionManager.getUser(token);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Utente non autenticato.");
-        }
-
-        List<String> errors = invitoValidator.validateRisposta(request);
-        if (!errors.isEmpty()) {
-            return ResponseEntity.badRequest().body("Errore Validazione: " + String.join(", ", errors));
-        }
-
+        User user = getAuthenticatedUser(token);
+        validateRequest(invitoValidator.validateRisposta(request));
         invitoService.gestisciRisposta(request, user.getId());
         return ResponseEntity.ok("Risposta registrata con successo.");
     }

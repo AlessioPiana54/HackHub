@@ -7,27 +7,18 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SottomissioneValidator {
+public class SottomissioneValidator extends AbstractValidator {
 
     public List<String> validateCreation(InviaSottomissioneRequest request) {
         List<String> errors = new ArrayList<>();
 
-        if (request == null) {
-            errors.add("La richiesta non può essere nulla.");
+        if (!validateRequestNotNull(request, errors)) {
             return errors;
         }
 
-        if (request.getIdHackathon() == null || request.getIdHackathon().trim().isEmpty()) {
-            errors.add("L'ID dell'Hackathon è obbligatorio.");
-        }
-
-        if (request.getIdTeam() == null || request.getIdTeam().trim().isEmpty()) {
-            errors.add("L'ID del Team è obbligatorio.");
-        }
-
-        if (request.getLinkProgetto() == null || request.getLinkProgetto().trim().isEmpty()) {
-            errors.add("Il link al progetto è obbligatorio.");
-        }
+        validateRequired(request.getIdHackathon(), "L'ID dell'Hackathon è obbligatorio.", errors);
+        validateRequired(request.getIdTeam(), "L'ID del Team è obbligatorio.", errors);
+        validateRequired(request.getLinkProgetto(), "Il link al progetto è obbligatorio.", errors);
 
         return errors;
     }
@@ -35,18 +26,12 @@ public class SottomissioneValidator {
     public List<String> validateModification(ModificaSottomissioneRequest request) {
         List<String> errors = new ArrayList<>();
 
-        if (request == null) {
-            errors.add("La richiesta non può essere nulla.");
+        if (!validateRequestNotNull(request, errors)) {
             return errors;
         }
 
-        if (request.getIdSottomissione() == null || request.getIdSottomissione().trim().isEmpty()) {
-            errors.add("L'ID della sottomissione è obbligatorio.");
-        }
-
-        if (request.getLinkProgetto() == null || request.getLinkProgetto().trim().isEmpty()) {
-            errors.add("Il link al progetto è obbligatorio.");
-        }
+        validateRequired(request.getIdSottomissione(), "L'ID della sottomissione è obbligatorio.", errors);
+        validateRequired(request.getLinkProgetto(), "Il link al progetto è obbligatorio.", errors);
 
         return errors;
     }
