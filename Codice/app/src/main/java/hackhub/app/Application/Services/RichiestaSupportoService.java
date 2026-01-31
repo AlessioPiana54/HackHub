@@ -3,6 +3,8 @@ package hackhub.app.Application.Services;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import hackhub.app.Application.DTOs.RichiestaSupportoDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
@@ -54,7 +56,7 @@ public class RichiestaSupportoService {
                 return nuovaRichiesta;
         }
 
-        public List<RichiestaSupporto> getRichiestePerMentore(String hackathonId, String mentorId) {
+        public List<RichiestaSupportoDTO> getRichiestePerMentore(String hackathonId, String mentorId) {
                 Hackathon hackathon = unitOfWork.hackathonRepository().findById(hackathonId)
                                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
 
@@ -65,7 +67,18 @@ public class RichiestaSupportoService {
                         throw new SecurityException("L'utente non è un mentore per questo Hackathon");
                 }
 
-                return unitOfWork.richiestaSupportoRepository().findByPartecipazioneHackathonId(hackathonId);
+                return unitOfWork.richiestaSupportoRepository().findByPartecipazioneHackathonId(hackathonId).stream()
+                                .map(r -> new RichiestaSupportoDTO(
+                                                r.getId(),
+                                                r.getHackathon().getId(),
+                                                r.getHackathon().getNome(),
+                                                r.getTeam().getId(),
+                                                r.getTeam().getNomeTeam(),
+                                                r.getDescrizione(),
+                                                r.getDataRichiesta(),
+                                                r.getLinkCall(),
+                                                r.getDataCall()))
+                                .collect(toList());
         }
 
         public RichiestaSupporto proponiCall(ProponiCallRequest request, String mentorId) {
@@ -92,7 +105,7 @@ public class RichiestaSupportoService {
                 return unitOfWork.richiestaSupportoRepository().save(richiesta);
         }
 
-        public List<RichiestaSupporto> getRichiesteGestitePerTeam(String hackathonId, String teamId, String userId) {
+        public List<RichiestaSupportoDTO> getRichiesteGestitePerTeam(String hackathonId, String teamId, String userId) {
                 Team team = unitOfWork.teamRepository().findById(teamId)
                                 .orElseThrow(() -> new IllegalArgumentException("Team non trovato."));
 
@@ -112,6 +125,16 @@ public class RichiestaSupportoService {
                                 teamId).stream()
                                 .filter(r -> r.getDataCall() != null && r.getLinkCall() != null
                                                 && !r.getLinkCall().isEmpty())
+                                .map(r -> new RichiestaSupportoDTO(
+                                                r.getId(),
+                                                r.getHackathon().getId(),
+                                                r.getHackathon().getNome(),
+                                                r.getTeam().getId(),
+                                                r.getTeam().getNomeTeam(),
+                                                r.getDescrizione(),
+                                                r.getDataRichiesta(),
+                                                r.getLinkCall(),
+                                                r.getDataCall()))
                                 .collect(toList());
         }
 }

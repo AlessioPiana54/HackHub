@@ -9,7 +9,9 @@ import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Segnalazione;
 import hackhub.app.Core.POJO_Entities.User;
+import hackhub.app.Application.DTOs.SegnalazioneDTO;
 import java.util.List;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional
@@ -41,12 +43,23 @@ public class SegnalazioneService {
                 return segnalazione;
         }
 
-        public List<Segnalazione> getSegnalazioni(String idHackathon, String idOrganizer) {
+        public List<SegnalazioneDTO> getSegnalazioni(String idHackathon, String idOrganizer) {
                 Hackathon h = unitOfWork.hackathonRepository().findById(idHackathon)
                                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato"));
                 if (!h.getOrganizzatore().getId().equals(idOrganizer)) {
                         throw new SecurityException("Solo l'organizzatore può vedere le segnalazioni.");
                 }
-                return unitOfWork.segnalazioneRepository().findByPartecipazioneHackathonId(idHackathon);
+                return unitOfWork.segnalazioneRepository().findByPartecipazioneHackathonId(idHackathon).stream()
+                                .map(s -> new SegnalazioneDTO(
+                                                s.getId(),
+                                                s.getHackathon().getId(),
+                                                s.getHackathon().getNome(),
+                                                s.getTeam().getId(),
+                                                s.getTeam().getNomeTeam(),
+                                                s.getMentore().getId(),
+                                                s.getMentore().getNome(),
+                                                s.getDescrizione(),
+                                                s.getDataSegnalazione()))
+                                .collect(toList());
         }
 }

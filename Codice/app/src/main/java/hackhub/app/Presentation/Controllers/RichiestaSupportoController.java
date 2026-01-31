@@ -10,6 +10,7 @@ import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
 import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.RichiestaSupportoValidator;
+import hackhub.app.Application.DTOs.RichiestaSupportoDTO;
 import java.util.List;
 
 @RestController
@@ -56,7 +57,7 @@ public class RichiestaSupportoController {
         if (hackathonId.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
         }
-        List<RichiestaSupporto> richieste = supportoService.getRichiestePerMentore(hackathonId, user.getId());
+        List<RichiestaSupportoDTO> richieste = supportoService.getRichiestePerMentore(hackathonId, user.getId());
         return ResponseEntity.ok(richieste);
     }
 
@@ -88,7 +89,7 @@ public class RichiestaSupportoController {
         if (hackathonId.trim().isEmpty() || teamId.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
         }
-        List<RichiestaSupporto> richieste = supportoService.getRichiesteGestitePerTeam(hackathonId, teamId,
+        List<RichiestaSupportoDTO> richieste = supportoService.getRichiesteGestitePerTeam(hackathonId, teamId,
                 user.getId());
         return ResponseEntity.ok(richieste);
     }

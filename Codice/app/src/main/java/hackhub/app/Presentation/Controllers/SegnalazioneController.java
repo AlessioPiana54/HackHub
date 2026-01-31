@@ -9,6 +9,7 @@ import hackhub.app.Core.POJO_Entities.Segnalazione;
 import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.SegnalazioneValidator;
+import hackhub.app.Application.DTOs.SegnalazioneDTO;
 import java.util.List;
 
 @RestController
@@ -54,7 +55,7 @@ public class SegnalazioneController {
         if (hackathonId.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Errore Validazione: ID non validi.");
         }
-        List<Segnalazione> segnalazioni = service.getSegnalazioni(hackathonId, user.getId());
+        List<SegnalazioneDTO> segnalazioni = service.getSegnalazioni(hackathonId, user.getId());
         return ResponseEntity.ok(segnalazioni);
     }
 }
