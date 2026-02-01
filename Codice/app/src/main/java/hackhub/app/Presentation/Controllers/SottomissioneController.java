@@ -1,6 +1,5 @@
 package hackhub.app.Presentation.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
@@ -25,7 +24,6 @@ public class SottomissioneController extends AbstractController {
     private final SottomissioneValidator sottomissioneValidator;
     private final ValutazioneValidator valutazioneValidator;
 
-    @Autowired
     public SottomissioneController(SottomissioneService sottomissioneService,
             SottomissioneValidator sottomissioneValidator,
             ValutazioneValidator valutazioneValidator,

@@ -3,6 +3,13 @@ package hackhub.app.Core.POJO_Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Rappresenta una segnalazione effettuata da un mentore riguardo un team.
+ * <p>
+ * Utilizzata per riportare problemi o comportamenti scorretti
+ * all'organizzatore.
+ * </p>
+ */
 @Entity
 @Table(name = "segnalazioni")
 public class Segnalazione {

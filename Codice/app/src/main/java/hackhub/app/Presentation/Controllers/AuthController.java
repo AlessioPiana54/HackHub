@@ -2,7 +2,6 @@ package hackhub.app.Presentation.Controllers;
 
 import java.util.Collections;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,6 @@ public class AuthController extends AbstractController {
     private final AuthService authService;
     private final AuthValidator authValidator;
 
-    @Autowired
     public AuthController(AuthService authService, AuthValidator authValidator, ISessionManager sessionManager) {
         super(sessionManager);
         this.authService = authService;

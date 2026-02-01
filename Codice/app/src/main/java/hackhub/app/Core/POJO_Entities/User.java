@@ -3,6 +3,13 @@ package hackhub.app.Core.POJO_Entities;
 import jakarta.persistence.*;
 import hackhub.app.Core.Enums.Ruolo;
 
+/**
+ * Rappresenta un utente registrato nel sistema.
+ * <p>
+ * Un utente può avere diversi ruoli (es. Organizzatore, Giudice, Mentore,
+ * Partecipante).
+ * </p>
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -22,18 +29,6 @@ public class User {
     }
 
     public User(String nome, String cognome, String email, String password, Ruolo ruolo) {
-        this.nome = nome;
-        this.cognome = cognome;
-        this.email = email;
-        this.password = password;
-        this.ruolo = ruolo;
-    }
-
-    public User(String id, String nome, String cognome, String email, String password, Ruolo ruolo) {
-        if (id == null || id.isEmpty()) {
-            throw new IllegalArgumentException("ID non può essere nullo o vuoto per questo costruttore");
-        }
-        this.id = id;
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;

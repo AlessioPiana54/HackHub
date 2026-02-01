@@ -4,6 +4,13 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Rappresenta un team di partecipanti.
+ * <p>
+ * Un team è composto da un leader e da membri. Partecipa agli Hackathon tramite
+ * l'entità Partecipazione.
+ * </p>
+ */
 @Entity
 @Table(name = "teams")
 public class Team {

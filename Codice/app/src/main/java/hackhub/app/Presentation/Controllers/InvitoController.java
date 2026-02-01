@@ -1,6 +1,5 @@
 package hackhub.app.Presentation.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
@@ -21,7 +20,6 @@ public class InvitoController extends AbstractController {
     private final InvitoService invitoService;
     private final InvitoValidator invitoValidator;
 
-    @Autowired
     public InvitoController(InvitoService invitoService, InvitoValidator invitoValidator,
             ISessionManager sessionManager) {
         super(sessionManager);

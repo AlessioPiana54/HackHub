@@ -1,6 +1,5 @@
 package hackhub.app.Presentation.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,6 @@ public class HackathonController extends AbstractController {
     private final HackathonService hackathonService;
     private final HackathonValidator hackathonValidator;
 
-    @Autowired
     public HackathonController(HackathonService hackathonService, HackathonValidator hackathonValidator,
             ISessionManager sessionManager) {
         super(sessionManager);

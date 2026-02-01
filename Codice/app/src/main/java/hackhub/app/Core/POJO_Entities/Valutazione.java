@@ -2,6 +2,12 @@ package hackhub.app.Core.POJO_Entities;
 
 import jakarta.persistence.*;
 
+/**
+ * Rappresenta la valutazione di una sottomissione da parte di un giudice.
+ * <p>
+ * Contiene il voto numerico e un giudizio testuale.
+ * </p>
+ */
 @Entity
 @Table(name = "valutazioni")
 public class Valutazione {

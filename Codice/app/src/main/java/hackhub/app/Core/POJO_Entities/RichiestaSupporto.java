@@ -3,6 +3,12 @@ package hackhub.app.Core.POJO_Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Rappresenta una richiesta di supporto inviata da un team richiedente aiuto.
+ * <p>
+ * Può evolvere in una call di supporto fissata da un mentore.
+ * </p>
+ */
 @Entity
 @Table(name = "richieste_supporto")
 public class RichiestaSupporto {

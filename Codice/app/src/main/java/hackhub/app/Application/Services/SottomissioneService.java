@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
 import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
@@ -15,72 +14,93 @@ import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Sottomissione;
+import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 
+/**
+ * Servizio per la gestione delle sottomissioni dei progetti.
+ * Gestisce l'invio, la modifica e la valutazione delle sottomissioni.
+ */
 @Service
 @Transactional
-public class SottomissioneService {
-    private final IUnitOfWork unitOfWork;
+public class SottomissioneService extends AbstractService {
     private final LinkStrategyContext linkStrategyContext;
 
-    @Autowired
     public SottomissioneService(IUnitOfWork unitOfWork,
             LinkStrategyContext linkStrategyContext) {
-        this.unitOfWork = unitOfWork;
+        super(unitOfWork);
         this.linkStrategyContext = linkStrategyContext;
     }
 
-    public Sottomissione inviaSottomissione(InviaSottomissioneRequest request, String utenteId) {
+    /**
+     * Invia una nuova sottomissione per un Hackathon.
+     *
+     * @param request i dati della sottomissione (codice, descrizione, video, ecc.)
+     * @param userId  l'ID dell'utente che invia (deve essere membro o leader)
+     * @return la Sottomissione creata
+     * @throws IllegalArgumentException se hackathon, team non trovati o link github
+     *                                  non valido
+     * @throws IllegalStateException    se l'hackathon non è in corso o il team ha
+     *                                  già sottomesso
+     * @throws SecurityException        se l'utente non fa parte del team
+     */
+    public Sottomissione inviaSottomissione(InviaSottomissioneRequest request, String userId) {
         if (!linkStrategyContext.validate(request.getLinkProgetto(), List.of("GitHub"))) {
-            throw new IllegalArgumentException("Il link del progetto deve essere un link GitHub valido.");
+            throw new IllegalArgumentException("Link repository non valido o non supportato.");
         }
-        User utente = unitOfWork.userRepository().findById(utenteId)
-                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
 
-        Partecipazione partecipazioneAttiva = unitOfWork.partecipazioneRepository()
-                .findByTeamIdAndHackathonId(request.getIdTeam(), request.getIdHackathon())
-                .orElseThrow(() -> new IllegalArgumentException("Il team non partecipa a questo hackathon."));
+        Partecipazione partecipazione = findPartecipazioneOrThrow(request.getIdTeam(), request.getIdHackathon());
+        Hackathon hackathon = partecipazione.getHackathon();
+        Team team = partecipazione.getTeam();
 
-        Hackathon hackathon = partecipazioneAttiva.getHackathon();
         if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-            throw new IllegalStateException("L'Hackathon non è in corso, impossibile inviare sottomissioni.");
+            throw new IllegalStateException("L'Hackathon non è in corso. Impossibile inviare sottomissioni.");
         }
 
-        boolean isMembro = partecipazioneAttiva.getTeam().getMembri().stream()
-                .anyMatch(u -> u.getId().equals(utente.getId()));
-        boolean isLeader = partecipazioneAttiva.getTeam().getLeaderSquadra().getId().equals(utente.getId());
+        validateUserInTeam(team, userId, "L'utente non fa parte del team specificato.");
 
-        if (!isMembro && !isLeader) {
-            throw new SecurityException("L'utente non fa parte del team.");
+        // Verifica che il team non abbia già inviato una sottomissione per questo
+        // hackathon
+        boolean exists = unitOfWork.sottomissioneRepository()
+                .existsByPartecipazione_Hackathon_IdAndPartecipazione_Team_Id(
+                        request.getIdHackathon(), request.getIdTeam());
+        if (exists) {
+            throw new IllegalStateException("Il team ha già inviato una sottomissione per questo Hackathon.");
         }
 
-        if (unitOfWork.sottomissioneRepository().existsByPartecipazioneId(partecipazioneAttiva.getId())) {
-            throw new IllegalStateException("Il team ha già inviato una sottomissione per questo hackathon.");
-        }
+        User mittente = findUserOrThrow(userId);
 
-        Sottomissione sottomissione = new Sottomissione(partecipazioneAttiva, utente, request.getLinkProgetto(),
+        Sottomissione sottomissione = new Sottomissione(partecipazione, mittente, request.getLinkProgetto(),
                 request.getDescrizione());
+
         unitOfWork.sottomissioneRepository().save(sottomissione);
         return sottomissione;
     }
 
+    /**
+     * Permette a un giudice di valutare una sottomissione.
+     *
+     * @param request   i dati della valutazione (voto, commento)
+     * @param giudiceId l'ID del giudice
+     * @return la Valutazione creata
+     * @throws IllegalArgumentException se sottomissione o giudice non trovati
+     * @throws SecurityException        se l'utente non è il giudice dell'hackathon
+     * @throws IllegalStateException    se l'hackathon non è in fase di valutazione
+     */
     public Valutazione valutaSottomissione(CreaValutazioneRequest request, String giudiceId) {
-        Sottomissione sottomissione = unitOfWork.sottomissioneRepository().findById(request.getIdSottomissione())
-                .orElseThrow(() -> new IllegalArgumentException("Sottomissione non trovata"));
-
+        Sottomissione sottomissione = findSottomissioneOrThrow(request.getIdSottomissione());
         Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
         if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {
             throw new IllegalStateException("L'Hackathon non è in fase di valutazione.");
         }
 
-        User giudice = unitOfWork.userRepository().findById(giudiceId)
-                .orElseThrow(() -> new IllegalArgumentException("Giudice non trovato"));
-
-        if (!hackathon.getGiudice().getId().equals(giudice.getId())) {
-            throw new SecurityException("Solo il giudice dell'hackathon può valutare.");
+        if (!hackathon.getGiudice().getId().equals(giudiceId)) {
+            throw new SecurityException("Solo il giudice dell'Hackathon può valutare le sottomissioni.");
         }
+
+        User giudice = findUserOrThrow(giudiceId);
 
         if (unitOfWork.valutazioneRepository().existsBySottomissioneId(sottomissione.getId())) {
             throw new IllegalArgumentException("Questa sottomissione è già stata valutata.");
@@ -93,30 +113,32 @@ public class SottomissioneService {
         return valutazione;
     }
 
-    public Sottomissione modificaSottomissione(ModificaSottomissioneRequest request, String utenteId) {
-        Sottomissione sottomissione = unitOfWork.sottomissioneRepository().findById(request.getIdSottomissione())
-                .orElseThrow(() -> new IllegalArgumentException("Sottomissione non trovata"));
-
-        if (!linkStrategyContext.validate(request.getLinkProgetto(), List.of("GitHub"))) {
-            throw new IllegalArgumentException("Il link del progetto deve essere un link GitHub valido.");
+    /**
+     * Permette di modificare una sottomissione esistente (se l'hackathon è ancora
+     * in corso).
+     *
+     * @param request i nuovi dati della sottomissione
+     * @param userId  l'ID dell'utente che richiede la modifica
+     * @return la Sottomissione modificata
+     * @throws IllegalArgumentException se sottomissione non trovata o link github
+     *                                  non valido
+     * @throws IllegalStateException    se l'hackathon non è in corso
+     * @throws SecurityException        se l'utente non fa parte del team
+     */
+    public Sottomissione modificaSottomissione(ModificaSottomissioneRequest request, String userId) {
+        if (!linkStrategyContext.validate(request.getLinkProgetto(), java.util.List.of("GitHub"))) {
+            throw new IllegalArgumentException("Link repository non valido o non supportato.");
         }
 
+        Sottomissione sottomissione = findSottomissioneOrThrow(request.getIdSottomissione());
+        Team team = sottomissione.getPartecipazione().getTeam();
         Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
+
         if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-            throw new IllegalStateException("L'Hackathon non è in corso, impossibile modificare la sottomissione.");
+            throw new IllegalStateException("Le sottomissioni sono chiuse.");
         }
 
-        User utente = unitOfWork.userRepository().findById(utenteId)
-                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
-
-        boolean isMembro = sottomissione.getPartecipazione().getTeam().getMembri().stream()
-                .anyMatch(u -> u.getId().equals(utente.getId()));
-        boolean isLeader = sottomissione.getPartecipazione().getTeam().getLeaderSquadra().getId()
-                .equals(utente.getId());
-
-        if (!isMembro && !isLeader) {
-            throw new SecurityException("L'utente non fa parte del team.");
-        }
+        validateUserInTeam(team, userId, "L'utente non ha i permessi per modificare questa sottomissione.");
 
         sottomissione.setLinkProgetto(request.getLinkProgetto());
         sottomissione.setDescrizione(request.getDescrizione());

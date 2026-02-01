@@ -3,6 +3,13 @@ package hackhub.app.Core.POJO_Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Rappresenta il progetto sottomesso da un Team per un Hackathon.
+ * <p>
+ * Contiene il link al codice sorgente, la descrizione del progetto e i
+ * riferimenti a chi ha inviato la sottomissione.
+ * </p>
+ */
 @Entity
 @Table(name = "sottomissioni")
 public class Sottomissione {

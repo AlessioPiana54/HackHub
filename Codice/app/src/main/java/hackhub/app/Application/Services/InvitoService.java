@@ -2,7 +2,7 @@ package hackhub.app.Application.Services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
@@ -15,53 +15,58 @@ import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import java.util.List;
 
+/**
+ * Servizio per la gestione degli inviti ai team.
+ */
 @Service
 @Transactional
-public class InvitoService {
-    private final IUnitOfWork unitOfWork;
+public class InvitoService extends AbstractService {
 
-    @Autowired
     public InvitoService(IUnitOfWork unitOfWork) {
-        this.unitOfWork = unitOfWork;
+        super(unitOfWork);
     }
 
+    /**
+     * Invia un invito a un utente per unirsi a un team.
+     *
+     * @param request    i dati dell'invito (email destinatario, team)
+     * @param mittenteId l'ID dell'utente che invia l'invito
+     * @return l'Invito creato
+     * @throws IllegalArgumentException se team, mittente o destinatario non
+     *                                  trovati, o se il destinatario ha già un
+     *                                  ruolo
+     */
     public Invito inviaInvito(CreaInvitoRequest request, String mittenteId) {
-        Team team = unitOfWork.teamRepository().findById(request.getTeamId())
-                .orElseThrow(() -> new IllegalArgumentException("Team non trovato"));
-        User mittente = unitOfWork.userRepository().findById(mittenteId)
-                .orElseThrow(() -> new IllegalArgumentException("Mittente non trovato"));
+        Team team = findTeamOrThrow(request.getTeamId());
+        User mittente = findUserOrThrow(mittenteId);
 
         User destinatario = unitOfWork.userRepository().findByEmail(request.getEmailDestinatario());
         if (destinatario == null)
             throw new IllegalArgumentException("Destinatario non trovato");
 
-        if (!team.getLeaderSquadra().getId().equals(mittente.getId()) &&
-                team.getMembri().stream().noneMatch(m -> m.getId().equals(mittente.getId()))) {
-            throw new IllegalArgumentException("Solo i membri del team o il leader possono inviare inviti.");
-        }
+        validateUserInTeam(team, mittenteId, "Solo i membri del team o il leader possono inviare inviti.");
 
-        if (destinatario.getRuolo() != Ruolo.UTENTE_SENZA_TEAM) {
-            throw new IllegalArgumentException("L'utente ha già un team o un ruolo incompatibile.");
-        }
+        validateUserRole(destinatario, Ruolo.UTENTE_SENZA_TEAM,
+                "L'utente ha già un team o un ruolo incompatibile.");
 
         Invito invito = new Invito(team, destinatario, mittente);
-
-        // Aggiornamento lato inverso non necessario con JPA se salvo l'Invito nel DB.
-
         unitOfWork.invitoRepository().save(invito);
-
-        // teamRepository.save(team);
-        // Non necessario, basta salvare invito.
-
         return invito;
     }
 
+    /**
+     * Gestisce la risposta a un invito (accettazione o rifiuto).
+     *
+     * @param request i dati della risposta (ID invito, accettato/rifiutato)
+     * @param userId  l'ID dell'utente che risponde
+     * @throws IllegalArgumentException se invito o utente non trovati, o l'invito
+     *                                  non è per l'utente
+     */
     public void gestisciRisposta(RispostaInvitoRequest request, String userId) {
         Invito invito = unitOfWork.invitoRepository().findById(request.getInvitoId())
                 .orElseThrow(() -> new IllegalArgumentException("Invito non trovato"));
 
-        User user = unitOfWork.userRepository().findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
+        User user = findUserOrThrow(userId);
 
         if (!invito.getDestinatario().getId().equals(user.getId())) {
             throw new IllegalArgumentException("Questo invito non è per te.");
@@ -89,12 +94,9 @@ public class InvitoService {
         }
 
         user.setRuolo(Ruolo.MEMBRO_TEAM);
-        team.getMembri().add(user); // Necessario per aggiornare la relazione @ManyToMany
-
-        // team.getInvitiInSospeso().remove(invito); viene fatto automaticamente
-
-        unitOfWork.userRepository().save(user); // è in realtà un update
-        unitOfWork.teamRepository().save(team); // è in realtà un update
+        team.getMembri().add(user);
+        unitOfWork.userRepository().save(user);
+        unitOfWork.teamRepository().save(team);
         unitOfWork.invitoRepository().delete(invito);
     }
 

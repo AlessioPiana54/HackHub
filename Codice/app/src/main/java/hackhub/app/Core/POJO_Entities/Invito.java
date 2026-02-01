@@ -3,6 +3,12 @@ package hackhub.app.Core.POJO_Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Rappresenta un invito inviato a un utente per unirsi a un team.
+ * <p>
+ * Contiene i rifeirmenti al team, al destinatario e al mittente dell'invito.
+ * </p>
+ */
 @Entity
 @Table(name = "inviti")
 public class Invito {

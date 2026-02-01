@@ -7,6 +7,11 @@ import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 
+/**
+ * Interfaccia per il pattern Builder per la creazione di oggetti Hackathon.
+ *
+ * @see hackhub.app.Core.POJO_Entities.Hackathon
+ */
 public interface IHackathonBuilder {
     IHackathonBuilder setNome(String nome);
 

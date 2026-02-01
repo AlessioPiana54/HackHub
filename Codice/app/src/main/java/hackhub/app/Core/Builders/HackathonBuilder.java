@@ -7,6 +7,9 @@ import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.User;
 
+/**
+ * Implementazione concreta del pattern Builder per creare istanze di Hackathon.
+ */
 public class HackathonBuilder implements IHackathonBuilder {
     private String nome;
     private String regolamento;
@@ -83,6 +86,11 @@ public class HackathonBuilder implements IHackathonBuilder {
         return this;
     }
 
+    /**
+     * Costruisce l'oggetto Hackathon utilizzando i parametri configurati.
+     *
+     * @return una nuova istanza di Hackathon
+     */
     @Override
     public Hackathon build() {
         return new Hackathon(

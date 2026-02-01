@@ -1,6 +1,5 @@
 package hackhub.app.Presentation.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
@@ -23,7 +22,6 @@ public class RichiestaSupportoController extends AbstractController {
     private final RichiestaSupportoService supportoService;
     private final RichiestaSupportoValidator validator;
 
-    @Autowired
     public RichiestaSupportoController(RichiestaSupportoService supportoService, RichiestaSupportoValidator validator,
             ISessionManager sessionManager) {
         super(sessionManager);

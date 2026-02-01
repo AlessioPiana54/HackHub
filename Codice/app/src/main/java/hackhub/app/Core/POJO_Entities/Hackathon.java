@@ -5,6 +5,13 @@ import java.util.List;
 import java.time.LocalDateTime;
 import hackhub.app.Core.Enums.StatoHackathon;
 
+/**
+ * Rappresenta un evento Hackathon.
+ * <p>
+ * Contiene i dettagli dell'evento, le regole, le date e i riferimenti agli
+ * utenti chiave (Organizzatore, Giudice, Mentori).
+ * </p>
+ */
 @Entity
 @Table(name = "hackathons")
 public class Hackathon {

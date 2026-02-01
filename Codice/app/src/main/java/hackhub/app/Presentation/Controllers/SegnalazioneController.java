@@ -1,6 +1,5 @@
 package hackhub.app.Presentation.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaSegnalazioneRequest;
@@ -21,7 +20,6 @@ public class SegnalazioneController extends AbstractController {
     private final SegnalazioneService service;
     private final SegnalazioneValidator validator;
 
-    @Autowired
     public SegnalazioneController(SegnalazioneService service, SegnalazioneValidator validator,
             ISessionManager sessionManager) {
         super(sessionManager);

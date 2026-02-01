@@ -3,6 +3,12 @@ package hackhub.app.Core.POJO_Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Rappresenta la partecipazione di un Team ad un Hackathon.
+ * <p>
+ * Collega un Team ad un Hackathon specifico, registrando la data di iscrizione.
+ * </p>
+ */
 @Entity
 @Table(name = "partecipazioni", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "team_id", "hackathon_id" })

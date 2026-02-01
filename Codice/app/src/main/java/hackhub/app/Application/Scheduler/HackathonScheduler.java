@@ -10,6 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Componente scheduler per la gestione automatica degli stati degli Hackathon.
+ * Esegue un task periodico per aggiornare lo stato di ogni Hackathon in base
+ * alla data e ora corrente.
+ */
 @Component
 public class HackathonScheduler {
 
@@ -19,6 +24,12 @@ public class HackathonScheduler {
         this.hackathonRepository = hackathonRepository;
     }
 
+    /**
+     * Metodo pianificato che viene eseguito ogni minuto.
+     * Recupera gli hackathon attivi (escludendo quelli conclusi, in valutazione o
+     * in premiazione)
+     * e aggiorna il loro stato se necessario.
+     */
     @Scheduled(cron = "0 * * * * *") // Runs every minute
     @Transactional
     public void updateHackathonStates() {
@@ -37,6 +48,14 @@ public class HackathonScheduler {
         }
     }
 
+    /**
+     * Elabora lo stato di un singolo Hackathon in base al suo stato attuale e
+     * all'ora corrente.
+     *
+     * @param hackathon l'Hackathon da processare
+     * @param now       la data e ora corrente
+     * @return true se lo stato è cambiato, false altrimenti
+     */
     private boolean processHackathonState(Hackathon hackathon, LocalDateTime now) {
         return switch (hackathon.getStato()) {
             case IN_ATTESA -> manageInAttesa(hackathon, now);
@@ -46,6 +65,17 @@ public class HackathonScheduler {
         };
     }
 
+    /**
+     * Gestisce le transizioni di stato per un Hackathon nello stato IN_ATTESA.
+     * Transizioni possibili:
+     * - IN_ISCRIZIONE: se l'ora attuale è compresa tra inizio e scadenza
+     * iscrizioni.
+     * - IN_CORSO: se l'ora attuale è compresa tra inizio e fine hackathon.
+     *
+     * @param hackathon l'Hackathon da controllare
+     * @param now       la data e ora corrente
+     * @return true se lo stato cambia
+     */
     private boolean manageInAttesa(Hackathon hackathon, LocalDateTime now) {
         // Da "In Attesa" a "In Iscrizione"
         if (now.isAfter(hackathon.getInizioIscrizioni()) && now.isBefore(hackathon.getScadenzaIscrizioni())) {
@@ -60,6 +90,16 @@ public class HackathonScheduler {
         return false;
     }
 
+    /**
+     * Gestisce le transizioni di stato per un Hackathon nello stato IN_ISCRIZIONE.
+     * Transizioni possibili:
+     * - IN_ATTESA: se l'iscrizione è scaduta ma l'hackathon non è ancora iniziato.
+     * - IN_CORSO: se l'ora attuale è compresa tra inizio e fine hackathon.
+     *
+     * @param hackathon l'Hackathon da controllare
+     * @param now       la data e ora corrente
+     * @return true se lo stato cambia
+     */
     private boolean manageInIscrizione(Hackathon hackathon, LocalDateTime now) {
         // Da "In Iscrizione" a "In Attesa"
         if (now.isAfter(hackathon.getScadenzaIscrizioni()) && now.isBefore(hackathon.getDataInizio())) {
@@ -74,6 +114,15 @@ public class HackathonScheduler {
         return false;
     }
 
+    /**
+     * Gestisce le transizioni di stato per un Hackathon nello stato IN_CORSO.
+     * Transizioni possibili:
+     * - IN_VALUTAZIONE: se l'hackathon è terminato (data fine passata).
+     *
+     * @param hackathon l'Hackathon da controllare
+     * @param now       la data e ora corrente
+     * @return true se lo stato cambia
+     */
     private boolean manageInCorso(Hackathon hackathon, LocalDateTime now) {
         // Da "In Corso" a "In Valutazione"
         if (now.isAfter(hackathon.getDataFine())) {

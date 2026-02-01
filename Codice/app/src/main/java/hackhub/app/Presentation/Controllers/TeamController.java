@@ -1,6 +1,5 @@
 package hackhub.app.Presentation.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaTeamRequest;
@@ -21,7 +20,6 @@ public class TeamController extends AbstractController {
     private final TeamService teamService;
     private final TeamValidator teamValidator;
 
-    @Autowired
     public TeamController(TeamService teamService, TeamValidator teamValidator,
             ISessionManager sessionManager) {
         super(sessionManager);

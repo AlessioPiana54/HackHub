@@ -1,7 +1,6 @@
 package hackhub.app.Infrastructure.UnitOfWork;
 
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import hackhub.app.Application.IRepositories.*;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
@@ -19,7 +18,6 @@ public class UnitOfWork implements IUnitOfWork {
     private final IUserRepository userRepository;
     private final IValutazioneRepository valutazioneRepository;
 
-    @Autowired
     public UnitOfWork(
             IHackathonRepository hackathonRepository,
             IInvitoRepository invitoRepository,
