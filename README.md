@@ -51,7 +51,7 @@ Pattern progettuali utilizzati includono:
     ```
 2.  Naviga nella cartella del progetto:
     ```bash
-    cd app
+    cd HackHub/Codice/app
     ```
 3.  Avvia l'applicazione con Maven Wrapper:
     *   **Windows**:
@@ -60,6 +60,7 @@ Pattern progettuali utilizzati includono:
         ```
     *   **Linux/Mac**:
         ```bash
+        chmod +x mvnw
         ./mvnw spring-boot:run
         ```
 
@@ -78,6 +79,215 @@ Per ispezionare il database H2 in memoria:
 *   JDBC URL: `jdbc:h2:mem:testdb`
 *   Username: `user`
 *   Password: `pass`
+
+
+## 🧪 Sequenza di Test Manuale
+
+Di seguito è riportata una sequenza di operazioni per testare manualmente il flusso principale dell'applicazione.
+
+### 1. Popolamento Database (SQL)
+
+Esegui questi comandi SQL (es. nella H2 Console) per inserire utenti di test con ruoli diversi.
+> **Importante**:
+> La password per tutti questi utenti è `a`.
+
+```sql
+-- Insert 2 Organizers
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('1', 'Mario', 'Rossi', 'mario.rossi@organizer.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'ORGANIZZATORE');
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('2', 'Luigi', 'Verdi', 'luigi.verdi@organizer.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'ORGANIZZATORE');
+
+-- Insert 2 Judges
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('3', 'Giovanni', 'Bianchi', 'giovanni.bianchi@judge.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'GIUDICE');
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('4', 'Anna', 'Neri', 'anna.neri@judge.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'GIUDICE');
+
+-- Insert 2 Mentors
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('5', 'Paolo', 'Gialli', 'paolo.gialli@mentor.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'MENTORE');
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('6', 'Laura', 'Blu', 'laura.blu@mentor.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'MENTORE');
+
+-- Insert 4 Users without Team
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('7', 'Francesca', 'Viola', 'francesca.viola@user.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'UTENTE_SENZA_TEAM');
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('8', 'Matteo', 'Roso', 'matteo.roso@user.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'UTENTE_SENZA_TEAM');
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('9', 'Sara', 'Arancio', 'sara.arancio@user.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'UTENTE_SENZA_TEAM');
+INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('10', 'Luca', 'Marrone', 'luca.marrone@user.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'UTENTE_SENZA_TEAM');
+```
+
+### 2. Flusso Operativo (Chiamate API)
+
+> **Importante**: Dopo ogni login, copia il `token` ricevuto nella risposta e utilizzalo nell'header `Authorization` per le chiamate successive relative a quell'utente.
+> Header: `Authorization: Bearer <TOKEN>`
+
+#### A. Autenticazione (Login)
+
+Recupera i token per i vari attori.
+
+**Login Mentore (Paolo Gialli)**
+`POST http://localhost:8080/api/auth/login`
+```json
+{
+ "email": "paolo.gialli@mentor.com",
+ "password": "a"
+}
+```
+
+**Login Giudice (Giovanni Bianchi)**
+`POST http://localhost:8080/api/auth/login`
+```json
+{
+ "email": "giovanni.bianchi@judge.com",
+ "password": "a"
+}
+```
+
+**Login Organizzatore (Mario Rossi)**
+`POST http://localhost:8080/api/auth/login`
+```json
+{
+ "email": "mario.rossi@organizer.com",
+ "password": "a"
+}
+```
+
+**Login Utente (Francesca Viola - Utente 7)**
+`POST http://localhost:8080/api/auth/login`
+```json
+{
+ "email": "francesca.viola@user.com",
+ "password": "a"
+}
+```
+
+**Login Utente (Matteo Roso - Utente 8)**
+`POST http://localhost:8080/api/auth/login`
+```json
+{
+ "email": "matteo.roso@user.com",
+ "password": "a"
+}
+```
+
+#### B. Gestione Team
+
+**1. Creazione Team (Utente 7)**
+`POST http://localhost:8080/api/teams/crea`
+*Header Auth: Token Utente 7*
+```json
+{
+ "nomeTeam": "i Dinosauri"
+}
+```
+*Nota: Copia `id` del team creato (es. `TEAM_ID`).*
+
+**2. Invito Membro (da Utente 7 a Utente 8)**
+`POST http://localhost:8080/api/inviti/invia`
+*Header Auth: Token Utente 7*
+```json
+{
+ "teamId": "TEAM_ID",
+ "emailDestinatario": "matteo.roso@user.com"
+}
+```
+*Nota: Copia `id` dell'invito dalla risposta (es. `INVITO_ID`).*
+
+**3. Accettazione Invito (Utente 8)**
+`POST http://localhost:8080/api/inviti/risposta`
+*Header Auth: Token Utente 8*
+```json
+{
+ "invitoId": "INVITO_ID",
+ "accettato": true
+}
+```
+
+#### C. Gestione Hackathon
+
+**1. Creazione Hackathon (Organizzatore 1)**
+`POST http://localhost:8080/api/hackathons/crea`
+*Header Auth: Token Organizzatore 1*
+*Nota: Assicurati che le date siano future rispetto al momento del test per permettere l'iscrizione.*
+```json
+{
+ "nome": "Hackathon 2026",
+ "regolamento": "Regolamento ufficiale...",
+ "inizioIscrizioni": "2026-02-10T23:22:00",
+ "scadenzaIscrizioni": "2026-02-10T23:23:00",
+ "dataInizio": "2026-02-10T23:24:00",
+ "dataFine": "2026-02-10T23:30:00",
+ "luogo": "Roma / Online",
+ "premioInDenaro": 1000.0,
+ "idGiudice": "3",
+ "idMentori": ["5"]
+}
+```
+*Nota: Copia `id` dell'hackathon (es. `HACKATHON_ID`).*
+
+**2. Iscrizione al Hackathon (Utente 7 - Leader Team)**
+`POST http://localhost:8080/api/teams/TEAM_ID/iscrivi?hackathonId=HACKATHON_ID`
+*Header Auth: Token Utente 7*
+
+#### D. Svolgimento e Valutazione
+
+**1. Sottomissione Progetto (Utente 7 - Leader Team)**
+`POST http://localhost:8080/api/sottomissioni/invia`
+*Header Auth: Token Utente 7*
+*Nota: L'hackathon deve essere in fase "IN CORSO" (tra dataInizio e dataFine).*
+```json
+{
+ "idHackathon": "HACKATHON_ID",
+ "idTeam": "TEAM_ID",
+ "linkProgetto": "https://github.com/mio-team/progetto/progetto",
+ "descrizione": "Descrizione del nostro progetto rivoluzionario."
+}
+```
+*Nota: Copia `id` della sottomissione (es. `SOTTOMISSIONE_ID`).*
+
+**2. Valutazione (Giudice 3)**
+`POST http://localhost:8080/api/sottomissioni/valuta`
+*Header Auth: Token Giudice 3*
+*Nota: L'hackathon deve essere in fase "VALUTAZIONE" (dopo dataFine).*
+```json
+{
+ "idSottomissione": "SOTTOMISSIONE_ID",
+ "voto": 8.5,
+ "giudizio": "Ottimo lavoro, codice pulito ma documentazione carente."
+}
+```
+
+**3. Termina Valutazione (Scelta Organizzatore o Automatica)**
+`POST http://localhost:8080/api/hackathons/HACKATHON_ID/terminaValutazione`
+*Header Auth: Token Organizzatore 1*
+
+**4. Proclama Vincitore (Organizzatore 1)**
+`POST http://localhost:8080/api/hackathons/HACKATHON_ID/vincitore?teamId=TEAM_ID`
+*Header Auth: Token Organizzatore 1*
+
+#### E. Supporto (Mentoring)
+
+**1. Richiesta Supporto (Utente 7)**
+`POST http://localhost:8080/api/supporto/crea`
+*Header Auth: Token Utente 7*
+```json
+{
+ "hackathonId": "HACKATHON_ID",
+ "teamId": "TEAM_ID",
+ "descrizione": "Abbiamo bisogno di aiuto con il pagamento"
+}
+```
+*Nota: Copia `id` richiesta (es. `RICHIESTA_ID`).*
+
+**2. Visualizza Richieste (Mentore 5)**
+`GET http://localhost:8080/api/supporto/mentore?hackathonId=HACKATHON_ID`
+*Header Auth: Token Mentore 5*
+
+**3. Proponi Call (Mentore 5)**
+`POST http://localhost:8080/api/supporto/proponi-call`
+*Header Auth: Token Mentore 5*
+```json
+{
+ "richiestaId": "RICHIESTA_ID",
+ "linkCall": "https://meet.google.com/abc",
+ "dataCall": "2027-02-16T15:00:00"
+}
+```
 
 ## 👥 Autori
 
