@@ -1,59 +1,59 @@
 # HackHub
 
-HackHub è una piattaforma backend sviluppata in Java con Spring Boot per la gestione completa di Hackathon. Questo progetto è stato realizzato per il corso di Ingegneria del Software (IdS) presso l'Università di Camerino (Unicam).
+HackHub is a backend platform developed in Java with Spring Boot for the complete management of Hackathons. This project was developed for the Software Engineering (IdS) course at the University of Camerino (Unicam).
 
-## 📋 Descrizione
+## Description
 
-HackHub permette di gestire l'intero ciclo di vita di un hackathon, dalla creazione alla premiazione, includendo la gestione di team, partecipanti, giudici e mentori. Il sistema supporta diverse fasi (iscrizione, svolgimento, valutazione) e fornisce funzionalità per la sottomissione dei progetti e la loro valutazione.
+HackHub allows managing the entire lifecycle of a hackathon, from creation to awarding, including the management of teams, participants, judges, and mentors. The system supports various phases (registration, ongoing, evaluation) and provides features for project submission and evaluation.
 
-## 🚀 Tecnologie Utilizzate
+## Technologies Used
 
-*   **Java 21**: Linguaggio di programmazione principale.
-*   **Spring Boot**: Framework per lo sviluppo dell'applicazione backend.
-*   **Spring Data JPA**: Per la persistenza dei dati.
-*   **H2 Database**: Database in-memory per lo sviluppo e il testing rapido.
-*   **Maven**: Strumento di build e gestione delle dipendenze.
+*   **Java 21**: Main programming language.
+*   **Spring Boot**: Framework for backend application development.
+*   **Spring Data JPA**: For data persistence.
+*   **H2 Database**: In-memory database for rapid development and testing.
+*   **Maven**: Build and dependency management tool.
 
-## ✨ Funzionalità Principali
+## Main Features
 
-*   **Gestione Utenti**: Ruoli differenziati (Organizzatore, Partecipante, Giudice, Mentore, Visitatore).
-*   **Gestione Hackathon**: Creazione e gestione degli stati dell'evento (Creato, Iscrizione Aperta, In Corso, Valutazione, Concluso).
-*   **Gestione Team**: Creazione squadre, inviti, adesione e abbandono dei membri.
-*   **Sottomissioni**: Caricamento dei progetti da parte dei team (supporto per link GitHub).
-*   **Valutazioni**: Sistema di valutazione delle Sottomissioni da parte dei Giudici.
-*   **Richieste di Supporto**: I team possono richiedere aiuto ai mentori (integrazione con link per call come Google Meet/Webex).
-*   **Scheduler Automatico**: Avanzamento automatico delle fasi dell'hackathon basato sulle date.
+*   **User Management**: Differentiated roles (Organizer, Participant, Judge, Mentor, Visitor).
+*   **Hackathon Management**: Creation and management of event states (Created, Registration Open, On Going, Evaluation, Concluded).
+*   **Team Management**: Team creation, invitations, member joining and leaving.
+*   **Submissions**: Project upload by teams (support for GitHub links).
+*   **Evaluations**: Submission evaluation system by Judges.
+*   **Support Requests**: Teams can request help from mentors (integration with call links like Google Meet/Webex).
+*   **Automatic Scheduler**: Automatic advancement of hackathon phases based on dates.
 
-## 🛠️ Architettura e Pattern
+## Architecture and Patterns
 
-Il progetto segue un'architettura a livelli (Layered Architecture) con una separazione chiara tra:
-*   **Presentation**: Controller REST.
-*   **Application**: Logica di business e servizi.
-*   **Core**: Entità del dominio.
-*   **Infrastructure**: Implementazione della persistenza e utility (come il Sistema Esterno di Pagamento, il meccanismo di Hashing delle Password, ecc.).
+The project follows a Layered Architecture with a clear separation between:
+*   **Presentation**: REST Controllers.
+*   **Application**: Business logic and services.
+*   **Core**: Domain entities.
+*   **Infrastructure**: Persistence implementation and utilities (such as External Payment System, Password Hashing mechanism, etc.).
 
-Pattern progettuali utilizzati includono:
-*   **Unit of Work**: Per gestire le transazioni e l'accesso ai dati in modo atomico.
-*   **Builder**: Per la costruzione complessa di oggetti (es. entità Hackathon).
-*   **Strategy**: Per la gestione e la validazione dei link esterni (es. link GitHub, link per call come Google Meet/Webex).
+Design patterns used include:
+*   **Unit of Work**: To manage transactions and data access atomically.
+*   **Builder**: For complex object construction (e.g., Hackathon entity).
+*   **Strategy**: For managing and validating external links (e.g., GitHub links, call links like Google Meet/Webex).
 
-## 📦 Installazione e Avvio
+## Installation and Startup
 
-### Prerequisiti
-*   JDK 21 installato.
-*   Maven (opzionale, incluso nel wrapper `mvnw`).
+### Prerequisites
+*   JDK 21 installed.
+*   Maven (optional, included in `mvnw` wrapper).
 
-### Passaggi
+### Steps
 
-1.  Clona il repository:
+1.  Clone the repository:
     ```bash
     git clone <url-repository>
     ```
-2.  Naviga nella cartella del progetto:
+2.  Navigate to the project folder:
     ```bash
     cd HackHub/Codice/app
     ```
-3.  Avvia l'applicazione con Maven Wrapper:
+3.  Start the application with Maven Wrapper:
     *   **Windows**:
         ```bash
         ./mvnw spring-boot:run
@@ -64,32 +64,32 @@ Pattern progettuali utilizzati includono:
         ./mvnw spring-boot:run
         ```
 
-L'applicazione si avvierà sulla porta `8080`.
+The application will start on port `8080`.
 
-## 📚 Documentazione API
+## API Documentation
 
-Una volta avviata l'applicazione, puoi accedere alla documentazione interattiva delle API (Swagger UI) al seguente indirizzo:
+Once the application is started, you can access the interactive API documentation (Swagger UI) at the following address:
 
 [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
-## 🗄️ Database Console
+## Database Console
 
-Per ispezionare il database H2 in memoria:
+To inspect the H2 in-memory database:
 *   URL: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
 *   JDBC URL: `jdbc:h2:mem:testdb`
 *   Username: `user`
 *   Password: `pass`
 
 
-## 🧪 Sequenza di Test Manuale
+## Manual Test Sequence
 
-Di seguito è riportata una sequenza di operazioni per testare manualmente il flusso principale dell'applicazione.
+Below is a sequence of operations to manually test the application's main flow.
 
-### 1. Popolamento Database (SQL)
+### 1. Database Population (SQL)
 
-Esegui questi comandi SQL (es. nella H2 Console) per inserire utenti di test con ruoli diversi.
-> **Importante**:
-> La password per tutti questi utenti è `a`.
+Execute these SQL commands (e.g., in the H2 Console) to insert test users with different roles.
+> **Important**:
+> The password for all these users is `a`.
 
 ```sql
 -- Insert 2 Organizers
@@ -111,16 +111,16 @@ INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('9', 'Sara
 INSERT INTO users (id, nome, cognome, email, password, ruolo) VALUES ('10', 'Luca', 'Marrone', 'luca.marrone@user.com', 'ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=', 'UTENTE_SENZA_TEAM');
 ```
 
-### 2. Flusso Operativo (Chiamate API)
+### 2. Operational Flow (API Calls)
 
-> **Importante**: Dopo ogni login, copia il `token` ricevuto nella risposta e utilizzalo nell'header `Authorization` per le chiamate successive relative a quell'utente.
+> **Important**: After each login, copy the `token` received in the response and use it in the `Authorization` header for subsequent calls related to that user.
 > Header: `Authorization: Bearer <TOKEN>`
 
-#### A. Autenticazione (Login)
+#### A. Authentication (Login)
 
-Recupera i token per i vari attori.
+Retrieve tokens for the various actors.
 
-**Login Mentore (Paolo Gialli)**
+**Mentor Login (Paolo Gialli)**
 `POST http://localhost:8080/api/auth/login`
 ```json
 {
@@ -129,7 +129,7 @@ Recupera i token per i vari attori.
 }
 ```
 
-**Login Giudice (Giovanni Bianchi)**
+**Judge Login (Giovanni Bianchi)**
 `POST http://localhost:8080/api/auth/login`
 ```json
 {
@@ -138,7 +138,7 @@ Recupera i token per i vari attori.
 }
 ```
 
-**Login Organizzatore (Mario Rossi)**
+**Organizer Login (Mario Rossi)**
 `POST http://localhost:8080/api/auth/login`
 ```json
 {
@@ -147,7 +147,7 @@ Recupera i token per i vari attori.
 }
 ```
 
-**Login Utente (Francesca Viola - Utente 7)**
+**User Login (Francesca Viola - User 7)**
 `POST http://localhost:8080/api/auth/login`
 ```json
 {
@@ -156,7 +156,7 @@ Recupera i token per i vari attori.
 }
 ```
 
-**Login Utente (Matteo Roso - Utente 8)**
+**User Login (Matteo Roso - User 8)**
 `POST http://localhost:8080/api/auth/login`
 ```json
 {
@@ -165,45 +165,45 @@ Recupera i token per i vari attori.
 }
 ```
 
-#### B. Gestione Team
+#### B. Team Management
 
-**1. Creazione Team (Utente 7)**
+**1. Create Team (User 7)**
 `POST http://localhost:8080/api/teams/crea`
-*Header Auth: Token Utente 7*
+*Header Auth: User Token 7*
 ```json
 {
  "nomeTeam": "i Dinosauri"
 }
 ```
-*Nota: Copia `id` del team creato (es. `TEAM_ID`).*
+*Note: Copy created team `id` (e.g., `TEAM_ID`).*
 
-**2. Invito Membro (da Utente 7 a Utente 8)**
+**2. Invite Member (from User 7 to User 8)**
 `POST http://localhost:8080/api/inviti/invia`
-*Header Auth: Token Utente 7*
+*Header Auth: User Token 7*
 ```json
 {
  "teamId": "TEAM_ID",
  "emailDestinatario": "matteo.roso@user.com"
 }
 ```
-*Nota: Copia `id` dell'invito dalla risposta (es. `INVITO_ID`).*
+*Note: Copy invitation `id` from response (e.g., `INVITATION_ID`).*
 
-**3. Accettazione Invito (Utente 8)**
+**3. Accept Invitation (User 8)**
 `POST http://localhost:8080/api/inviti/risposta`
-*Header Auth: Token Utente 8*
+*Header Auth: User Token 8*
 ```json
 {
- "invitoId": "INVITO_ID",
+ "invitoId": "INVITATION_ID",
  "accettato": true
 }
 ```
 
-#### C. Gestione Hackathon
+#### C. Hackathon Management
 
-**1. Creazione Hackathon (Organizzatore 1)**
+**1. Create Hackathon (Organizer 1)**
 `POST http://localhost:8080/api/hackathons/crea`
-*Header Auth: Token Organizzatore 1*
-*Nota: Assicurati che le date siano future rispetto al momento del test per permettere l'iscrizione.*
+*Header Auth: Organizer Token 1*
+*Note: Ensure dates are in the future relative to the test time to allow registration.*
 ```json
 {
  "nome": "Hackathon 2026",
@@ -218,18 +218,18 @@ Recupera i token per i vari attori.
  "idMentori": ["5"]
 }
 ```
-*Nota: Copia `id` dell'hackathon (es. `HACKATHON_ID`).*
+*Note: Copy hackathon `id` (e.g., `HACKATHON_ID`).*
 
-**2. Iscrizione al Hackathon (Utente 7 - Leader Team)**
+**2. Register for Hackathon (User 7 - Team Leader)**
 `POST http://localhost:8080/api/teams/TEAM_ID/iscrivi?hackathonId=HACKATHON_ID`
-*Header Auth: Token Utente 7*
+*Header Auth: User Token 7*
 
-#### D. Svolgimento e Valutazione
+#### D. Execution and Evaluation
 
-**1. Sottomissione Progetto (Utente 7 - Leader Team)**
+**1. Project Submission (User 7 - Team Leader)**
 `POST http://localhost:8080/api/sottomissioni/invia`
-*Header Auth: Token Utente 7*
-*Nota: L'hackathon deve essere in fase "IN CORSO" (tra dataInizio e dataFine).*
+*Header Auth: User Token 7*
+*Note: The hackathon must be in "IN CORSO" (On Going) phase (between dataInizio and dataFine).*
 ```json
 {
  "idHackathon": "HACKATHON_ID",
@@ -238,33 +238,33 @@ Recupera i token per i vari attori.
  "descrizione": "Descrizione del nostro progetto rivoluzionario."
 }
 ```
-*Nota: Copia `id` della sottomissione (es. `SOTTOMISSIONE_ID`).*
+*Note: Copy submission `id` (e.g., `SUBMISSION_ID`).*
 
-**2. Valutazione (Giudice 3)**
+**2. Evaluation (Judge 3)**
 `POST http://localhost:8080/api/sottomissioni/valuta`
-*Header Auth: Token Giudice 3*
-*Nota: L'hackathon deve essere in fase "VALUTAZIONE" (dopo dataFine).*
+*Header Auth: Judge Token 3*
+*Note: The hackathon must be in "VALUTAZIONE" (Evaluation) phase (after dataFine).*
 ```json
 {
- "idSottomissione": "SOTTOMISSIONE_ID",
+ "idSottomissione": "SUBMISSION_ID",
  "voto": 8.5,
  "giudizio": "Ottimo lavoro, codice pulito ma documentazione carente."
 }
 ```
 
-**3. Termina Valutazione (Scelta Organizzatore o Automatica)**
+**3. End Evaluation (Organizer Choice or Automatic)**
 `POST http://localhost:8080/api/hackathons/HACKATHON_ID/terminaValutazione`
-*Header Auth: Token Organizzatore 1*
+*Header Auth: Organizer Token 1*
 
-**4. Proclama Vincitore (Organizzatore 1)**
+**4. Proclaim Winner (Organizer 1)**
 `POST http://localhost:8080/api/hackathons/HACKATHON_ID/vincitore?teamId=TEAM_ID`
-*Header Auth: Token Organizzatore 1*
+*Header Auth: Organizer Token 1*
 
-#### E. Supporto (Mentoring)
+#### E. Support (Mentoring)
 
-**1. Richiesta Supporto (Utente 7)**
+**1. Request Support (User 7)**
 `POST http://localhost:8080/api/supporto/crea`
-*Header Auth: Token Utente 7*
+*Header Auth: User Token 7*
 ```json
 {
  "hackathonId": "HACKATHON_ID",
@@ -272,24 +272,24 @@ Recupera i token per i vari attori.
  "descrizione": "Abbiamo bisogno di aiuto con il pagamento"
 }
 ```
-*Nota: Copia `id` richiesta (es. `RICHIESTA_ID`).*
+*Note: Copy request `id` (e.g., `REQUEST_ID`).*
 
-**2. Visualizza Richieste (Mentore 5)**
+**2. View Requests (Mentor 5)**
 `GET http://localhost:8080/api/supporto/mentore?hackathonId=HACKATHON_ID`
-*Header Auth: Token Mentore 5*
+*Header Auth: Mentor Token 5*
 
-**3. Proponi Call (Mentore 5)**
+**3. Propose Call (Mentor 5)**
 `POST http://localhost:8080/api/supporto/proponi-call`
-*Header Auth: Token Mentore 5*
+*Header Auth: Mentor Token 5*
 ```json
 {
- "richiestaId": "RICHIESTA_ID",
+ "richiestaId": "REQUEST_ID",
  "linkCall": "https://meet.google.com/abc",
  "dataCall": "2027-02-16T15:00:00"
 }
 ```
 
-## 👥 Autori
+## Authors
 
 * Luca Soricetti
 * Alessio Pianaroli
