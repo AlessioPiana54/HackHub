@@ -135,7 +135,8 @@ public class SottomissioneService extends AbstractService {
   public Valutazione valutaSottomissione(
     CreaValutazioneRequest request,
     String giudiceId,
-    String token
+    String token,
+    String sottomissioneId
   ) {
     // Verify ownership: check that the current authenticated user matches the giudiceId
     String currentUserId = SecurityUtils.getCurrentUserId(token);
@@ -146,9 +147,7 @@ public class SottomissioneService extends AbstractService {
       );
     }
 
-    Sottomissione sottomissione = findSottomissioneOrThrow(
-      request.getIdSottomissione()
-    );
+    Sottomissione sottomissione = findSottomissioneOrThrow(sottomissioneId);
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
     if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {

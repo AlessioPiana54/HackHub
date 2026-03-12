@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * Controller per la gestione delle richieste di supporto.
  */
 @RestController
-@RequestMapping("/api/supporto")
+@RequestMapping("/api/support-requests")
 public class RichiestaSupportoController extends AbstractController {
 
   private final RichiestaSupportoService supportoService;
@@ -39,7 +39,7 @@ public class RichiestaSupportoController extends AbstractController {
    * @param request I dati della richiesta di supporto.
    * @return La richiesta creata o un errore di validazione.
    */
-  @PostMapping("/crea")
+  @PostMapping("")
   public ResponseEntity<?> creaRichiesta(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaRichiestaSupportoRequest request
@@ -62,7 +62,7 @@ public class RichiestaSupportoController extends AbstractController {
    * @param token       Il token di autorizzazione del mentore.
    * @return Una lista di Richieste di Supporto.
    */
-  @GetMapping("/mentore")
+  @GetMapping("")
   public ResponseEntity<?> getRichiestePerMentore(
     @RequestParam String hackathonId,
     @RequestHeader("Authorization") String token
@@ -83,16 +83,18 @@ public class RichiestaSupportoController extends AbstractController {
    * @param request I dati per la proposta della call.
    * @return La richiesta aggiornata con la proposta di call.
    */
-  @PostMapping("/proponi-call")
+  @PatchMapping("/{id}/call")
   public ResponseEntity<?> proponiCall(
     @RequestHeader("Authorization") String token,
+    @PathVariable String id,
     @RequestBody ProponiCallRequest request
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(validator.validateProponiCall(request));
     RichiestaSupporto richiesta = supportoService.proponiCall(
       request,
-      user.getId()
+      user.getId(),
+      id
     );
     return ResponseEntity.ok(richiesta);
   }
@@ -105,7 +107,7 @@ public class RichiestaSupportoController extends AbstractController {
    * @param token       Il token di autorizzazione.
    * @return Una lista di Richieste di Supporto.
    */
-  @GetMapping("/visualizza-proposte-call")
+  @GetMapping("/proposte-call")
   public ResponseEntity<?> getRichiesteGestitePerTeam(
     @RequestParam String hackathonId,
     @RequestParam String teamId,

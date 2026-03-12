@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * Controller per la gestione delle sottomissioni.
  */
 @RestController
-@RequestMapping("/api/sottomissioni")
+@RequestMapping("/api/submissions")
 public class SottomissioneController extends AbstractController {
 
   private final SottomissioneService sottomissioneService;
@@ -43,7 +43,7 @@ public class SottomissioneController extends AbstractController {
    * @param request I dati della sottomissione.
    * @return La sottomissione creata o un errore di validazione.
    */
-  @PostMapping("/invia")
+  @PostMapping("")
   public ResponseEntity<?> inviaSottomissione(
     @RequestHeader("Authorization") String token,
     @RequestBody InviaSottomissioneRequest request
@@ -87,9 +87,10 @@ public class SottomissioneController extends AbstractController {
    * @param request I dati della valutazione.
    * @return La valutazione creata o un errore di validazione.
    */
-  @PostMapping("/valuta")
+  @PatchMapping("/{id}/evaluation")
   public ResponseEntity<?> valutaSottomissione(
     @RequestHeader("Authorization") String token,
+    @PathVariable String id,
     @RequestBody CreaValutazioneRequest request
   ) {
     User user = getAuthenticatedUser(token);
@@ -97,7 +98,8 @@ public class SottomissioneController extends AbstractController {
     Valutazione valutazione = sottomissioneService.valutaSottomissione(
       request,
       user.getId(),
-      token
+      token,
+      id
     );
     return ResponseEntity.ok(valutazione);
   }

@@ -37,7 +37,7 @@ public class TeamController extends AbstractController {
    * @param request I dati per la creazione del team.
    * @return Il team creato o un errore di validazione.
    */
-  @PostMapping("/crea")
+  @PostMapping("")
   public ResponseEntity<?> creaTeam(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaTeamRequest request

@@ -126,7 +126,8 @@ public class RichiestaSupportoService extends AbstractService {
    */
   public RichiestaSupporto proponiCall(
     ProponiCallRequest request,
-    String mentorId
+    String mentorId,
+    String richiestaId
   ) {
     if (
       !linkStrategyContext.validate(
@@ -141,7 +142,7 @@ public class RichiestaSupportoService extends AbstractService {
 
     RichiestaSupporto richiesta = unitOfWork
       .richiestaSupportoRepository()
-      .findById(request.getRichiestaId())
+      .findById(richiestaId)
       .orElseThrow(() ->
         new IllegalArgumentException("Richiesta di supporto non trovata")
       );
