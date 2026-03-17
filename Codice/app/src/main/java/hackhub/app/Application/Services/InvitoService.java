@@ -1,5 +1,6 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.DTOs.InvitoDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
@@ -11,6 +12,7 @@ import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,5 +124,68 @@ public class InvitoService extends AbstractService {
 
   private void rifiutaInvito(Invito invito) {
     unitOfWork.invitoRepository().delete(invito);
+  }
+
+  /**
+   * Recupera gli inviti ricevuti dall'utente.
+   *
+   * @param userId L'ID dell'utente.
+   * @return Lista di InvitoDTO ricevuti.
+   */
+  public List<InvitoDTO> getReceivedInvitations(String userId) {
+    List<Invito> invitations =
+      (
+        (org.springframework.data.jpa.repository.JpaRepository<Invito, String>) unitOfWork.invitoRepository()
+      ).findAll()
+        .stream()
+        .filter(invito -> invito.getDestinatario().getId().equals(userId))
+        .toList();
+
+    return invitations
+      .stream()
+      .map(this::convertToDTO)
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Recupera gli inviti inviati dall'utente.
+   *
+   * @param userId L'ID dell'utente.
+   * @return Lista di InvitoDTO inviati.
+   */
+  public List<InvitoDTO> getSentInvitations(String userId) {
+    List<Invito> invitations =
+      (
+        (org.springframework.data.jpa.repository.JpaRepository<Invito, String>) unitOfWork.invitoRepository()
+      ).findAll()
+        .stream()
+        .filter(invito -> invito.getMittente().getId().equals(userId))
+        .toList();
+
+    return invitations
+      .stream()
+      .map(this::convertToDTO)
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Converte un'entità Invito in InvitoDTO.
+   *
+   * @param invito L'entità Invito.
+   * @return InvitoDTO.
+   */
+  private InvitoDTO convertToDTO(Invito invito) {
+    return new InvitoDTO(
+      invito.getId(),
+      invito.getMittente().getId(),
+      invito.getMittente().getNome() + " " + invito.getMittente().getCognome(),
+      invito.getDestinatario().getId(),
+      invito.getDestinatario().getNome() +
+      " " +
+      invito.getDestinatario().getCognome(),
+      invito.getTeam().getId(),
+      invito.getTeam().getNomeTeam(),
+      invito.getDataInvito()
+    );
   }
 }

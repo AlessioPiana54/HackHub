@@ -58,15 +58,24 @@ public class SegnalazioneService extends AbstractService {
          * @throws IllegalArgumentException se l'hackathon non viene trovato
          * @throws SecurityException        se il richiedente non è l'organizzatore
          */
-        public List<SegnalazioneDTO> getSegnalazioni(String idHackathon, String idOrganizer) {
+        public List<SegnalazioneDTO> getSegnalazioni(String idHackathon, String idUser) {
                 Hackathon h = findHackathonOrThrow(idHackathon);
 
-                if (!h.getOrganizzatore().getId().equals(idOrganizer)) {
-                        throw new SecurityException("Solo l'organizzatore può vedere le segnalazioni.");
+                boolean isOrganizer = h.getOrganizzatore().getId().equals(idUser);
+                boolean isMentor = h.getMentori().stream().anyMatch(m -> m.getId().equals(idUser));
+
+                if (isOrganizer || isMentor) {
+                        // Organizzatore e Mentori vedono tutto
+                        return unitOfWork.segnalazioneRepository().findByPartecipazioneHackathonId(idHackathon).stream()
+                                        .map(this::mapToDTO)
+                                        .collect(toList());
                 }
 
-                // Recupera le segnalazioni relative all'hackathon e le mappa in DTO
+                // Per i partecipanti, filtriamo solo le segnalazioni del proprio team
+                List<hackhub.app.Core.POJO_Entities.Team> userTeams = unitOfWork.teamRepository().findByMembriId(idUser);
+                
                 return unitOfWork.segnalazioneRepository().findByPartecipazioneHackathonId(idHackathon).stream()
+                                .filter(s -> userTeams.stream().anyMatch(t -> t.getId().equals(s.getTeam().getId())))
                                 .map(this::mapToDTO)
                                 .collect(toList());
         }

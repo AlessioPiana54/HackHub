@@ -1,0 +1,99 @@
+// HackHub Professional Color Palette & Design System
+:root {
+  // Primary Colors
+  --primary: #1E3A5F;
+  --primary-light: #2E5F9E;
+  --accent: #3B82F6;
+  
+  // Background Colors
+  --bg-page: #F4F6F9;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #1E3A5F;
+  
+  // Text Colors
+  --text-primary: #1A1A2E;
+  --text-secondary: #6B7280;
+  
+  // Border & UI Elements
+  --border: #E5E7EB;
+  --border-primary: #E5E7EB;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  
+  // Status Colors
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  
+  // Spacing System
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-xxxl: 64px;
+  
+  // Typography Scale
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  
+  // Border Radius
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  // Transitions
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  // Sidebar
+  --sidebar-width: 240px;
+  
+  // Z-index
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+// SCSS Variables
+$primary: #1E3A5F;
+$primary-light: #2E5F9E;
+$accent: #3B82F6;
+$bg-page: #F4F6F9;
+$bg-card: #FFFFFF;
+$bg-sidebar: #1E3A5F;
+$text-primary: #1A1A2E;
+$text-secondary: #6B7280;
+$border: #E5E7EB;
+$shadow: 0 2px 8px rgba(0,0,0,0.08);
+$success: #10B981;
+$warning: #F59E0B;
+$danger: #EF4444;
+
+// Breakpoints
+$breakpoints: (
+  xs: 0,
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+  xxl: 1536px
+);

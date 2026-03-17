@@ -1,5 +1,6 @@
 package hackhub.app.Presentation.Controllers;
 
+import hackhub.app.Application.DTOs.InvitoDTO;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
 import hackhub.app.Application.Services.InvitoService;
@@ -7,6 +8,7 @@ import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.Invito;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.InvitoValidator;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,6 +66,40 @@ public class InvitoController extends AbstractController {
     User user = getAuthenticatedUser(token);
     validateRequest(invitoValidator.validateRisposta(request));
     invitoService.gestisciRisposta(request, user.getId(), id);
-    return ResponseEntity.ok("Risposta registrata con successo.");
+    return ResponseEntity.ok(new hackhub.app.Application.DTOs.MessageResponse("Risposta registrata con successo."));
+  }
+
+  /**
+   * Recupera gli inviti ricevuti dall'utente.
+   *
+   * @param token Il token di autorizzazione dell'utente.
+   * @return Lista di InvitoDTO ricevuti.
+   */
+  @GetMapping("/received")
+  public ResponseEntity<List<InvitoDTO>> getReceivedInvitations(
+    @RequestHeader("Authorization") String token
+  ) {
+    User user = getAuthenticatedUser(token);
+    List<InvitoDTO> invitations = invitoService.getReceivedInvitations(
+      user.getId()
+    );
+    return ResponseEntity.ok(invitations);
+  }
+
+  /**
+   * Recupera gli inviti inviati dall'utente.
+   *
+   * @param token Il token di autorizzazione dell'utente.
+   * @return Lista di InvitoDTO inviati.
+   */
+  @GetMapping("/sent")
+  public ResponseEntity<List<InvitoDTO>> getSentInvitations(
+    @RequestHeader("Authorization") String token
+  ) {
+    User user = getAuthenticatedUser(token);
+    List<InvitoDTO> invitations = invitoService.getSentInvitations(
+      user.getId()
+    );
+    return ResponseEntity.ok(invitations);
   }
 }

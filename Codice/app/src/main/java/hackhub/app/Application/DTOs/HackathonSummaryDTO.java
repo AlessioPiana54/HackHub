@@ -1,60 +1,97 @@
 package hackhub.app.Application.DTOs;
 
-import java.time.LocalDateTime;
 import hackhub.app.Core.Enums.StatoHackathon;
+import java.time.LocalDateTime;
 
 public class HackathonSummaryDTO {
-    private String nome;
-    private String regolamento;
-    private LocalDateTime dataInizio;
-    private LocalDateTime dataFine;
-    private String luogo;
-    private double premioInDenaro;
-    private StatoHackathon stato;
-    private String organizzatoreNome;
 
-    public HackathonSummaryDTO(String nome, String regolamento, LocalDateTime dataInizio, LocalDateTime dataFine,
-            String luogo, double premioInDenaro, StatoHackathon stato, String organizzatoreNome) {
-        this.nome = nome;
-        this.regolamento = regolamento;
-        this.dataInizio = dataInizio;
-        this.dataFine = dataFine;
-        this.luogo = luogo;
-        this.premioInDenaro = premioInDenaro;
-        this.stato = stato;
-        this.organizzatoreNome = organizzatoreNome;
-    }
+  private String id;
+  private String nome;
+  private String regolamento;
+  private String descrizione;
+  private LocalDateTime inizioIscrizioni;
+  private LocalDateTime scadenzaIscrizioni;
+  private LocalDateTime dataInizio;
+  private LocalDateTime dataFine;
+  private String luogo;
+  private double premioInDenaro;
+  private StatoHackathon stato;
+  private String organizzatoreNome;
 
-    // Getters
-    public String getNome() {
-        return nome;
-    }
+  public HackathonSummaryDTO(
+    String id,
+    String nome,
+    String regolamento,
+    String descrizione,
+    LocalDateTime inizioIscrizioni,
+    LocalDateTime scadenzaIscrizioni,
+    LocalDateTime dataInizio,
+    LocalDateTime dataFine,
+    String luogo,
+    double premioInDenaro,
+    StatoHackathon stato,
+    String organizzatoreNome
+  ) {
+    this.id = id;
+    this.nome = nome;
+    this.regolamento = regolamento;
+    this.descrizione = descrizione;
+    this.inizioIscrizioni = inizioIscrizioni;
+    this.scadenzaIscrizioni = scadenzaIscrizioni;
+    this.dataInizio = dataInizio;
+    this.dataFine = dataFine;
+    this.luogo = luogo;
+    this.premioInDenaro = premioInDenaro;
+    this.stato = stato;
+    this.organizzatoreNome = organizzatoreNome;
+  }
 
-    public String getRegolamento() {
-        return regolamento;
-    }
+  // Getters
+  public String getId() {
+    return id;
+  }
 
-    public LocalDateTime getDataInizio() {
-        return dataInizio;
-    }
+  public String getNome() {
+    return nome;
+  }
 
-    public LocalDateTime getDataFine() {
-        return dataFine;
-    }
+  public String getRegolamento() {
+    return regolamento;
+  }
 
-    public String getLuogo() {
-        return luogo;
-    }
+  public String getDescrizione() {
+    return descrizione;
+  }
 
-    public double getPremioInDenaro() {
-        return premioInDenaro;
-    }
+  public LocalDateTime getInizioIscrizioni() {
+    return inizioIscrizioni;
+  }
 
-    public StatoHackathon getStato() {
-        return stato;
-    }
+  public LocalDateTime getScadenzaIscrizioni() {
+    return scadenzaIscrizioni;
+  }
 
-    public String getOrganizzatoreNome() {
-        return organizzatoreNome;
-    }
+  public LocalDateTime getDataInizio() {
+    return dataInizio;
+  }
+
+  public LocalDateTime getDataFine() {
+    return dataFine;
+  }
+
+  public String getLuogo() {
+    return luogo;
+  }
+
+  public double getPremioInDenaro() {
+    return premioInDenaro;
+  }
+
+  public StatoHackathon getStato() {
+    return stato;
+  }
+
+  public String getOrganizzatoreNome() {
+    return organizzatoreNome;
+  }
 }

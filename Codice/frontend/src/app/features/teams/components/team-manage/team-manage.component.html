@@ -1,0 +1,163 @@
+<div class="team-manage-container">
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading team management...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Oops! Something went wrong</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-secondary" (click)="loadTeamDetails()">Try Again</button>
+      <button class="btn-primary" (click)="goBack()">Go Back</button>
+    </div>
+  </div>
+
+  <!-- Team Management -->
+  <div class="team-management" *ngIf="!isLoading && !errorMessage && team">
+    <div class="page-header">
+      <button class="btn-secondary back-button" (click)="goBack()">
+        <span>←</span>
+        <span>Back to Team Details</span>
+      </button>
+      <h1 class="page-title">Manage Team</h1>
+    </div>
+
+    <div class="management-sections">
+      <!-- Team Information -->
+      <div class="management-section">
+        <h2>Team Information</h2>
+        <div class="team-info-card">
+          <div class="team-name-section">
+            <label>Team Name</label>
+            <div class="name-edit-container" *ngIf="!isEditing; else editingName">
+              <span class="team-name">{{ team.nome || 'Unknown Team' }}</span>
+              <button class="btn-primary" (click)="startEditing()">
+                <span>✏️</span>
+                <span>Edit</span>
+              </button>
+            </div>
+            <ng-template #editingName>
+              <div class="name-edit-form">
+                <input 
+                  type="text" 
+                  [(ngModel)]="editedTeamName"
+                  class="team-name-input"
+                  placeholder="Enter team name"
+                  maxlength="50"
+                />
+                <div class="edit-actions">
+                  <button class="btn-primary save-btn" (click)="saveTeamName()" [disabled]="!editedTeamName.trim()">
+                    <span>💾</span>
+                    <span>Save</span>
+                  </button>
+                  <button class="btn-secondary cancel-btn" (click)="cancelEditing()">
+                    <span>❌</span>
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
+          <div class="team-stats-section">
+            <div class="stat-item">
+              <span class="stat-label">Team Members</span>
+              <span class="stat-value">{{ team.membriIds.length || 0 }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Created</span>
+              <span class="stat-value">{{ team.dataCreazione ? (team.dataCreazione | date:'mediumDate') : 'Unknown' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team Members -->
+      <div class="management-section">
+        <div class="section-header">
+          <h2>Team Members</h2>
+          <button class="btn-primary" (click)="inviteMembers()" *ngIf="!isInviting">
+            <span>➕</span>
+            <span>Invite Members</span>
+          </button>
+        </div>
+
+        <div class="invitation-form-container" *ngIf="isInviting">
+          <div class="invitation-form-card">
+            <h3>Invite a New Member</h3>
+            <p>Enter the email address of the user you would like to invite.</p>
+            
+            <div class="form-group">
+              <input 
+                type="email" 
+                [(ngModel)]="inviteEmail" 
+                class="invite-email-input"
+                placeholder="user@example.com"
+                (keyup.enter)="sendInvitation()"
+              />
+            </div>
+            
+            <!-- Messaggi di feedback -->
+            <div class="alert alert-success mt-3" *ngIf="inviteMessage">
+              {{ inviteMessage }}
+            </div>
+            <div class="alert alert-danger mt-3" *ngIf="inviteError">
+              {{ inviteError }}
+            </div>
+
+            <div class="invite-actions mt-3">
+              <button class="btn-primary" (click)="sendInvitation()" [disabled]="!inviteEmail.trim()">
+                <span>✉️</span>
+                <span>Send Invitation</span>
+              </button>
+              <button class="btn-secondary" (click)="cancelInvite()">
+                <span>❌</span>
+                <span>Cancel</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="members-list">
+          <div class="member-item" *ngFor="let memberName of team.membriNomi || []; let i = index">
+            <div class="member-avatar">
+              {{ memberName.charAt(0).toUpperCase() }}
+            </div>
+            <div class="member-info">
+              <span class="member-name">{{ memberName }}</span>
+              <span class="member-role" *ngIf="team.membriIds && team.leaderId && team.membriIds[i] === team.leaderId">👑 Team Leader</span>
+              <span class="member-role" *ngIf="!(team.membriIds && team.leaderId && team.membriIds[i] === team.leaderId)">👤 Team Member</span>
+            </div>
+            
+            <div class="member-actions" *ngIf="team.leaderId === currentUser?.id && team.membriIds && team.membriIds[i] !== team.leaderId">
+              <button class="btn-success btn-small" (click)="transferLeadership(team.membriIds[i], memberName)" title="Make Team Leader">
+                <span>👑</span>
+                <span>Make Leader</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="management-section danger-zone">
+        <h2>Danger Zone</h2>
+        <div class="danger-card">
+          <div class="danger-info">
+            <h3>Delete Team</h3>
+            <p>Once you delete a team, there is no going back. Please be certain.</p>
+          </div>
+          <button class="btn-danger" (click)="deleteTeam()">
+            <span>🗑️</span>
+            <span>Delete Team</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

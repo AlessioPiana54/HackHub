@@ -1,0 +1,79 @@
+<div class="team-details-container">
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading team details...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Oops! Something went wrong</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-secondary" (click)="loadTeamDetails()">Try Again</button>
+      <button class="btn-primary" (click)="goBack()">Go Back</button>
+    </div>
+  </div>
+
+  <!-- Team Details -->
+  <div class="team-details" *ngIf="!isLoading && !errorMessage && team">
+    <div class="page-header">
+      <button class="btn-secondary back-button" (click)="goBack()">
+        <span>←</span>
+        <span>Back to Teams</span>
+      </button>
+      <h1 class="page-title">{{ team.nome || team.leaderNome || 'Team Details' }}</h1>
+      <button class="btn-primary" (click)="editTeam()">
+        <span>⚙️</span>
+        <span>Manage Team</span>
+      </button>
+    </div>
+
+    <div class="team-info-card">
+      <div class="team-header">
+        <div class="team-name">
+          <h2>{{ team.nome || 'Unknown Team' }}</h2>
+        </div>
+        <div class="team-stats">
+          <div class="stat-item">
+            <span class="stat-label">Members</span>
+            <span class="stat-value">{{ team.membriIds.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Created</span>
+            <span class="stat-value">{{ team.dataCreazione ? (team.dataCreazione | date:'short') : 'Unknown' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-leader">
+        <h3>Team Leader</h3>
+        <div class="leader-info">
+          <div class="leader-avatar">👑</div>
+          <div class="leader-details">
+            <span class="leader-name">{{ team.leaderNome || 'Unknown Leader' }}</span>
+            <span class="leader-role">Team Leader</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-members" *ngIf="team.membriNomi && team.membriNomi.length > 0">
+        <h3>Team Members ({{ team.membriNomi.length }})</h3>
+        <div class="members-grid">
+          <div class="member-card" *ngFor="let memberName of team.membriNomi; let i = index">
+            <div class="member-avatar">
+              {{ memberName.charAt(0).toUpperCase() }}
+            </div>
+            <div class="member-info">
+              <span class="member-name">{{ memberName }}</span>
+              <span class="member-role" *ngIf="team.membriIds && team.leaderId && team.membriIds[i] === team.leaderId">👑 Leader</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,103 @@
+<div class="dashboard-container">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1 class="welcome-title">Welcome back, {{ currentUser?.nome }}! 👋</h1>
+      <p class="welcome-subtitle">Ready to build something amazing today?</p>
+    </div>
+    <div class="welcome-stats">
+      <div class="mini-stat">
+        <span class="mini-stat-number">{{ stats.totalHackathons }}</span>
+        <span class="mini-stat-label">Hackathons</span>
+      </div>
+      <div class="mini-stat" *appHasRole="['UTENTE_SENZA_TEAM', 'LEADER_TEAM', 'MEMBRO_TEAM']">
+        <span class="mini-stat-number">{{ stats.activeTeams }}</span>
+        <span class="mini-stat-label">Teams</span>
+      </div>
+      <div class="mini-stat" *appHasRole="['UTENTE_SENZA_TEAM', 'LEADER_TEAM', 'MEMBRO_TEAM']">
+        <span class="mini-stat-number">{{ stats.pendingInvitations }}</span>
+        <span class="mini-stat-label">Invitations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="dashboard-grid">
+    <!-- Quick Actions -->
+    <div class="quick-actions-panel">
+      <h2 class="panel-title">Quick Actions</h2>
+      <div class="action-cards">
+        <!-- Create Hackathon - solo per ORGANIZZATORE -->
+        <div class="action-card primary" *appHasRole="['ORGANIZZATORE']" (click)="navigateTo('/hackathons')">
+          <div class="action-icon">🏆</div>
+          <div class="action-content">
+            <h3>Create Hackathon</h3>
+            <p>Start a new competition</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </div>
+        
+        <!-- Create Team - solo per UTENTE_SENZA_TEAM -->
+        <div class="action-card" *appHasRole="['UTENTE_SENZA_TEAM']" (click)="navigateTo('/teams')">
+          <div class="action-icon">👥</div>
+          <div class="action-content">
+            <h3>Create Team</h3>
+            <p>Build your dream team</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </div>
+        
+        <!-- View Teams - per chi ha team -->
+        <div class="action-card" *appHasRole="['MEMBRO_TEAM', 'LEADER_TEAM']" (click)="navigateTo('/teams')">
+          <div class="action-icon">👥</div>
+          <div class="action-content">
+            <h3>My Teams</h3>
+            <p>Manage your teams</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </div>
+        
+        <!-- View Invitations - solo per UTENTE_SENZA_TEAM -->
+        <div class="action-card" *appHasRole="['UTENTE_SENZA_TEAM']" (click)="navigateTo('/invitations')">
+          <div class="action-icon">📬</div>
+          <div class="action-content">
+            <h3>Invitations</h3>
+            <p>{{ stats.pendingInvitations }} pending</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </div>
+        
+        <!-- Browse Hackathons - per tutti -->
+        <div class="action-card" (click)="navigateTo('/hackathons')">
+          <div class="action-icon">🏆</div>
+          <div class="action-content">
+            <h3>Browse Hackathons</h3>
+            <p>Explore competitions</p>
+          </div>
+          <div class="action-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-panel" *appHasRole="['UTENTE_SENZA_TEAM', 'LEADER_TEAM', 'MEMBRO_TEAM']">
+      <h2 class="panel-title">Recent Activity</h2>
+      <div class="activity-timeline">
+        <div class="timeline-item" *ngFor="let invitation of recentInvitations">
+          <div class="timeline-dot">📬</div>
+          <div class="timeline-content">
+            <h4>Invitation from {{ invitation.mittenteNome || 'Unknown' }}</h4>
+            <p class="timeline-time">{{ invitation.dataInvito | date:'short' }}</p>
+          </div>
+        </div>
+        <div class="timeline-empty" *ngIf="recentInvitations.length === 0">
+          <div class="timeline-dot">📭</div>
+          <div class="timeline-content">
+            <h4>No recent activity</h4>
+            <p>Your recent invitations and updates will appear here</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

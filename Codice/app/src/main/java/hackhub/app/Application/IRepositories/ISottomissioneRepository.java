@@ -2,6 +2,7 @@ package hackhub.app.Application.IRepositories;
 
 import hackhub.app.Core.POJO_Entities.Sottomissione;
 import java.util.List;
+import java.util.Optional;
 
 public interface ISottomissioneRepository {
     /**
@@ -34,7 +35,7 @@ public interface ISottomissioneRepository {
      * @param id Identificativo univoco della sottomissione.
      * @return Optional contenente la sottomissione se trovata.
      */
-    java.util.Optional<Sottomissione> findById(String id);
+    Optional<Sottomissione> findById(String id);
 
     /**
      * Verifica se esiste una sottomissione per una data partecipazione.
@@ -46,7 +47,6 @@ public interface ISottomissioneRepository {
 
     /**
      * Verifica se un team specifico ha inviato sottomissioni per un hackathon.
-     * Ottimizzato per evitare il caricamento di entità non necessarie.
      * 
      * @param hackathonId ID dell'hackathon.
      * @param teamId      ID del team.

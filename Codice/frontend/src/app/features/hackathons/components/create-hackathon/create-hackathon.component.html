@@ -1,0 +1,125 @@
+<div class="create-hackathon-container fade-in">
+  <div class="header">
+    <button class="back-btn" (click)="onCancel()">
+      <span>←</span> Back to Hackathons
+    </button>
+    <h1>Create New Hackathon 🚀</h1>
+    <p class="subtitle">Set up your next great coding competition</p>
+  </div>
+
+  <div class="form-card">
+    <div class="error-alert" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="hackathonForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label for="nome">Hackathon Name <span class="required">*</span></label>
+        <input id="nome" type="text" formControlName="nome" class="form-control" placeholder="E.g. Summer Coding Challenge">
+        <div class="error-text" *ngIf="hackathonForm.get('nome')?.touched && hackathonForm.get('nome')?.invalid">
+          Please provide a valid name (min 3 characters).
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="inizioIscrizioni">Registration Start Date <span class="required">*</span></label>
+          <input id="inizioIscrizioni" type="datetime-local" formControlName="inizioIscrizioni" class="form-control">
+          <div class="error-text" *ngIf="hackathonForm.get('inizioIscrizioni')?.touched && hackathonForm.get('inizioIscrizioni')?.invalid">
+            Registration start date is required.
+          </div>
+        </div>
+
+        <div class="form-group half-width">
+          <label for="scadenzaIscrizioni">Registration End Date <span class="required">*</span></label>
+          <input id="scadenzaIscrizioni" type="datetime-local" formControlName="scadenzaIscrizioni" class="form-control">
+          <div class="error-text" *ngIf="hackathonForm.get('scadenzaIscrizioni')?.touched && hackathonForm.get('scadenzaIscrizioni')?.invalid">
+            Registration end date is required.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="dataInizio">Event Start Date <span class="required">*</span></label>
+          <input id="dataInizio" type="datetime-local" formControlName="dataInizio" class="form-control">
+          <div class="error-text" *ngIf="hackathonForm.get('dataInizio')?.touched && hackathonForm.get('dataInizio')?.invalid">
+            Start date is required.
+          </div>
+        </div>
+
+        <div class="form-group half-width">
+          <label for="dataFine">Event End Date <span class="required">*</span></label>
+          <input id="dataFine" type="datetime-local" formControlName="dataFine" class="form-control">
+          <div class="error-text" *ngIf="hackathonForm.get('dataFine')?.touched && hackathonForm.get('dataFine')?.invalid">
+            End date is required.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="luogo">Location <span class="required">*</span></label>
+          <input id="luogo" type="text" formControlName="luogo" class="form-control" placeholder="E.g. On-site or Online">
+          <div class="error-text" *ngIf="hackathonForm.get('luogo')?.touched && hackathonForm.get('luogo')?.invalid">
+            Location is required.
+          </div>
+        </div>
+
+        <div class="form-group half-width">
+          <label for="premioInDenaro">Prize Money ($) <span class="required">*</span></label>
+          <input id="premioInDenaro" type="number" formControlName="premioInDenaro" class="form-control" min="0">
+          <div class="error-text" *ngIf="hackathonForm.get('premioInDenaro')?.touched && hackathonForm.get('premioInDenaro')?.invalid">
+            Please provide a valid prize amount.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="idGiudice">Judge <span class="required">*</span></label>
+          <select id="idGiudice" formControlName="idGiudice" class="form-control">
+            <option value="" disabled selected>Select a Judge</option>
+            <option *ngFor="let giudice of giudici" [value]="giudice.id">
+              {{ giudice.nome }} {{ giudice.cognome }} ({{ giudice.email }})
+            </option>
+          </select>
+          <div class="error-text" *ngIf="hackathonForm.get('idGiudice')?.touched && hackathonForm.get('idGiudice')?.invalid">
+            Judge selection is required.
+          </div>
+        </div>
+
+        <div class="form-group half-width">
+          <label for="idMentori">Mentors <span class="required">*</span></label>
+          <select id="idMentori" formControlName="idMentori" class="form-control" multiple>
+            <option *ngFor="let mentore of mentori" [value]="mentore.id">
+              {{ mentore.nome }} {{ mentore.cognome }} ({{ mentore.email }})
+            </option>
+          </select>
+          <div class="help-text">Hold Ctrl/Cmd to select multiple mentors</div>
+          <div class="error-text" *ngIf="hackathonForm.get('idMentori')?.touched && hackathonForm.get('idMentori')?.invalid">
+            At least one Mentor must be selected.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="regolamento">Rules and Description <span class="required">*</span></label>
+        <textarea id="regolamento" formControlName="regolamento" class="form-control" rows="5" placeholder="Describe the rules, objectives, and any necessary information for participants..."></textarea>
+        <div class="error-text" *ngIf="hackathonForm.get('regolamento')?.touched && hackathonForm.get('regolamento')?.invalid">
+          Rules and description are required.
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="hackathonForm.invalid || isSubmitting">
+          <span *ngIf="isSubmitting" class="spinner"></span>
+          <span *ngIf="!isSubmitting">Create Hackathon</span>
+          <span *ngIf="isSubmitting">Creating...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,284 @@
+// HackHub Design System - Mixins
+
+// Import variables for breakpoints
+@import 'variables';
+
+// Responsive mixins
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (min-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}
+
+@mixin mobile-first($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (max-width: #{map-get($breakpoints, $breakpoint) - 1px}) {
+      @content;
+    }
+  }
+}
+
+// Flexbox mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@mixin flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// Card base mixin
+@mixin card-base {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  transition: var(--transition-fast);
+  border: 1px solid var(--border);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Button base mixins
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border: none;
+  min-height: 40px;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: var(--accent);
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background: var(--primary-light);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  
+  &:hover:not(:disabled) {
+    background: var(--accent);
+    color: white;
+  }
+}
+
+@mixin button-danger {
+  @include button-base;
+  background: var(--danger);
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background: #DC2626;
+  }
+}
+
+// Form mixins
+@mixin input-base {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
+  background: white;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  &.is-invalid {
+    border-color: var(--danger);
+    
+    &:focus {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+// Badge mixins
+@mixin badge-base {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@mixin badge-success {
+  @include badge-base;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+@mixin badge-warning {
+  @include badge-base;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+@mixin badge-danger {
+  @include badge-base;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+// Table mixins
+@mixin table-base {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  
+  th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    text-align: left;
+    padding: var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+  
+  td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+  }
+  
+  tbody tr {
+    transition: var(--transition-fast);
+    
+    &:hover {
+      background: var(--bg-page);
+    }
+    
+    &:nth-child(even) {
+      background: rgba(244, 246, 249, 0.5);
+      
+      &:hover {
+        background: var(--bg-page);
+      }
+    }
+  }
+}
+
+// Status card mixin for hackathons
+@mixin status-card($status) {
+  @include card-base;
+  border-left: 4px solid;
+  
+  @if $status == 'open' {
+    border-left-color: var(--success);
+  } @else if $status == 'in-progress' {
+    border-left-color: var(--warning);
+  } @else if $status == 'closed' {
+    border-left-color: var(--danger);
+  }
+}
+
+// Avatar mixin
+@mixin avatar($size: 40px) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: $size * 0.4;
+}
+
+// Sidebar mixin
+@mixin sidebar-base {
+  width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: var(--z-fixed);
+  overflow-y: auto;
+  transition: var(--transition-normal);
+}
+
+// Focus visible mixin for accessibility
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+// Text gradient mixin
+@mixin text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// Additional utility mixins
+@mixin card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  transition: var(--transition-fast);
+  border: 1px solid var(--border);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+}

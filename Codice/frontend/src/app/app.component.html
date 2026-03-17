@@ -1,0 +1,93 @@
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen">
+    <a routerLink="/dashboard" class="logo">
+      <span>🚀</span>
+      <span>HackHub</span>
+    </a>
+    
+    <nav class="nav-menu">
+      <a routerLink="/dashboard" class="nav-item" routerLinkActive="active">
+        <span>📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/hackathons" class="nav-item" routerLinkActive="active">
+        <span>🏆</span>
+        <span>Hackathons</span>
+      </a>
+      <a routerLink="/teams" class="nav-item" routerLinkActive="active" *appHasRole="['UTENTE_SENZA_TEAM', 'LEADER_TEAM', 'MEMBRO_TEAM']">
+        <span>👥</span>
+        <span>Teams</span>
+      </a>
+      <a routerLink="/profile" class="nav-item" routerLinkActive="active">
+        <span>👤</span>
+        <span>Profile</span>
+      </a>
+
+      <!-- My Hackathons Section -->
+      <div class="nav-section" *ngIf="myHackathons.length > 0">
+        <div class="nav-section-title">Miei Hackathon</div>
+        <a *ngFor="let h of myHackathons" 
+           [routerLink]="['/hackathons/my', h.id]" 
+           class="nav-item" 
+           routerLinkActive="active">
+          <span>🏆</span>
+          <span>{{ h.nome }}</span>
+        </a>
+      </div>
+
+      <!-- Judge Hackathons Section -->
+      <div class="nav-section" *ngIf="judgeHackathons.length > 0">
+        <div class="nav-section-title">Hackathon da Giudicare</div>
+        <a *ngFor="let h of judgeHackathons" 
+           [routerLink]="['/hackathons/judge', h.id]" 
+           class="nav-item" 
+           routerLinkActive="active">
+          <span>👨‍⚖️</span>
+          <span>{{ h.nome }}</span>
+        </a>
+      </div>
+
+      <!-- Mentor Hackathons Section -->
+      <div class="nav-section" *ngIf="mentorHackathons.length > 0">
+        <div class="nav-section-title">Hackathon da Mentore</div>
+        <a *ngFor="let h of mentorHackathons" 
+           [routerLink]="['/hackathons/mentor', h.id]" 
+           class="nav-item" 
+           routerLinkActive="active">
+          <span>👨‍🏫</span>
+          <span>{{ h.nome }}</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" [class.hidden]="!isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
+        ☰
+      </button>
+      
+      <div class="user-info" *ngIf="currentUser">
+        <div class="user-avatar">{{ currentUser.nome.charAt(0) }}{{ currentUser.cognome.charAt(0) }}</div>
+        <div class="user-details">
+          <div class="user-name">{{ currentUser.nome }} {{ currentUser.cognome }}</div>
+          <div class="user-role">{{ currentUser.ruolo }}</div>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <span>Logout</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

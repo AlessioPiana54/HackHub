@@ -1,0 +1,86 @@
+<div class="create-team-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <button class="back-button" (click)="goBack()">
+      <span>←</span>
+      <span>Back</span>
+    </button>
+    <h1 class="page-title">Create New Team</h1>
+    <p class="page-subtitle">Create your team and start collaborating on hackathons</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Creating team...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Oops! Something went wrong</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-secondary" (click)="clearError()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Create Team Form -->
+  <div class="create-team-form" *ngIf="!isLoading && !errorMessage">
+    <form (ngSubmit)="createTeam()" [formGroup]="teamForm">
+      <div class="form-section">
+        <h2>Team Information</h2>
+        
+        <!-- Team Name -->
+        <div class="form-group">
+          <label for="nomeTeam">Team Name *</label>
+          <input 
+            type="text" 
+            id="nomeTeam" 
+            formControlName="nomeTeam"
+            placeholder="Enter your team name"
+            [class.error]="teamForm.get('nomeTeam')?.invalid && teamForm.get('nomeTeam')?.touched"
+            autocomplete="off"
+          >
+          <div class="error-message" *ngIf="teamForm.get('nomeTeam')?.invalid && teamForm.get('nomeTeam')?.touched">
+            <span *ngIf="teamForm.get('nomeTeam')?.errors?.['required']">Team name is required</span>
+            <span *ngIf="teamForm.get('nomeTeam')?.errors?.['minlength']">Team name must be at least 3 characters</span>
+            <span *ngIf="teamForm.get('nomeTeam')?.errors?.['maxlength']">Team name cannot exceed 50 characters</span>
+          </div>
+          <div class="help-text">
+            Team name must be unique and contain 3-50 characters
+          </div>
+        </div>
+      </div>
+
+      <!-- Important Information -->
+      <div class="info-section">
+        <div class="info-card">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-content">
+            <h3>Important Information</h3>
+            <ul>
+              <li>You will automatically become the team leader</li>
+              <li>Team name must be unique across all teams</li>
+              <li>You can invite members after creating the team</li>
+              <li>Only users without a team can create a new team</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="goBack()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="teamForm.invalid || isSubmitting">
+          <span *ngIf="!isSubmitting">Create Team</span>
+          <span *ngIf="isSubmitting">Creating...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

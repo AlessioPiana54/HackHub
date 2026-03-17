@@ -1,0 +1,160 @@
+<div class="my-hackathon-container">
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Caricamento hackathon...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="errorMessage && !isLoading">
+    <div class="error-icon">⚠️</div>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="hackathon && !isLoading">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="status-chip">{{ getStatusDisplay(hackathon.stato) }}</div>
+        <h1 class="hackathon-title">🏆 {{ hackathon.nome }}</h1>
+        <p class="hackathon-sub">{{ hackathon.luogo }} · {{ hackathon.organizzatoreNome }}</p>
+      </div>
+      <div class="team-badge" *ngIf="myTeam">
+        <span>👥</span>
+        <span>{{ myTeam.nome }}</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab === 'details'" (click)="setTab('details')">
+        📋 Dettagli
+      </button>
+      <button class="tab" [class.active]="activeTab === 'segnalazioni'" (click)="setTab('segnalazioni')">
+        🚨 Segnalazioni
+      </button>
+      <button class="tab" [class.active]="activeTab === 'sottomissioni'" (click)="setTab('sottomissioni')">
+        🚀 Sottomissioni
+      </button>
+    </div>
+
+    <!-- TAB: Details -->
+    <div class="tab-content" *ngIf="activeTab === 'details'">
+      <div class="details-grid">
+        <div class="detail-card">
+          <div class="detail-icon">📅</div>
+          <div>
+            <div class="detail-label">Inizio Hackathon</div>
+            <div class="detail-value">{{ hackathon.dataInizio | date:'dd MMM yyyy, HH:mm' }}</div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-icon">🏁</div>
+          <div>
+            <div class="detail-label">Fine Hackathon</div>
+            <div class="detail-value">{{ hackathon.dataFine | date:'dd MMM yyyy, HH:mm' }}</div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-icon">📝</div>
+          <div>
+            <div class="detail-label">Iscrizioni</div>
+            <div class="detail-value">{{ hackathon.inizioIscrizioni | date:'dd MMM' }} – {{ hackathon.scadenzaIscrizioni | date:'dd MMM yyyy' }}</div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-icon">💰</div>
+          <div>
+            <div class="detail-label">Premio</div>
+            <div class="detail-value prize">${{ hackathon.premioInDenaro }}</div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-icon">📍</div>
+          <div>
+            <div class="detail-label">Luogo</div>
+            <div class="detail-value">{{ hackathon.luogo || 'Online' }}</div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-icon">👤</div>
+          <div>
+            <div class="detail-label">Organizzatore</div>
+            <div class="detail-value">{{ hackathon.organizzatoreNome || 'N/A' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="regolamento-card">
+        <h3>📜 Regolamento</h3>
+        <p>{{ hackathon.regolamento }}</p>
+      </div>
+    </div>
+
+    <!-- TAB: Segnalazioni -->
+    <div class="tab-content" *ngIf="activeTab === 'segnalazioni'">
+      <!-- List -->
+      <div class="list-section">
+        <h3>Segnalazioni ({{ segnalazioni.length }})</h3>
+        <div class="empty-hint" *ngIf="segnalazioni.length === 0">
+          Nessuna segnalazione ancora.
+        </div>
+        <div class="item-card" *ngFor="let s of segnalazioni">
+          <div class="item-header">
+            <span class="item-team">👥 {{ s.teamNome || s.team?.nomeTeam || 'Team' }}</span>
+            <span class="item-date">{{ s.dataSegnalazione | date:'dd MMM yyyy' }}</span>
+          </div>
+          <p class="item-body">{{ s.descrizione }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Sottomissioni -->
+    <div class="tab-content" *ngIf="activeTab === 'sottomissioni'">
+      <!-- Submit form -->
+      <div class="form-card" *ngIf="myTeam">
+        <h3>Invia una Sottomissione</h3>
+        <div class="alert alert-success" *ngIf="sottomissioneSuccess">{{ sottomissioneSuccess }}</div>
+        <div class="alert alert-error" *ngIf="sottomissioneError">{{ sottomissioneError }}</div>
+        <div class="form-group">
+          <label class="form-label">Link Progetto *</label>
+          <input
+            class="form-input"
+            type="url"
+            placeholder="https://github.com/..."
+            [(ngModel)]="nuovaSottomissione.linkProgetto">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descrizione</label>
+          <textarea
+            class="form-textarea"
+            placeholder="Descrivi brevemente il tuo progetto..."
+            [(ngModel)]="nuovaSottomissione.descrizione"
+            rows="3">
+          </textarea>
+        </div>
+        <button class="btn-primary" (click)="inviaSottomissione()" [disabled]="sottomissioneLoading || !nuovaSottomissione.linkProgetto.trim()">
+          <span *ngIf="!sottomissioneLoading">🚀 Invia Sottomissione</span>
+          <span *ngIf="sottomissioneLoading">Invio...</span>
+        </button>
+      </div>
+
+      <!-- List -->
+      <div class="list-section">
+        <h3>Le tue Sottomissioni ({{ sottomissioni.length }})</h3>
+        <div class="empty-hint" *ngIf="sottomissioni.length === 0">
+          Nessuna sottomissione ancora. Invia il tuo progetto!
+        </div>
+        <div class="item-card" *ngFor="let s of sottomissioni">
+          <div class="item-header">
+            <span class="item-team">🚀 Sottomissione</span>
+            <span class="item-date">{{ s.dataSottomissione | date:'dd MMM yyyy, HH:mm' }}</span>
+          </div>
+          <a [href]="s.linkProgetto" target="_blank" class="project-link">🔗 {{ s.linkProgetto }}</a>
+          <p class="item-body" *ngIf="s.descrizione">{{ s.descrizione }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

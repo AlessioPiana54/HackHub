@@ -2,15 +2,15 @@ package hackhub.app.Core.Builders;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import hackhub.app.Core.Enums.StatoHackathon;
-import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.User;
+import hackhub.app.Core.POJO_Entities.Hackathon;
 
 /**
- * Implementazione concreta del pattern Builder per creare istanze di Hackathon.
+ * Implementazione del pattern Builder per Hackathon.
+ * Fornisce un'API fluida e type-safe per la creazione di oggetti Hackathon.
  */
-public class HackathonBuilder implements IHackathonBuilder {
+public class HackathonBuilder {
     private String nome;
     private String regolamento;
     private LocalDateTime inizioIscrizioni;
@@ -24,87 +24,77 @@ public class HackathonBuilder implements IHackathonBuilder {
     private List<User> mentori;
     private StatoHackathon stato;
 
-    @Override
-    public IHackathonBuilder setNome(String nome) {
+    public HackathonBuilder() {}
+
+    public HackathonBuilder setNome(String nome) {
         this.nome = nome;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setRegolamento(String regolamento) {
+    public HackathonBuilder setRegolamento(String regolamento) {
         this.regolamento = regolamento;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setPeriodoIscrizione(LocalDateTime inizio, LocalDateTime scadenza) {
+    public HackathonBuilder setPeriodoIscrizione(LocalDateTime inizio, LocalDateTime scadenza) {
         this.inizioIscrizioni = inizio;
         this.scadenzaIscrizioni = scadenza;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setDurata(LocalDateTime inizio, LocalDateTime fine) {
+    public HackathonBuilder setDurata(LocalDateTime inizio, LocalDateTime fine) {
         this.dataInizio = inizio;
         this.dataFine = fine;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setLuogo(String luogo) {
+    public HackathonBuilder setLuogo(String luogo) {
         this.luogo = luogo;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setPremioInDenaro(double premioInDenaro) {
+    public HackathonBuilder setPremioInDenaro(double premioInDenaro) {
         this.premioInDenaro = premioInDenaro;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setOrganizzatore(User organizzatore) {
+    public HackathonBuilder setOrganizzatore(User organizzatore) {
         this.organizzatore = organizzatore;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setGiudice(User giudice) {
+    public HackathonBuilder setGiudice(User giudice) {
         this.giudice = giudice;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setMentori(List<User> mentori) {
+    public HackathonBuilder setMentori(List<User> mentori) {
         this.mentori = mentori;
         return this;
     }
 
-    @Override
-    public IHackathonBuilder setStato(StatoHackathon stato) {
+    public HackathonBuilder setStato(StatoHackathon stato) {
         this.stato = stato;
         return this;
     }
 
     /**
-     * Costruisce l'oggetto Hackathon utilizzando i parametri configurati.
-     *
-     * @return una nuova istanza di Hackathon
+     * Costruisce l'oggetto Hackathon con tutti i parametri impostati.
+     * 
+     * @return Un'istanza di Hackathon completamente configurata.
      */
-    @Override
     public Hackathon build() {
-        return new Hackathon(
-                nome,
-                regolamento,
-                inizioIscrizioni,
-                scadenzaIscrizioni,
-                dataInizio,
-                dataFine,
-                luogo,
-                premioInDenaro,
-                organizzatore,
-                giudice,
-                mentori,
-                stato);
+        Hackathon hackathon = new Hackathon();
+        hackathon.setNome(this.nome);
+        hackathon.setRegolamento(this.regolamento);
+        hackathon.setPeriodoIscrizione(this.inizioIscrizioni, this.scadenzaIscrizioni);
+        hackathon.setDurata(this.dataInizio, this.dataFine);
+        hackathon.setLuogo(this.luogo);
+        hackathon.setPremioInDenaro(this.premioInDenaro);
+        hackathon.setOrganizzatore(this.organizzatore);
+        hackathon.setGiudice(this.giudice);
+        hackathon.setMentori(this.mentori);
+        hackathon.setStato(this.stato);
+        return hackathon;
     }
 }

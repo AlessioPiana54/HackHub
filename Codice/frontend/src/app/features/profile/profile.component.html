@@ -1,0 +1,90 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h2>User Profile</h2>
+    <p>Manage your personal information</p>
+  </div>
+
+  <div class="profile-content" *ngIf="currentUser; else loading">
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nome">First Name</label>
+          <input 
+            id="nome" 
+            type="text" 
+            formControlName="nome" 
+            class="form-control"
+            [class.is-invalid]="nome?.invalid && nome?.touched"
+          >
+          <div class="invalid-feedback" *ngIf="nome?.invalid && nome?.touched">
+            First name is required (min 2 characters)
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cognome">Last Name</label>
+          <input 
+            id="cognome" 
+            type="text" 
+            formControlName="cognome" 
+            class="form-control"
+            [class.is-invalid]="cognome?.invalid && cognome?.touched"
+          >
+          <div class="invalid-feedback" *ngIf="cognome?.invalid && cognome?.touched">
+            Last name is required (min 2 characters)
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          id="email" 
+          type="email" 
+          formControlName="email" 
+          class="form-control"
+        >
+        <small class="form-text text-muted">Email cannot be changed</small>
+      </div>
+
+      <div class="form-group">
+        <label>Role</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          [value]="currentUser.ruolo || ''" 
+          [disabled]="true"
+        >
+        <small class="form-text text-muted">Role is managed by administrators</small>
+      </div>
+
+      <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <div class="alert alert-danger" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="profileForm.invalid || isLoading"
+        >
+          <span *ngIf="!isLoading">Update Profile</span>
+          <span *ngIf="isLoading">Updating...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <ng-template #loading>
+    <div class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p class="mt-2">Loading profile...</p>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,124 @@
+<div class="teams-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">Team Invitations</h1>
+    <p class="page-subtitle">Manage your team invitations and create new teams</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading || !currentUser">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p *ngIf="isLoading">Loading invitations...</p>
+      <p *ngIf="!isLoading && !currentUser">Loading user information...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Oops! Something went wrong</h3>
+      <p>{{ errorMessage }}</p>
+      <div class="error-actions">
+        <button class="btn-primary" (click)="clearError()">
+          <span>🔙</span>
+          <span>Back to Teams</span>
+        </button>
+        <button class="btn-secondary" (click)="loadContent()">
+          <span>🔄</span>
+          <span>Try Again</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content based on teams and invitations -->
+  <div class="teams-content" *ngIf="!isLoading && !errorMessage">
+    
+    <!-- User Teams -->
+    <div class="teams-grid" *ngIf="hasTeams()">
+      <div class="team-card" *ngFor="let team of teams">
+        <div class="team-header">
+          <div class="team-info">
+            <h3>{{ team.nome || team.leaderNome || 'Unknown Team' }}</h3>
+            <span class="team-role" [class.leader]="isCurrentUserLeader(team)" [class.member]="!isCurrentUserLeader(team)">
+              {{ isCurrentUserLeader(team) ? '👑 Team Leader' : '👤 Team Member' }}
+            </span>
+          </div>
+          <div class="team-stats">
+            <span class="member-count">{{ getTeamMemberCount(team) }} members</span>
+          </div>
+        </div>
+
+        <div class="team-members" *ngIf="getTeamMembers(team).length > 0">
+          <h4>Team Members:</h4>
+          <div class="members-list">
+            <div class="member-item" *ngFor="let member of getTeamMembers(team)">
+              <span class="member-name">{{ member.nome }} {{ member.cognome }}</span>
+              <span class="member-role" *ngIf="isTeamLeader(member, team)">👑</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-actions">
+          <button class="btn-primary" (click)="viewTeamDetails(team.id)">
+            <span>👁️</span>
+            <span>View Details</span>
+          </button>
+          <button class="btn-secondary" *ngIf="isCurrentUserLeader(team)" (click)="manageTeam(team.id)">
+            <span>⚙️</span>
+            <span>Manage Team</span>
+          </button>
+          <button class="btn-danger" (click)="abandonTeam(team.id)">
+            <span>🚪</span>
+            <span>Leave Team</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Invitations List (show only if user has no teams) -->
+    <div class="invitations-grid" *ngIf="!hasTeams() && hasInvitations()">
+      <div class="invitation-card" *ngFor="let invitation of receivedInvitations">
+        <div class="invitation-header">
+          <div class="team-info">
+            <h3>{{ invitation.teamNome || 'Unknown Team' }}</h3>
+            <span class="invitation-from">From: {{ invitation.mittenteNome || 'Unknown' }}</span>
+          </div>
+          <div class="invitation-date">
+            {{ invitation.dataInvito | date:'short' }}
+          </div>
+        </div>
+
+        <div class="invitation-message" *ngIf="invitation.messaggio">
+          <p>{{ invitation.messaggio }}</p>
+        </div>
+
+        <div class="invitation-actions">
+          <button class="btn-success" (click)="acceptInvitation(invitation.id)">
+            <span>✅</span>
+            <span>Accept</span>
+          </button>
+          <button class="btn-danger" (click)="rejectInvitation(invitation.id)">
+            <span>❌</span>
+            <span>Reject</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Teams or Invitations - Show Create Team -->
+    <div class="empty-state" *ngIf="!hasTeams() && !hasInvitations()">
+      <div class="create-team-card">
+        <div class="create-icon">➕</div>
+        <h3>Create Your Team</h3>
+        <p>You don't have any team yet. Create your own team and start collaborating!</p>
+        <button class="btn-primary" (click)="navigateToCreateTeam()">
+          <span>➕</span>
+          <span>Create Team</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,110 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Join HackHub</h1>
+      <p class="auth-subtitle">Create your account and start hacking</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" autocomplete="on">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nome" class="form-label">First Name</label>
+          <input
+            id="nome"
+            type="text"
+            formControlName="nome"
+            class="form-control"
+            placeholder="Enter your first name"
+            autocomplete="given-name"
+            [class.is-invalid]="nome?.invalid && nome?.touched"
+          >
+          <div class="invalid-feedback" *ngIf="nome?.invalid && nome?.touched">
+            <span *ngIf="nome?.errors?.['required']">First name is required</span>
+            <span *ngIf="nome?.errors?.['minlength']">First name must be at least 2 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cognome" class="form-label">Last Name</label>
+          <input
+            id="cognome"
+            type="text"
+            formControlName="cognome"
+            class="form-control"
+            placeholder="Enter your last name"
+            autocomplete="family-name"
+            [class.is-invalid]="cognome?.invalid && cognome?.touched"
+          >
+          <div class="invalid-feedback" *ngIf="cognome?.invalid && cognome?.touched">
+            <span *ngIf="cognome?.errors?.['required']">Last name is required</span>
+            <span *ngIf="cognome?.errors?.['minlength']">Last name must be at least 2 characters</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-control"
+          placeholder="Enter your email"
+          autocomplete="email"
+          [class.is-invalid]="email?.invalid && email?.touched"
+        >
+        <div class="invalid-feedback" *ngIf="email?.invalid && email?.touched">
+          <span *ngIf="email?.errors?.['required']">Email is required</span>
+          <span *ngIf="email?.errors?.['email']">Please enter a valid email</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="form-control"
+          placeholder="Create a password"
+          autocomplete="new-password"
+          [class.is-invalid]="password?.invalid && password?.touched"
+        >
+        <div class="invalid-feedback" *ngIf="password?.invalid && password?.touched">
+          <span *ngIf="password?.errors?.['required']">Password is required</span>
+          <span *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          class="form-control"
+          placeholder="Confirm your password"
+          autocomplete="new-password"
+          [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched"
+        >
+        <div class="invalid-feedback" *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
+          <span *ngIf="confirmPassword?.errors?.['required']">Please confirm your password</span>
+          <span *ngIf="registerForm.errors?.['passwordMismatch']">Passwords do not match</span>
+        </div>
+      </div>
+
+      <div class="alert alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="isLoading || registerForm.invalid">
+        <span *ngIf="!isLoading">Create Account</span>
+        <div class="spinner" *ngIf="isLoading"></div>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a routerLink="/auth/login" class="auth-link">Sign in</a></p>
+    </div>
+  </div>
+</div>

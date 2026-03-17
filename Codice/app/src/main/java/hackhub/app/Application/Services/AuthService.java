@@ -57,11 +57,11 @@ public class AuthService extends AbstractService {
     public String login(LoginRequest request) {
         User user = unitOfWork.userRepository().findByEmail(request.getEmail());
         if (user == null) {
-            throw new IllegalArgumentException("Utente non trovato.");
+            throw new IllegalArgumentException("Credenziali non valide.");
         }
 
         if (!passwordHasher.verify(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Password non valida.");
+            throw new IllegalArgumentException("Credenziali non valide.");
         }
 
         return sessionManager.createSession(user);

@@ -1,0 +1,56 @@
+<div class="my-teams-container">
+  <div class="teams-header">
+    <h2>My Teams</h2>
+    <p>Manage your team memberships</p>
+  </div>
+
+  <div class="teams-content">
+    <div class="loading-spinner" *ngIf="isLoading">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p>Loading your teams...</p>
+    </div>
+
+    <div class="error-message" *ngIf="errorMessage">
+      <div class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+    </div>
+
+    <div class="teams-list" *ngIf="!isLoading && !errorMessage">
+      <div class="empty-state" *ngIf="teams.length === 0">
+        <div class="empty-icon">👥</div>
+        <h3>No teams yet</h3>
+        <p>You haven't joined any teams yet. Create a new team or accept an invitation to get started.</p>
+      </div>
+
+      <div class="team-cards" *ngIf="teams.length > 0">
+        <div class="team-card" *ngFor="let team of teams">
+          <div class="team-header">
+            <h3>{{ team.nome }}</h3>
+            <span class="team-role" *ngIf="team.leaderNome">Leader: {{ team.leaderNome }}</span>
+          </div>
+
+          <div class="team-members">
+            <h4>Members ({{ team.membriNomi.length || 0 }})</h4>
+            <div class="members-list">
+              <span class="member-badge" *ngFor="let member of team.membriNomi">
+                {{ member }}
+              </span>
+            </div>
+          </div>
+
+          <div class="team-actions">
+            <button class="btn btn-outline-primary btn-sm" (click)="getTeamDetails(team.id)">
+              View Details
+            </button>
+            <button class="btn btn-outline-danger btn-sm" (click)="abandonTeam(team.id)">
+              Abandon Team
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

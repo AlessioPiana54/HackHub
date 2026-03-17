@@ -1,0 +1,116 @@
+<div class="dashboard-container" *ngIf="!isLoading; else loading">
+  <header class="dashboard-header" *ngIf="hackathon">
+    <div class="header-content">
+      <div class="status-chip">{{ hackathon.stato }}</div>
+      <h1 class="hackathon-title">👨‍🏫 Mentoring: {{ hackathon.nome }}</h1>
+      <p class="hackathon-sub">{{ hackathon.luogo }} · {{ hackathon.premioInDenaro | currency:'EUR' }}</p>
+    </div>
+    
+    <div class="header-actions">
+      <button class="btn-primary" (click)="openReportModal()">
+        <span>🚩 Nuova Segnalazione</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'support'" (click)="activeTab = 'support'">
+      📞 Richieste Supporto ({{ supportRequests.length }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'reports'" (click)="activeTab = 'reports'">
+      📊 Segnalazioni ({{ reports.length }})
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- Support Requests Tab -->
+    <div *ngIf="activeTab === 'support'">
+      <div class="card-grid" *ngIf="supportRequests.length > 0; else noRequests">
+        <div class="submission-card" *ngFor="let req of supportRequests">
+          <div class="card-header">
+            <h3>{{ req.nomeTeam }}</h3>
+            <span class="date">{{ req.dataRichiesta | date:'short' }}</span>
+          </div>
+          <p class="desc">{{ req.descrizione }}</p>
+          
+          <div class="call-info" *ngIf="req.linkCall">
+            <p><strong>✅ Call Fissata:</strong> <a [href]="req.linkCall" target="_blank">{{ req.linkCall }}</a></p>
+            <p><strong>📅 Data:</strong> {{ req.dataCall | date:'short' }}</p>
+          </div>
+
+          <div class="actions">
+            <button class="btn-eval" (click)="proposeCall(req)">
+              {{ req.linkCall ? '🔄 Modifica Call' : '📞 Proponi Call' }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <ng-template #noRequests>
+        <div class="empty-state">Nessuna richiesta di supporto per questo hackathon.</div>
+      </ng-template>
+    </div>
+
+    <!-- Reports Tab -->
+    <div *ngIf="activeTab === 'reports'">
+      <div class="ranking-list" *ngIf="reports.length > 0; else noReports">
+        <div class="ranking-item" *ngFor="let r of reports">
+          <div class="report-content">
+            <div class="report-header">
+              <span class="team-name">🚩 Team: {{ r.nomeTeam }}</span>
+              <span class="date">{{ r.dataSegnalazione | date:'short' }}</span>
+            </div>
+            <p class="desc">{{ r.descrizione }}</p>
+            <small class="mentor">Mentore: {{ r.nomeMentore }}</small>
+          </div>
+        </div>
+      </div>
+      <ng-template #noReports>
+        <div class="empty-state">Nessuna segnalazione inviata.</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Report Modal -->
+  <div class="modal-overlay" *ngIf="showReportModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🚩 Nuova Segnalazione</h2>
+        <button class="close-btn" (click)="closeReportModal()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="teamSelect">Seleziona Team</label>
+          <select id="teamSelect" [(ngModel)]="reportForm.teamId" class="form-control">
+            <option value="" disabled selected>Seleziona un team...</option>
+            <option *ngFor="let team of participants" [value]="team.id">
+              {{ team.nomeTeam }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Descrizione Segnalazione</label>
+          <textarea 
+            id="description" 
+            [(ngModel)]="reportForm.descrizione" 
+            rows="5" 
+            class="form-control"
+            placeholder="Descrivi il motivo della segnalazione..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeReportModal()">Annulla</button>
+        <button class="btn-primary" (click)="submitReport()">Invia Segnalazione</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Caricamento dashboard mentore...</p>
+  </div>
+</ng-template>

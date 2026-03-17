@@ -10,6 +10,7 @@ import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import hackhub.app.Presentation.Validators.SottomissioneValidator;
 import hackhub.app.Presentation.Validators.ValutazioneValidator;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -102,5 +103,38 @@ public class SottomissioneController extends AbstractController {
       id
     );
     return ResponseEntity.ok(valutazione);
+  }
+
+  /**
+   * Recupera le sottomissioni del team dell'utente.
+   *
+   * @param token Il token di autorizzazione dell'utente.
+   * @return Lista di sottomissioni del team.
+   */
+  @GetMapping("/my-submissions")
+  public ResponseEntity<List<Sottomissione>> getMySubmissions(
+    @RequestHeader("Authorization") String token
+  ) {
+    User user = getAuthenticatedUser(token);
+    List<Sottomissione> submissions = sottomissioneService.getTeamSubmissions(
+      user.getId()
+    );
+    return ResponseEntity.ok(submissions);
+  }
+
+  /**
+   * Recupera tutte le sottomissioni per un specifico Hackathon.
+   *
+   * @param idHackathon L'ID dell'Hackathon.
+   * @return Lista di sottomissioni.
+   */
+  @GetMapping("/hackathon/{idHackathon}")
+  public ResponseEntity<List<Sottomissione>> getSubmissionsByHackathon(
+    @PathVariable String idHackathon,
+    @RequestHeader("Authorization") String token
+  ) {
+    // Audit log or security check could be added here to ensure only Judge/Organizer access
+    List<Sottomissione> submissions = sottomissioneService.getSubmissionsByHackathon(idHackathon);
+    return ResponseEntity.ok(submissions);
   }
 }

@@ -1,22 +1,27 @@
 package hackhub.app.Application.Requests;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class LoginRequest {
-    private String email;
-    private String password;
 
-    public LoginRequest() {
-    }
+  @JsonProperty("email")
+  private String email;
 
-    public LoginRequest(String email, String password) {
-        this.email = email;
-        this.password = password;
-    }
+  @JsonProperty("password")
+  private String password;
 
-    public String getEmail() {
-        return email;
-    }
+  public LoginRequest() {}
 
-    public String getPassword() {
-        return password;
-    }
+  public LoginRequest(String email, String password) {
+    this.email = email;
+    this.password = password;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public String getPassword() {
+    return password;
+  }
 }

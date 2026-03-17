@@ -1,0 +1,219 @@
+/* Import global mixins */
+@import '../../../../../styles/_mixins';
+
+.invitations-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+  
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+}
+
+.tab-navigation {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+  }
+
+  &.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 3rem;
+  
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-color: var(--primary-color);
+    border-right-color: transparent;
+  }
+  
+  p {
+    margin-top: 1rem;
+    color: var(--text-secondary);
+  }
+}
+
+.error-message {
+  margin-bottom: 2rem;
+}
+
+.invitations-content {
+  min-height: 400px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+.invitations-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.invitation-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--border-secondary);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.invitation-header {
+  @include flex-between;
+  margin-bottom: 1rem;
+
+  .team-info {
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .invitation-from,
+    .invitation-to {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .invitation-date {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+}
+
+.invitation-message {
+  margin-bottom: 1rem;
+  
+  p {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+}
+
+.invitation-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.invitation-status {
+  margin-top: 1rem;
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    &.status-pending {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    &.status-accepted {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    &.status-rejected {
+      background: var(--error-bg);
+      color: var(--error-text);
+    }
+  }
+}
+
+// Mobile responsive
+@include mobile-first(sm) {
+  .invitations-container {
+    padding: 1rem;
+  }
+
+  .tab-navigation {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tab-btn {
+    border-bottom: 1px solid var(--border-primary);
+    border-radius: 0;
+
+    &.active {
+      border-bottom-color: var(--primary-color);
+    }
+  }
+
+  .invitation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .invitation-actions {
+    flex-direction: column;
+  }
+}

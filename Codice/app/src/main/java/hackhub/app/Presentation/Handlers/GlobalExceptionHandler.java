@@ -22,8 +22,13 @@ public class GlobalExceptionHandler {
      * @return Una ResponseEntity con lo stato 400 e il messaggio dell'errore.
      */
     @ExceptionHandler({ IllegalArgumentException.class, IllegalStateException.class })
-    public ResponseEntity<String> handleBadRequest(RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    public ResponseEntity<hackhub.app.Application.DTOs.MessageResponse> handleBadRequest(RuntimeException e) {
+        if ("Credenziali non valide.".equals(e.getMessage())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new hackhub.app.Application.DTOs.MessageResponse(e.getMessage()));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new hackhub.app.Application.DTOs.MessageResponse(e.getMessage()));
     }
 
     /**
@@ -34,8 +39,8 @@ public class GlobalExceptionHandler {
      * @return Una ResponseEntity con lo stato 403 e il messaggio dell'errore.
      */
     @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<String> handleForbidden(SecurityException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    public ResponseEntity<hackhub.app.Application.DTOs.MessageResponse> handleForbidden(SecurityException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new hackhub.app.Application.DTOs.MessageResponse(e.getMessage()));
     }
 
     /**
@@ -47,8 +52,8 @@ public class GlobalExceptionHandler {
      *         generico.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception e) {
+    public ResponseEntity<hackhub.app.Application.DTOs.MessageResponse> handleGenericException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Errore interno del server: " + e.getMessage());
+                .body(new hackhub.app.Application.DTOs.MessageResponse("Errore interno del server: " + e.getMessage()));
     }
 }

@@ -1,0 +1,115 @@
+<div class="invitations-container">
+  <div class="page-header">
+    <h1 class="page-title">Invitations</h1>
+    <p>Manage your team invitations</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button class="tab-btn" 
+            [class.active]="activeTab === 'received'" 
+            (click)="setActiveTab('received')">
+      <span>📬</span>
+      <span>Received ({{ receivedInvitations.length }})</span>
+    </button>
+    <button class="tab-btn" 
+            [class.active]="activeTab === 'sent'" 
+            (click)="setActiveTab('sent')">
+      <span>📤</span>
+      <span>Sent ({{ sentInvitations.length }})</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Loading invitations...</span>
+    </div>
+    <p>Loading invitations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-message" *ngIf="errorMessage">
+    <div class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Received Invitations -->
+  <div class="invitations-content" *ngIf="!isLoading && !errorMessage && activeTab === 'received'">
+    <div class="empty-state" *ngIf="receivedInvitations.length === 0">
+      <div class="empty-icon">📬</div>
+      <h3>No invitations received</h3>
+      <p>You don't have any pending invitations. Teams will invite you to join here.</p>
+    </div>
+
+    <div class="invitations-list" *ngIf="receivedInvitations.length > 0">
+      <div class="invitation-card" *ngFor="let invitation of receivedInvitations">
+        <div class="invitation-header">
+          <div class="team-info">
+            <h3>{{ invitation.teamNome || 'Unknown Team' }}</h3>
+            <span class="invitation-from">From: {{ invitation.mittenteNome || 'Unknown' }}</span>
+          </div>
+          <div class="invitation-date">
+            {{ invitation.dataInvito | date:'short' }}
+          </div>
+        </div>
+
+        <div class="invitation-message" *ngIf="invitation.messaggio">
+          <p>{{ invitation.messaggio }}</p>
+        </div>
+
+        <div class="invitation-actions">
+          <button class="btn btn-success btn-sm" (click)="acceptInvitation(invitation.id)">
+            Accept
+          </button>
+          <button class="btn btn-outline-danger btn-sm" (click)="rejectInvitation(invitation.id)">
+            Reject
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sent Invitations -->
+  <div class="invitations-content" *ngIf="!isLoading && !errorMessage && activeTab === 'sent'">
+    <div class="empty-state" *ngIf="sentInvitations.length === 0">
+      <div class="empty-icon">📤</div>
+      <h3>No invitations sent</h3>
+      <p>You haven't sent any invitations yet. Invite members to join your team.</p>
+    </div>
+
+    <div class="invitations-list" *ngIf="sentInvitations.length > 0">
+      <div class="invitation-card" *ngFor="let invitation of sentInvitations">
+        <div class="invitation-header">
+          <div class="team-info">
+            <h3>To: {{ invitation.destinatarioNome || 'Unknown' }}</h3>
+            <span class="invitation-to">Team: {{ invitation.teamNome || 'Unknown Team' }}</span>
+          </div>
+          <div class="invitation-date">
+            {{ invitation.dataInvito | date:'short' }}
+          </div>
+        </div>
+
+        <div class="invitation-message" *ngIf="invitation.messaggio">
+          <p>{{ invitation.messaggio }}</p>
+        </div>
+
+        <div class="invitation-status">
+          <span class="status-badge" 
+                [class.status-pending]="invitation.stato === 'PENDING'"
+                [class.status-accepted]="invitation.stato === 'ACCEPTED'"
+                [class.status-rejected]="invitation.stato === 'REJECTED'">
+            {{ invitation.stato }}
+          </span>
+        </div>
+
+        <div class="invitation-actions" *ngIf="invitation.stato === 'PENDING'">
+          <button class="btn btn-outline-secondary btn-sm" (click)="withdrawInvitation(invitation.id)">
+            Withdraw
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

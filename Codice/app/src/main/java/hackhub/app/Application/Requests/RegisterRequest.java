@@ -1,34 +1,48 @@
 package hackhub.app.Application.Requests;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RegisterRequest {
-    private String nome;
-    private String cognome;
-    private String email;
-    private String password;
 
-    public RegisterRequest() {
-    }
+  @JsonProperty("nome")
+  private String nome;
 
-    public RegisterRequest(String nome, String cognome, String email, String password) {
-        this.nome = nome;
-        this.cognome = cognome;
-        this.email = email;
-        this.password = password;
-    }
+  @JsonProperty("cognome")
+  private String cognome;
 
-    public String getNome() {
-        return nome;
-    }
+  @JsonProperty("email")
+  private String email;
 
-    public String getCognome() {
-        return cognome;
-    }
+  @JsonProperty("password")
+  private String password;
 
-    public String getEmail() {
-        return email;
-    }
+  public RegisterRequest() {}
 
-    public String getPassword() {
-        return password;
-    }
+  public RegisterRequest(
+    String nome,
+    String cognome,
+    String email,
+    String password
+  ) {
+    this.nome = nome;
+    this.cognome = cognome;
+    this.email = email;
+    this.password = password;
+  }
+
+  public String getNome() {
+    return nome;
+  }
+
+  public String getCognome() {
+    return cognome;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public String getPassword() {
+    return password;
+  }
 }

@@ -1,0 +1,106 @@
+<div class="hackathon-details-container fade-in">
+  <!-- Header -->
+  <div class="details-header">
+    <button class="back-btn" (click)="goBack()">
+      <span>←</span> Back to Hackathons
+    </button>
+    <h1>Hackathon Details 🏆</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading hackathon details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Error</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="btn-primary" (click)="goBack()">Go Back</button>
+    </div>
+  </div>
+
+  <!-- Hackathon Details -->
+  <div class="details-content" *ngIf="hackathon && !isLoading">
+    <div class="main-card">
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="status-badge" [class]="'status-' + hackathon.stato.toLowerCase()">
+          {{ getStatusDisplay(hackathon.stato) }}
+        </div>
+        <h2>{{ hackathon.nome }}</h2>
+        <p class="subtitle">{{ hackathon.descrizione || 'No description available' }}</p>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <!-- Date Information -->
+        <div class="info-section">
+          <h3>📅 Important Dates</h3>
+          <div class="date-grid">
+            <div class="date-item">
+              <span class="date-label">Registration Start</span>
+              <span class="date-value">{{ hackathon.inizioIscrizioni | date:'medium' }}</span>
+            </div>
+            <div class="date-item">
+              <span class="date-label">Registration End</span>
+              <span class="date-value">{{ hackathon.scadenzaIscrizioni | date:'medium' }}</span>
+            </div>
+            <div class="date-item">
+              <span class="date-label">Event Start</span>
+              <span class="date-value">{{ hackathon.dataInizio | date:'medium' }}</span>
+            </div>
+            <div class="date-item">
+              <span class="date-label">Event End</span>
+              <span class="date-value">{{ hackathon.dataFine | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Information -->
+        <div class="info-section">
+          <h3>📍 Event Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Location</span>
+              <span class="info-value">{{ hackathon.luogo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Prize Pool</span>
+              <span class="info-value">€{{ hackathon.premioInDenaro || 0 }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Organizer</span>
+              <span class="info-value">{{ hackathon.organizzatoreNome || 'HackHub' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rules -->
+        <div class="info-section" *ngIf="hackathon.regolamento">
+          <h3>📋 Rules & Regulations</h3>
+          <div class="rules-content">
+            <p>{{ hackathon.regolamento }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <button class="btn-primary" 
+                *ngIf="hackathon.stato === 'IN_ISCRIZIONE'"
+                (click)="joinHackathon()">
+          <span>🚀</span>
+          <span>Join Hackathon</span>
+        </button>
+        <button class="btn-secondary" (click)="goBack()">
+          <span>←</span>
+          <span>Back to List</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

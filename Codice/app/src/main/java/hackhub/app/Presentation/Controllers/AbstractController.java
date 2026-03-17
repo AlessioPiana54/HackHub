@@ -27,6 +27,9 @@ public abstract class AbstractController {
      * @throws ResponseStatusException con stato 401 se l'utente non è autenticato.
      */
     protected User getAuthenticatedUser(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
         User user = sessionManager.getUser(token);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utente non autenticato.");

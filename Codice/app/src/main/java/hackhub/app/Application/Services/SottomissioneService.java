@@ -14,6 +14,7 @@ import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import hackhub.app.Infrastructure.Utils.SecurityUtils;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -244,5 +245,62 @@ public class SottomissioneService extends AbstractService {
 
     unitOfWork.sottomissioneRepository().save(sottomissione);
     return sottomissione;
+  }
+
+  /**
+   * Recupera le sottomissioni del team dell'utente.
+   *
+   * @param userId L'ID dell'utente.
+   * @return Lista di sottomissioni del team.
+   */
+  public List<Sottomissione> getTeamSubmissions(String userId) {
+    // Trova tutti i team dove l'utente è membro
+    List<Team> userTeams =
+      (
+        (org.springframework.data.jpa.repository.JpaRepository<Team, String>) unitOfWork.teamRepository()
+      ).findAll()
+        .stream()
+        .filter(team ->
+          team
+            .getMembri()
+            .stream()
+            .anyMatch(member -> member.getId().equals(userId))
+        )
+        .toList();
+
+    // Trova tutte le partecipazioni dei team dell'utente
+    List<Partecipazione> partecipazioni = userTeams
+      .stream()
+      .flatMap(team ->
+        unitOfWork
+          .partecipazioneRepository()
+          .findByTeamId(team.getId())
+          .stream()
+      )
+      .collect(Collectors.toList());
+
+    // Trova tutte le sottomissioni per queste partecipazioni
+    return partecipazioni
+      .stream()
+      .flatMap(partecipazione ->
+        (
+          (org.springframework.data.jpa.repository.JpaRepository<Sottomissione, String>) unitOfWork.sottomissioneRepository()
+        ).findAll()
+          .stream()
+          .filter(sottomissione ->
+            sottomissione
+              .getPartecipazione()
+              .getId()
+              .equals(partecipazione.getId())
+          )
+      )
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Recupera tutte le sottomissioni per un specifico Hackathon.
+   */
+  public List<Sottomissione> getSubmissionsByHackathon(String hackathonId) {
+    return unitOfWork.sottomissioneRepository().findByPartecipazioneHackathonId(hackathonId);
   }
 }
