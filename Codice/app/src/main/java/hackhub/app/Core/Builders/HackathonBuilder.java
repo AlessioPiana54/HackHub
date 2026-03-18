@@ -18,6 +18,7 @@ public class HackathonBuilder {
     private LocalDateTime dataInizio;
     private LocalDateTime dataFine;
     private String luogo;
+    private String logoUrl;
     private double premioInDenaro;
     private User organizzatore;
     private User giudice;
@@ -50,6 +51,11 @@ public class HackathonBuilder {
 
     public HackathonBuilder setLuogo(String luogo) {
         this.luogo = luogo;
+        return this;
+    }
+
+    public HackathonBuilder setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
         return this;
     }
 
@@ -90,6 +96,7 @@ public class HackathonBuilder {
         hackathon.setPeriodoIscrizione(this.inizioIscrizioni, this.scadenzaIscrizioni);
         hackathon.setDurata(this.dataInizio, this.dataFine);
         hackathon.setLuogo(this.luogo);
+        hackathon.setLogoUrl(this.logoUrl);
         hackathon.setPremioInDenaro(this.premioInDenaro);
         hackathon.setOrganizzatore(this.organizzatore);
         hackathon.setGiudice(this.giudice);

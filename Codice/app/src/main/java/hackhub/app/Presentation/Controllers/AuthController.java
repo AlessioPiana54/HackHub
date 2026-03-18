@@ -8,7 +8,6 @@ import hackhub.app.Application.Services.UserService;
 import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.AuthValidator;
-import java.util.Collections;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

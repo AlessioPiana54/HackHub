@@ -3,12 +3,12 @@
   <div class="welcome-section">
     <div class="welcome-content">
       <h1 class="welcome-title">Hackathons 🏆</h1>
-      <p class="welcome-subtitle">Discover exciting competitions and challenges</p>
+      <p class="welcome-subtitle">Scopri competizioni e sfide entusiasmanti</p>
     </div>
     <div class="welcome-actions">
       <button class="btn-primary" *appHasRole="['ORGANIZZATORE']" (click)="navigateTo('/hackathons/create')">
         <span>➕</span>
-        <span>Create Hackathon</span>
+        <span>Crea Hackathon</span>
       </button>
     </div>
   </div>
@@ -18,19 +18,19 @@
     <div class="filter-tabs">
       <button class="filter-tab" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
         <span>🎯</span>
-        <span>All Hackathons</span>
+        <span>Tutti gli Hackathon</span>
       </button>
       <button class="filter-tab" [class.active]="activeFilter === 'IN_ISCRIZIONE'" (click)="setFilter('IN_ISCRIZIONE')">
         <span>🔓</span>
-        <span>Open for Registration</span>
+        <span>Aperto per Iscrizioni</span>
       </button>
       <button class="filter-tab" [class.active]="activeFilter === 'IN_CORSO'" (click)="setFilter('IN_CORSO')">
         <span>🚀</span>
-        <span>In Progress</span>
+        <span>In Corso</span>
       </button>
       <button class="filter-tab" [class.active]="activeFilter === 'CONCLUSO'" (click)="setFilter('CONCLUSO')">
         <span>🏁</span>
-        <span>Completed</span>
+        <span>Concluso</span>
       </button>
     </div>
   </div>
@@ -41,7 +41,7 @@
     <div class="loading-state" *ngIf="isLoading">
       <div class="loading-spinner">
         <div class="spinner"></div>
-        <p>Loading amazing hackathons...</p>
+        <p>Caricamento hackathon...</p>
       </div>
     </div>
 
@@ -49,9 +49,9 @@
     <div class="error-state" *ngIf="errorMessage">
       <div class="error-card">
         <div class="error-icon">⚠️</div>
-        <h3>Oops! Something went wrong</h3>
+        <h3>Oops! Qualcosa è andato storto</h3>
         <p>{{ errorMessage }}</p>
-        <button class="btn-secondary" (click)="loadHackathons()">Try Again</button>
+        <button class="btn-secondary" (click)="loadHackathons()">Riprova</button>
       </div>
     </div>
 
@@ -90,21 +90,21 @@
             <div class="meta-item">
               <span class="meta-icon">📅</span>
               <div class="meta-content">
-                <span class="meta-label">Start Date</span>
+                <span class="meta-label">Data Inizio</span>
                 <span class="meta-value">{{ hackathon.dataInizio | date:'mediumDate' }}</span>
               </div>
             </div>
             <div class="meta-item">
               <span class="meta-icon">📍</span>
               <div class="meta-content">
-                <span class="meta-label">Location</span>
+                <span class="meta-label">Luogo</span>
                 <span class="meta-value">{{ hackathon.luogo || 'Online' }}</span>
               </div>
             </div>
             <div class="meta-item">
               <span class="meta-icon">�</span>
               <div class="meta-content">
-                <span class="meta-label">Organizer</span>
+                <span class="meta-label">Organizzatore</span>
                 <span class="meta-value">{{ hackathon.organizzatoreNome || 'HackHub' }}</span>
               </div>
             </div>
@@ -115,7 +115,7 @@
         <div class="card-actions">
           <button class="btn-outline" (click)="viewDetails(hackathon)">
             <span>👁️</span>
-            <span>View Details</span>
+            <span>Visualizza Dettagli</span>
           </button>
           <ng-container *ngIf="hackathon.stato === 'IN_ISCRIZIONE'">
             <!-- Already registered -->
@@ -123,28 +123,28 @@
               <span>✅</span>
               <span>Il tuo team è iscritto</span>
             </button>
-            <!-- Not yet registered -->
+            <!-- Non ancora iscritto -->
             <ng-container *appHasRole="['UTENTE_SENZA_TEAM', 'MEMBRO_TEAM', 'LEADER_TEAM']">
               <button class="btn-primary"
                       *ngIf="!isRegistered(hackathon)"
                       (click)="joinHackathon(hackathon)">
                 <span>🚀</span>
-                <span>Join Hackathon</span>
+                <span>Partecipa all'Hackathon</span>
               </button>
             </ng-container>
           </ng-container>
         </div>
       </div>
       
-      <!-- Empty State -->
+      <!-- Stato Vuoto -->
       <div class="empty-state" *ngIf="filteredHackathons.length === 0">
         <div class="empty-card">
           <div class="empty-icon">🏆</div>
-          <h3>No hackathons found</h3>
-          <p>Try adjusting your filters or check back later for new competitions.</p>
+          <h3>Nessun hackathon trovato</h3>
+          <p>Prova a cambiare i filtri o torna più tardi per nuove competizioni.</p>
           <button class="btn-primary" *appHasRole="['ORGANIZZATORE']" (click)="navigateTo('/hackathons/create')">
             <span>➕</span>
-            <span>Create Hackathon</span>
+            <span>Crea Hackathon</span>
           </button>
         </div>
       </div>

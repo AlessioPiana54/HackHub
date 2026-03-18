@@ -30,7 +30,6 @@ public class SottomissioneValidator extends AbstractValidator {
             return errors;
         }
 
-        validateRequired(request.getIdSottomissione(), "L'ID della sottomissione è obbligatorio.", errors);
         validateRequired(request.getLinkProgetto(), "Il link al progetto è obbligatorio.", errors);
 
         return errors;

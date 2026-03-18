@@ -1,4 +1,5 @@
 export enum StatoHackathon {
+  IN_ATTESA = 'IN_ATTESA',
   IN_ISCRIZIONE = 'IN_ISCRIZIONE',
   IN_CORSO = 'IN_CORSO',
   IN_VALUTAZIONE = 'IN_VALUTAZIONE',

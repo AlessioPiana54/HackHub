@@ -14,7 +14,6 @@ import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import hackhub.app.Infrastructure.Utils.SecurityUtils;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -190,9 +189,10 @@ public class SottomissioneService extends AbstractService {
    * Permette di modificare una sottomissione esistente (se l'hackathon è ancora
    * in corso).
    *
-   * @param request i nuovi dati della sottomissione
-   * @param userId  l'ID dell'utente che richiede la modifica
-   * @param token   il token di autenticazione per verifica ownership
+   * @param request        i nuovi dati della sottomissione
+   * @param userId         l'ID dell'utente che richiede la modifica
+   * @param token          il token di autenticazione per verifica ownership
+   * @param sottomissioneId l'ID della sottomissione da modificare
    * @return la Sottomissione modificata
    * @throws IllegalArgumentException se sottomissione non trovata o link github
    *                                  non valido
@@ -202,7 +202,8 @@ public class SottomissioneService extends AbstractService {
   public Sottomissione modificaSottomissione(
     ModificaSottomissioneRequest request,
     String userId,
-    String token
+    String token,
+    String sottomissioneId
   ) {
     // Verify ownership: check that the current authenticated user matches the userId
     String currentUserId = SecurityUtils.getCurrentUserId(token);
@@ -225,7 +226,7 @@ public class SottomissioneService extends AbstractService {
     }
 
     Sottomissione sottomissione = findSottomissioneOrThrow(
-      request.getIdSottomissione()
+      sottomissioneId
     );
     Team team = sottomissione.getPartecipazione().getTeam();
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
@@ -254,47 +255,7 @@ public class SottomissioneService extends AbstractService {
    * @return Lista di sottomissioni del team.
    */
   public List<Sottomissione> getTeamSubmissions(String userId) {
-    // Trova tutti i team dove l'utente è membro
-    List<Team> userTeams =
-      (
-        (org.springframework.data.jpa.repository.JpaRepository<Team, String>) unitOfWork.teamRepository()
-      ).findAll()
-        .stream()
-        .filter(team ->
-          team
-            .getMembri()
-            .stream()
-            .anyMatch(member -> member.getId().equals(userId))
-        )
-        .toList();
-
-    // Trova tutte le partecipazioni dei team dell'utente
-    List<Partecipazione> partecipazioni = userTeams
-      .stream()
-      .flatMap(team ->
-        unitOfWork
-          .partecipazioneRepository()
-          .findByTeamId(team.getId())
-          .stream()
-      )
-      .collect(Collectors.toList());
-
-    // Trova tutte le sottomissioni per queste partecipazioni
-    return partecipazioni
-      .stream()
-      .flatMap(partecipazione ->
-        (
-          (org.springframework.data.jpa.repository.JpaRepository<Sottomissione, String>) unitOfWork.sottomissioneRepository()
-        ).findAll()
-          .stream()
-          .filter(sottomissione ->
-            sottomissione
-              .getPartecipazione()
-              .getId()
-              .equals(partecipazione.getId())
-          )
-      )
-      .collect(Collectors.toList());
+    return unitOfWork.sottomissioneRepository().findByPartecipazione_Team_Membri_Id(userId);
   }
 
   /**

@@ -63,4 +63,19 @@ public abstract class AbstractController {
             }
         }
     }
+
+    /**
+     * Valida che un utente abbia il ruolo specificato.
+     *
+     * @param user         l'utente da controllare
+     * @param expectedRole il ruolo atteso
+     * @param errorMessage il messaggio di errore da lanciare se il ruolo non
+     *                     corrisponde
+     * @throws ResponseStatusException con stato 403 se il ruolo non corrisponde
+     */
+    protected void validateUserRole(User user, hackhub.app.Core.Enums.Ruolo expectedRole, String errorMessage) {
+        if (user.getRuolo() != expectedRole) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, errorMessage);
+        }
+    }
 }

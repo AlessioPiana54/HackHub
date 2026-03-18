@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
+/**
+ * Servizio per il recupero dei dati della Dashboard.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -20,42 +23,30 @@ export class DashboardService {
   }
 
   getMyTeams(): Observable<any[]> {
-    const token = this.authService.getToken();
-    return this.http.get<any[]>(`${this.API_URL}/teams/my-teams`, {
-      headers: token ? { Authorization: token } : {}
-    });
+    // Nota: l'Authorization header è aggiunto automaticamente dall'AuthInterceptor
+    return this.http.get<any[]>(`${this.API_URL}/teams/my-teams`);
   }
 
   getReceivedInvitations(): Observable<any[]> {
-    const token = this.authService.getToken();
-    return this.http.get<any[]>(`${this.API_URL}/invitations/received`, {
-      headers: token ? { Authorization: token } : {}
-    });
+    // Nota: l'Authorization header è aggiunto automaticamente dall'AuthInterceptor
+    return this.http.get<any[]>(`${this.API_URL}/invitations/received`);
   }
 
+  /**
+   * Recupera le statistiche della dashboard eseguendo chiamate parallele.
+   * Utilizza forkJoin per evitare il callback hell dei subscribe annidati.
+   */
   getDashboardStats(): Observable<any> {
-    // Statistiche reali basate solo su endpoint esistenti
-    return new Observable(observer => {
-      this.getHackathons().subscribe(hackathons => {
-        this.getMyTeams().subscribe(teams => {
-          this.getReceivedInvitations().subscribe(invitations => {
-            const stats = {
-              totalHackathons: hackathons?.length || 0,
-              activeTeams: teams?.length || 0,
-              pendingInvitations: invitations?.length || 0
-              // Rimuovo ongoingProjects - non esiste endpoint
-            };
-            observer.next(stats);
-            observer.complete();
-          }, error => {
-            observer.error(error);
-          });
-        }, error => {
-          observer.error(error);
-        });
-      }, error => {
-        observer.error(error);
-      });
-    });
+    return forkJoin({
+      hackathons: this.getHackathons().pipe(catchError(() => of([]))),
+      teams: this.getMyTeams().pipe(catchError(() => of([]))),
+      invitations: this.getReceivedInvitations().pipe(catchError(() => of([])))
+    }).pipe(
+      map(({ hackathons, teams, invitations }) => ({
+        totalHackathons: hackathons?.length || 0,
+        activeTeams: teams?.length || 0,
+        pendingInvitations: invitations?.length || 0
+      }))
+    );
   }
 }

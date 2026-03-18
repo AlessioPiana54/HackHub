@@ -1,37 +1,31 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class RoleGuard implements CanActivate {
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+/**
+ * Functional Guard per il controllo dei ruoli degli utenti.
+ * Verifica se l'utente è autenticato e se il suo ruolo è tra quelli permessi
+ * definiti nei dati della rotta (data: { roles: [...] }).
+ */
+export const roleGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-  canActivate(): boolean {
-    if (this.authService.hasToken()) {
-      return true;
-    }
-    
-    this.router.navigate(['/auth/login']);
+  const expectedRoles = route.data['roles'] as string[];
+  const userRole = authService.getUserRole();
+
+  // Verifica autenticazione e corrispondenza ruolo
+  if (authService.isAuthenticated && (!expectedRoles || expectedRoles.includes(userRole))) {
+    return true;
+  }
+
+  // Se non autenticato, reindirizza al login
+  if (!authService.isAuthenticated) {
+    router.navigate(['/auth/login'], { queryParams: { returnUrl: state.url } });
     return false;
   }
 
-  canActivateWithRoles(allowedRoles: string[]): boolean {
-    if (!this.authService.hasToken()) {
-      this.router.navigate(['/auth/login']);
-      return false;
-    }
-    
-    if (this.authService.hasAnyRole(allowedRoles)) {
-      return true;
-    }
-    
-    // Se non ha i ruoli richiesti, reindirizza alla dashboard
-    this.router.navigate(['/dashboard']);
-    return false;
-  }
-}
+  // Se autenticato ma con ruolo non autorizzato, reindirizza alla pagina unauthorized
+  router.navigate(['/unauthorized']);
+  return false;
+};

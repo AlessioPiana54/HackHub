@@ -46,6 +46,14 @@ public interface ISottomissioneRepository {
     boolean existsByPartecipazioneId(String partecipazioneId);
 
     /**
+     * Recupera le sottomissioni per i team di cui l'utente fa parte.
+     * 
+     * @param userId ID dell'utente.
+     * @return Lista di sottomissioni.
+     */
+    List<Sottomissione> findByPartecipazione_Team_Membri_Id(String userId);
+
+    /**
      * Verifica se un team specifico ha inviato sottomissioni per un hackathon.
      * 
      * @param hackathonId ID dell'hackathon.

@@ -3,12 +3,16 @@ package hackhub.app.Application.DTOs;
 import hackhub.app.Core.Enums.StatoHackathon;
 import java.time.LocalDateTime;
 
+/**
+ * DTO sintetico per la visualizzazione nella lista degli Hackathon.
+ */
 public class HackathonSummaryDTO {
 
   private String id;
   private String nome;
   private String regolamento;
   private String descrizione;
+  private String logoUrl;
   private LocalDateTime inizioIscrizioni;
   private LocalDateTime scadenzaIscrizioni;
   private LocalDateTime dataInizio;
@@ -23,6 +27,7 @@ public class HackathonSummaryDTO {
     String nome,
     String regolamento,
     String descrizione,
+    String logoUrl,
     LocalDateTime inizioIscrizioni,
     LocalDateTime scadenzaIscrizioni,
     LocalDateTime dataInizio,
@@ -36,6 +41,7 @@ public class HackathonSummaryDTO {
     this.nome = nome;
     this.regolamento = regolamento;
     this.descrizione = descrizione;
+    this.logoUrl = logoUrl;
     this.inizioIscrizioni = inizioIscrizioni;
     this.scadenzaIscrizioni = scadenzaIscrizioni;
     this.dataInizio = dataInizio;
@@ -61,6 +67,10 @@ public class HackathonSummaryDTO {
 
   public String getDescrizione() {
     return descrizione;
+  }
+
+  public String getLogoUrl() {
+    return logoUrl;
   }
 
   public LocalDateTime getInizioIscrizioni() {

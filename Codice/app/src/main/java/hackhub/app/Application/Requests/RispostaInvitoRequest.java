@@ -1,19 +1,15 @@
 package hackhub.app.Application.Requests;
 
 public class RispostaInvitoRequest {
-    private String invitoId;
     private Boolean accettato;
 
-    public RispostaInvitoRequest(String invitoId, Boolean accettato) {
-        this.invitoId = invitoId;
+    public RispostaInvitoRequest() {}
+
+    public RispostaInvitoRequest(Boolean accettato) {
         this.accettato = accettato;
     }
 
-    public String getInvitoId() {
-        return invitoId;
-    }
-
-    public Boolean isAccettato() {
+    public Boolean getAccettato() {
         return accettato;
     }
 }

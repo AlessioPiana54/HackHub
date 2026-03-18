@@ -28,4 +28,7 @@ public interface HackathonRepository
 
   @Query("SELECT h FROM Hackathon h JOIN h.mentori m WHERE m.id = :mentoreId")
   List<Hackathon> findByMentoriId(@Param("mentoreId") String mentoreId);
+
+  @Override
+  Optional<Hackathon> findByNome(String nome);
 }

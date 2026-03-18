@@ -4,12 +4,13 @@ import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Application.Services.HackathonService;
 import hackhub.app.Application.Utils.ISessionManager;
-import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.HackathonValidator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/hackathons")
 public class HackathonController extends AbstractController {
 
+  private static final Logger logger = LoggerFactory.getLogger(HackathonController.class);
   private final HackathonService hackathonService;
   private final HackathonValidator hackathonValidator;
 
@@ -34,20 +36,6 @@ public class HackathonController extends AbstractController {
     this.hackathonValidator = hackathonValidator;
   }
 
-  /**
-   * Endpoint temporaneo per creare sessioni di test
-   */
-  @GetMapping("/test-login")
-  public ResponseEntity<String> createTestSession() {
-    User testUser = new User();
-    testUser.setId("15ca037b-570b-44d8-ab4d-060760e86a7c");
-    testUser.setNome("Test");
-    testUser.setEmail("test@example.com");
-    testUser.setRuolo(Ruolo.LEADER_TEAM);
-
-    String token = sessionManager.createSession(testUser);
-    return ResponseEntity.ok("Token creato: " + token);
-  }
 
   /**
    * Recupera gli hackathon a cui è iscritto il team dell'utente loggato.
@@ -106,20 +94,17 @@ public class HackathonController extends AbstractController {
     @PathVariable String hackathonId
   ) {
     try {
-      System.out.println(
-        "DEBUG: Searching for hackathon with ID: " + hackathonId
-      );
+      logger.debug("Searching for hackathon with ID: {}", hackathonId);
       HackathonSummaryDTO hackathon = hackathonService.getHackathonById(
         hackathonId
       );
-      System.out.println("DEBUG: Hackathon found: " + hackathon.getNome());
+      logger.debug("Hackathon found: {}", hackathon.getNome());
       return ResponseEntity.ok(hackathon);
     } catch (IllegalArgumentException e) {
-      System.out.println("DEBUG: Hackathon not found: " + e.getMessage());
+      logger.warn("Hackathon not found: {}", e.getMessage());
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     } catch (Exception e) {
-      System.out.println("DEBUG: Error occurred: " + e.getMessage());
-      e.printStackTrace();
+      logger.error("Error occurred while fetching hackathon {}: {}", hackathonId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
@@ -210,15 +195,7 @@ public class HackathonController extends AbstractController {
     @RequestHeader(value = "Authorization", required = false) String token
   ) {
     try {
-      // Temporaneamente: saltiamo autenticazione per test
       User user = getAuthenticatedUser(token);
-      if (user == null) {
-        // Utente di test per debugging
-        user = new User();
-        user.setId("15ca037b-570b-44d8-ab4d-060760e86a7c");
-        user.setNome("Test");
-        user.setRuolo(Ruolo.LEADER_TEAM);
-      }
 
       // Forza il trattamento di hackathonId come String
       validateIds(hackathonId, teamId);

@@ -5,9 +5,6 @@ import hackhub.app.Core.POJO_Entities.Hackathon;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface IHackathonRepository {
@@ -65,4 +62,12 @@ public interface IHackathonRepository {
    * @return Lista di Hackathon assegnati.
    */
   List<Hackathon> findByMentoriId(String mentoreId);
+
+  /**
+   * Trova un hackathon tramite nome.
+   *
+   * @param nome Nome dell'hackathon.
+   * @return Optional contenente l'hackathon se trovato, altrimenti vuoto.
+   */
+  Optional<Hackathon> findByNome(String nome);
 }

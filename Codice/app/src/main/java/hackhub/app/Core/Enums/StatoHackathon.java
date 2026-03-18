@@ -1,5 +1,8 @@
 package hackhub.app.Core.Enums;
 
+/**
+ * Stati possibili per un Hackathon.
+ */
 public enum StatoHackathon {
     IN_ATTESA,
     IN_ISCRIZIONE,

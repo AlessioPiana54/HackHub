@@ -6,8 +6,6 @@ import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Sottomissione;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
-import hackhub.app.Core.POJO_Entities.Valutazione;
-import java.util.UUID;
 
 /**
  * Classe astratta base per i servizi dell'applicazione.
@@ -116,9 +114,7 @@ public abstract class AbstractService {
    * @param expectedRole il ruolo atteso
    * @param errorMessage il messaggio di errore da lanciare se il ruolo non
    *                     corrisponde
-   * @throws IllegalArgumentException se il ruolo non corrisponde (nota: usa
-   *                                  IllegalArgument per compatibilità con codice
-   *                                  esistente)
+   * @throws SecurityException se il ruolo non corrisponde
    */
   protected void validateUserRole(
     User user,
@@ -126,7 +122,7 @@ public abstract class AbstractService {
     String errorMessage
   ) {
     if (user.getRuolo() != expectedRole) {
-      throw new IllegalArgumentException(errorMessage);
+      throw new SecurityException(errorMessage);
     }
   }
 

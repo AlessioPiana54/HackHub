@@ -12,6 +12,8 @@ import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Infrastructure.Utils.SecurityUtils;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @Transactional
 public class TeamService extends AbstractService {
+
+  private static final Logger logger = LoggerFactory.getLogger(TeamService.class);
 
   public TeamService(IUnitOfWork unitOfWork) {
     super(unitOfWork);
@@ -40,9 +44,7 @@ public class TeamService extends AbstractService {
    */
   // **PREVENZIONE: Metodo per pulire team orfani**
   public void cleanupOrphanedTeams() {
-    System.out.println(
-      "TeamService.cleanupOrphanedTeams() - Starting cleanup..."
-    );
+    logger.info("TeamService.cleanupOrphanedTeams() - Starting cleanup...");
 
     // Trova tutti gli utenti che sono leader ma hanno ruolo UTENTE_SENZA_TEAM
     List<User> inconsistentUsers = unitOfWork
@@ -55,19 +57,11 @@ public class TeamService extends AbstractService {
       .collect(java.util.stream.Collectors.toList());
 
     for (User user : inconsistentUsers) {
-      System.out.println(
-        "WARNING: Found inconsistent user " +
-        user.getId() +
-        " - cleaning up orphaned team..."
-      );
+      logger.warn("Found inconsistent user {} - cleaning up orphaned team...", user.getId());
       unitOfWork.teamRepository().deleteByLeaderId(user.getId());
     }
 
-    System.out.println(
-      "TeamService.cleanupOrphanedTeams() - Cleanup completed. Fixed " +
-      inconsistentUsers.size() +
-      " inconsistencies."
-    );
+    logger.info("TeamService.cleanupOrphanedTeams() - Cleanup completed. Fixed {} inconsistencies.", inconsistentUsers.size());
   }
 
   public Team creaTeam(CreaTeamRequest request, String leaderId) {
@@ -85,11 +79,7 @@ public class TeamService extends AbstractService {
 
     // **PREVENZIONE: Verifica che l'utente non sia già leader di un team orfano**
     if (unitOfWork.teamRepository().existsByLeaderId(leaderId)) {
-      System.out.println(
-        "WARNING: User " +
-        leaderId +
-        " is already a leader. Cleaning up orphaned team..."
-      );
+      logger.warn("User {} is already a leader. Cleaning up orphaned team...", leaderId);
       // Rimuovi il team orfano prima di crearne uno nuovo
       unitOfWork.teamRepository().deleteByLeaderId(leaderId);
     }
@@ -200,72 +190,46 @@ public class TeamService extends AbstractService {
    *
    * @param teamId   l'ID del Team da abbandonare
    * @param memberId l'ID del membro che vuole lasciare il team
-   * @param token    il token di autenticazione per verifica ownership
    * @throws IllegalArgumentException se team o utente non trovati, o se l'utente
    *                                  non fa parte del team
    */
-  public void abbandonaTeam(String teamId, String memberId, String token) {
-    System.out.println("TeamService.abbandonaTeam() called!");
-    System.out.println("Team ID: " + teamId);
-    System.out.println("Member ID: " + memberId);
-    System.out.println("Token: " + token);
-
-    // Verify ownership: check that the current authenticated user matches the memberId
-    String currentUserId = SecurityUtils.getCurrentUserId(token);
-    System.out.println("Current User ID from SecurityUtils: " + currentUserId);
-
-    if (!currentUserId.equals(memberId)) {
-      System.out.println(
-        "ERROR: User IDs don't match! currentUserId=" +
-        currentUserId +
-        ", memberId=" +
-        memberId
-      );
-      throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "Non sei autorizzato a eseguire questa operazione per questo utente."
-      );
-    }
+  public void abbandonaTeam(String teamId, String memberId) {
+    logger.debug("TeamService.abbandonaTeam() called for teamId: {}, memberId: {}", teamId, memberId);
 
     Team team = findTeamOrThrow(teamId);
     User member = findUserOrThrow(memberId);
 
-    System.out.println("Team found: " + team.getNomeTeam());
-    System.out.println("Team leader ID: " + team.getLeaderSquadra().getId());
-    System.out.println("Member ID: " + memberId);
+    logger.debug("Team found: {}", team.getNomeTeam());
+    logger.debug("Team leader ID: {}", team.getLeaderSquadra().getId());
 
     // Check if the user is part of the team (throws SecurityException if not)
     validateUserInTeam(team, memberId, "L'utente non fa parte di questo Team.");
 
     // Check if the user is the leader
     if (team.getLeaderSquadra().getId().equals(memberId)) {
-      System.out.println("User is team leader, checking if can abandon...");
+      logger.debug("User is team leader, checking if can abandon...");
 
       // Leader can abandon only if they are the only member
       if (team.getMembri().size() > 1) {
-        System.out.println(
-          "ERROR: Leader cannot abandon team with multiple members!"
-        );
+        logger.error("Leader cannot abandon team with multiple members!");
         throw new IllegalArgumentException(
           "Il Leader può abbandonare il team solo se è l'unico membro. Deve prima cedere il ruolo a un altro membro."
         );
       }
 
-      System.out.println("Leader is the only member, can abandon team...");
+      logger.debug("Leader is the only member, can abandon team...");
     }
 
-    System.out.println("User is not leader, proceeding with abandonment...");
+    logger.debug("User is not leader, proceeding with abandonment...");
 
     // If user is the leader and is the only member, delete the entire team
     if (
       team.getLeaderSquadra().getId().equals(memberId) &&
       team.getMembri().size() == 1
     ) {
-      System.out.println("Leader is the only member, deleting entire team...");
+      logger.info("Leader is the only member, deleting entire team...");
       // Delete the team completely to avoid constraint violations
-      (
-        (org.springframework.data.jpa.repository.JpaRepository<Team, String>) unitOfWork.teamRepository()
-      ).deleteById(teamId);
+      unitOfWork.teamRepository().deleteById(teamId);
     } else {
       // Remove member from team
       team.getMembri().removeIf(m -> m.getId().equals(memberId));

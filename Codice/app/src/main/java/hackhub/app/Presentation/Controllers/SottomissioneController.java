@@ -62,21 +62,25 @@ public class SottomissioneController extends AbstractController {
   /**
    * Modifica una sottomissione esistente.
    *
+   * @param id      L'ID della sottomissione da modificare.
    * @param token   Il token di autorizzazione dell'utente.
-   * @param request I dati aggiornati della sottomissione.
-   * @return La sottomissione modificata o un errore di validazione.
+   * @param request I nuovi dati della sottomissione.
+   * @return La sottomissione aggiornata.
    */
-  @PutMapping("/modifica")
+  @PatchMapping("/{id}")
   public ResponseEntity<?> modificaSottomissione(
+    @PathVariable String id,
     @RequestHeader("Authorization") String token,
     @RequestBody ModificaSottomissioneRequest request
   ) {
     User user = getAuthenticatedUser(token);
+    validateIds(id);
     validateRequest(sottomissioneValidator.validateModification(request));
     Sottomissione sottomissione = sottomissioneService.modificaSottomissione(
       request,
       user.getId(),
-      token
+      token,
+      id
     );
     return ResponseEntity.ok(sottomissione);
   }

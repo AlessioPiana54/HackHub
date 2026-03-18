@@ -18,6 +18,12 @@ export class JudgeHackathonDashboardComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   isClosing = false;
+  showEvaluationModal = false;
+  selectedSubmission: any = null;
+  evaluationForm = {
+    voto: 0,
+    giudizio: ''
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -80,27 +86,37 @@ export class JudgeHackathonDashboardComponent implements OnInit {
   }
 
   openEvaluationModal(submission: any): void {
-    const votoStr = window.prompt(`Valuta il progetto di ${submission.team.nomeTeam}\nInserisci un voto da 0 a 10:`, submission.valutazione?.voto || '');
-    if (votoStr === null) return;
+    this.selectedSubmission = submission;
+    this.evaluationForm = {
+      voto: submission.valutazione?.voto || 0,
+      giudizio: submission.valutazione?.giudizio || ''
+    };
+    this.showEvaluationModal = true;
+  }
 
-    const voto = parseInt(votoStr, 10);
-    if (isNaN(voto) || voto < 0 || voto > 10) {
+  closeEvaluationModal(): void {
+    this.showEvaluationModal = false;
+    this.selectedSubmission = null;
+  }
+
+  submitEvaluation(): void {
+    if (!this.selectedSubmission) return;
+
+    if (this.evaluationForm.voto < 0 || this.evaluationForm.voto > 10) {
       alert('Voto non valido. Inserisci un numero tra 0 e 10.');
       return;
     }
 
-    const giudizio = window.prompt('Inserisci un breve giudizio:', submission.valutazione?.giudizio || '');
-    if (giudizio === null) return;
-
     const request = {
-      idSottomissione: submission.id,
-      voto: voto,
-      giudizio: giudizio
+      idSottomissione: this.selectedSubmission.id,
+      voto: this.evaluationForm.voto,
+      giudizio: this.evaluationForm.giudizio
     };
 
-    this.sottomissioneService.valutaSottomissione(submission.id, request).subscribe({
+    this.sottomissioneService.valutaSottomissione(this.selectedSubmission.id, request).subscribe({
       next: () => {
         alert('Valutazione salvata con successo!');
+        this.closeEvaluationModal();
         this.loadSubmissions();
         this.loadRanking();
       },

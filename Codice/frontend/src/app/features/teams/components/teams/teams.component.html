@@ -1,16 +1,16 @@
 <div class="teams-container">
   <!-- Page Header -->
   <div class="page-header">
-    <h1 class="page-title">Team Invitations</h1>
-    <p class="page-subtitle">Manage your team invitations and create new teams</p>
+    <h1 class="page-title">Inviti del Team</h1>
+    <p class="page-subtitle">Gestisci i tuoi inviti e crea nuovi team</p>
   </div>
 
   <!-- Loading State -->
   <div class="loading-state" *ngIf="isLoading || !currentUser">
     <div class="loading-spinner">
       <div class="spinner"></div>
-      <p *ngIf="isLoading">Loading invitations...</p>
-      <p *ngIf="!isLoading && !currentUser">Loading user information...</p>
+      <p *ngIf="isLoading">Caricamento inviti...</p>
+      <p *ngIf="!isLoading && !currentUser">Caricamento informazioni utente...</p>
     </div>
   </div>
 
@@ -18,16 +18,16 @@
   <div class="error-state" *ngIf="errorMessage">
     <div class="error-card">
       <div class="error-icon">⚠️</div>
-      <h3>Oops! Something went wrong</h3>
+      <h3>Oops! Qualcosa è andato storto</h3>
       <p>{{ errorMessage }}</p>
       <div class="error-actions">
         <button class="btn-primary" (click)="clearError()">
           <span>🔙</span>
-          <span>Back to Teams</span>
+          <span>Torna ai Team</span>
         </button>
         <button class="btn-secondary" (click)="loadContent()">
           <span>🔄</span>
-          <span>Try Again</span>
+          <span>Riprova</span>
         </button>
       </div>
     </div>
@@ -47,12 +47,12 @@
             </span>
           </div>
           <div class="team-stats">
-            <span class="member-count">{{ getTeamMemberCount(team) }} members</span>
+            <span class="member-count">{{ getTeamMemberCount(team) }} membri</span>
           </div>
         </div>
 
         <div class="team-members" *ngIf="getTeamMembers(team).length > 0">
-          <h4>Team Members:</h4>
+          <h4>Membri del Team:</h4>
           <div class="members-list">
             <div class="member-item" *ngFor="let member of getTeamMembers(team)">
               <span class="member-name">{{ member.nome }} {{ member.cognome }}</span>
@@ -64,15 +64,15 @@
         <div class="team-actions">
           <button class="btn-primary" (click)="viewTeamDetails(team.id)">
             <span>👁️</span>
-            <span>View Details</span>
+            <span>Visualizza Dettagli</span>
           </button>
           <button class="btn-secondary" *ngIf="isCurrentUserLeader(team)" (click)="manageTeam(team.id)">
             <span>⚙️</span>
-            <span>Manage Team</span>
+            <span>Gestisci Team</span>
           </button>
           <button class="btn-danger" (click)="abandonTeam(team.id)">
             <span>🚪</span>
-            <span>Leave Team</span>
+            <span>Abbandona Team</span>
           </button>
         </div>
       </div>
@@ -83,8 +83,8 @@
       <div class="invitation-card" *ngFor="let invitation of receivedInvitations">
         <div class="invitation-header">
           <div class="team-info">
-            <h3>{{ invitation.teamNome || 'Unknown Team' }}</h3>
-            <span class="invitation-from">From: {{ invitation.mittenteNome || 'Unknown' }}</span>
+            <h3>{{ invitation.teamNome || 'Team Sconosciuto' }}</h3>
+            <span class="invitation-from">Da: {{ invitation.mittenteNome || 'Sconosciuto' }}</span>
           </div>
           <div class="invitation-date">
             {{ invitation.dataInvito | date:'short' }}
@@ -98,11 +98,11 @@
         <div class="invitation-actions">
           <button class="btn-success" (click)="acceptInvitation(invitation.id)">
             <span>✅</span>
-            <span>Accept</span>
+            <span>Accetta</span>
           </button>
           <button class="btn-danger" (click)="rejectInvitation(invitation.id)">
             <span>❌</span>
-            <span>Reject</span>
+            <span>Rifiuta</span>
           </button>
         </div>
       </div>
@@ -112,11 +112,11 @@
     <div class="empty-state" *ngIf="!hasTeams() && !hasInvitations()">
       <div class="create-team-card">
         <div class="create-icon">➕</div>
-        <h3>Create Your Team</h3>
-        <p>You don't have any team yet. Create your own team and start collaborating!</p>
+        <h3>Crea il tuo Team</h3>
+        <p>Non hai ancora nessun team. Crea il tuo team e inizia a collaborare!</p>
         <button class="btn-primary" (click)="navigateToCreateTeam()">
           <span>➕</span>
-          <span>Create Team</span>
+          <span>Crea Team</span>
         </button>
       </div>
     </div>

@@ -102,6 +102,7 @@ public class HackathonService extends AbstractService {
       )
       .setDurata(request.getDataInizio(), request.getDataFine())
       .setLuogo(request.getLuogo())
+      .setLogoUrl(request.getLogoUrl())
       .setPremioInDenaro(request.getPremioInDenaro())
       .setOrganizzatore(organizzatore)
       .setGiudice(giudice)
@@ -471,6 +472,7 @@ public class HackathonService extends AbstractService {
       h.getNome(),
       h.getRegolamento(),
       h.getRegolamento(), // Descrizione = regolamento
+      h.getLogoUrl(),
       h.getInizioIscrizioni(), // Date iscrizioni reali
       h.getScadenzaIscrizioni(), // Date iscrizioni reali
       h.getDataInizio(),
@@ -480,5 +482,27 @@ public class HackathonService extends AbstractService {
       h.getStato(),
       h.getOrganizzatore() != null ? h.getOrganizzatore().getNome() : "N/A"
     );
+  }
+
+  /**
+   * Forza lo stato dell'hackathon denominato "Test" a IN_CORSO.
+   *
+   * @param organizerId ID dell'organizzatore.
+   */
+  public void forceStartTestHackathon(String organizerId) {
+    User user = findUserOrThrow(organizerId);
+    validateUserRole(
+      user,
+      Ruolo.ORGANIZZATORE,
+      "Solo un organizzatore può forzare lo stato."
+    );
+
+    Hackathon testHackathon = unitOfWork
+      .hackathonRepository()
+      .findByNome("Test")
+      .orElseThrow(() -> new IllegalArgumentException("Hackathon 'Test' non trovato"));
+
+    testHackathon.setStato(StatoHackathon.IN_CORSO);
+    unitOfWork.hackathonRepository().save(testHackathon);
   }
 }

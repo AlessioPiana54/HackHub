@@ -61,6 +61,44 @@
       </ng-template>
     </div>
   </div>
+
+  <!-- Evaluation Modal -->
+  <div class="modal-overlay" *ngIf="showEvaluationModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⭐ Valuta Progetto: {{ selectedSubmission?.team?.nomeTeam }}</h2>
+        <button class="close-btn" (click)="closeEvaluationModal()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="voto">Voto (0-10)</label>
+          <input 
+            type="number" 
+            id="voto" 
+            [(ngModel)]="evaluationForm.voto" 
+            min="0" 
+            max="10" 
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="giudizio">Giudizio</label>
+          <textarea 
+            id="giudizio" 
+            [(ngModel)]="evaluationForm.giudizio" 
+            rows="5" 
+            class="form-control"
+            placeholder="Inserisci un commento sulla sottomissione..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeEvaluationModal()">Annulla</button>
+        <button class="btn-primary" (click)="submitEvaluation()">Salva Valutazione</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <ng-template #loading>

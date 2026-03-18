@@ -89,7 +89,7 @@ public class InvitoService extends AbstractService {
       throw new IllegalArgumentException("Questo invito non è per te.");
     }
 
-    if (request.isAccettato()) {
+    if (request.getAccettato()) {
       accettaInvito(invito, user);
     } else {
       rifiutaInvito(invito);
@@ -133,10 +133,7 @@ public class InvitoService extends AbstractService {
    * @return Lista di InvitoDTO ricevuti.
    */
   public List<InvitoDTO> getReceivedInvitations(String userId) {
-    List<Invito> invitations =
-      (
-        (org.springframework.data.jpa.repository.JpaRepository<Invito, String>) unitOfWork.invitoRepository()
-      ).findAll()
+    List<Invito> invitations = unitOfWork.invitoRepository().findAll()
         .stream()
         .filter(invito -> invito.getDestinatario().getId().equals(userId))
         .toList();
@@ -154,10 +151,7 @@ public class InvitoService extends AbstractService {
    * @return Lista di InvitoDTO inviati.
    */
   public List<InvitoDTO> getSentInvitations(String userId) {
-    List<Invito> invitations =
-      (
-        (org.springframework.data.jpa.repository.JpaRepository<Invito, String>) unitOfWork.invitoRepository()
-      ).findAll()
+    List<Invito> invitations = unitOfWork.invitoRepository().findAll()
         .stream()
         .filter(invito -> invito.getMittente().getId().equals(userId))
         .toList();

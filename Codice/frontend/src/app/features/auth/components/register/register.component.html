@@ -1,43 +1,43 @@
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header">
-      <h1 class="auth-title">Join HackHub</h1>
-      <p class="auth-subtitle">Create your account and start hacking</p>
+      <h1 class="auth-title">Unisciti a HackHub</h1>
+      <p class="auth-subtitle">Crea il tuo account e inizia a programmare</p>
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" autocomplete="on">
       <div class="form-row">
         <div class="form-group">
-          <label for="nome" class="form-label">First Name</label>
+          <label for="nome" class="form-label">Nome</label>
           <input
             id="nome"
             type="text"
             formControlName="nome"
             class="form-control"
-            placeholder="Enter your first name"
+            placeholder="Inserisci il tuo nome"
             autocomplete="given-name"
             [class.is-invalid]="nome?.invalid && nome?.touched"
           >
           <div class="invalid-feedback" *ngIf="nome?.invalid && nome?.touched">
-            <span *ngIf="nome?.errors?.['required']">First name is required</span>
-            <span *ngIf="nome?.errors?.['minlength']">First name must be at least 2 characters</span>
+            <span *ngIf="nome?.errors?.['required']">Il nome è obbligatorio</span>
+            <span *ngIf="nome?.errors?.['minlength']">Il nome deve avere almeno 2 caratteri</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="cognome" class="form-label">Last Name</label>
+          <label for="cognome" class="form-label">Cognome</label>
           <input
             id="cognome"
             type="text"
             formControlName="cognome"
             class="form-control"
-            placeholder="Enter your last name"
+            placeholder="Inserisci il tuo cognome"
             autocomplete="family-name"
             [class.is-invalid]="cognome?.invalid && cognome?.touched"
           >
           <div class="invalid-feedback" *ngIf="cognome?.invalid && cognome?.touched">
-            <span *ngIf="cognome?.errors?.['required']">Last name is required</span>
-            <span *ngIf="cognome?.errors?.['minlength']">Last name must be at least 2 characters</span>
+            <span *ngIf="cognome?.errors?.['required']">Il cognome è obbligatorio</span>
+            <span *ngIf="cognome?.errors?.['minlength']">Il cognome deve avere almeno 2 caratteri</span>
           </div>
         </div>
       </div>
@@ -49,13 +49,13 @@
           type="email"
           formControlName="email"
           class="form-control"
-          placeholder="Enter your email"
+          placeholder="Inserisci la tua email"
           autocomplete="email"
           [class.is-invalid]="email?.invalid && email?.touched"
         >
         <div class="invalid-feedback" *ngIf="email?.invalid && email?.touched">
-          <span *ngIf="email?.errors?.['required']">Email is required</span>
-          <span *ngIf="email?.errors?.['email']">Please enter a valid email</span>
+          <span *ngIf="email?.errors?.['required']">L'email è obbligatoria</span>
+          <span *ngIf="email?.errors?.['email']">Inserisci un'email valida</span>
         </div>
       </div>
 
@@ -66,30 +66,30 @@
           type="password"
           formControlName="password"
           class="form-control"
-          placeholder="Create a password"
+          placeholder="Crea una password"
           autocomplete="new-password"
           [class.is-invalid]="password?.invalid && password?.touched"
         >
         <div class="invalid-feedback" *ngIf="password?.invalid && password?.touched">
-          <span *ngIf="password?.errors?.['required']">Password is required</span>
-          <span *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters</span>
+          <span *ngIf="password?.errors?.['required']">La password è obbligatoria</span>
+          <span *ngIf="password?.errors?.['minlength']">La password deve avere almeno 6 caratteri</span>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <label for="confirmPassword" class="form-label">Conferma Password</label>
         <input
           id="confirmPassword"
           type="password"
           formControlName="confirmPassword"
           class="form-control"
-          placeholder="Confirm your password"
+          placeholder="Conferma la tua password"
           autocomplete="new-password"
           [class.is-invalid]="confirmPassword?.invalid && confirmPassword?.touched"
         >
         <div class="invalid-feedback" *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
-          <span *ngIf="confirmPassword?.errors?.['required']">Please confirm your password</span>
-          <span *ngIf="registerForm.errors?.['passwordMismatch']">Passwords do not match</span>
+          <span *ngIf="confirmPassword?.errors?.['required']">Conferma la tua password</span>
+          <span *ngIf="registerForm.errors?.['passwordMismatch']">Le password non corrispondono</span>
         </div>
       </div>
 
@@ -98,13 +98,13 @@
       </div>
 
       <button type="submit" class="btn btn-primary btn-block" [disabled]="isLoading || registerForm.invalid">
-        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="!isLoading">Crea Account</span>
         <div class="spinner" *ngIf="isLoading"></div>
       </button>
     </form>
 
     <div class="auth-footer">
-      <p>Already have an account? <a routerLink="/auth/login" class="auth-link">Sign in</a></p>
+      <p>Hai già un account? <a routerLink="/auth/login" class="auth-link">Accedi</a></p>
     </div>
   </div>
 </div>

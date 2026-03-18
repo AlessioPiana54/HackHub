@@ -1,8 +1,8 @@
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header">
-      <h1 class="auth-title">Welcome Back</h1>
-      <p class="auth-subtitle">Sign in to your HackHub account</p>
+      <h1 class="auth-title">Bentornato</h1>
+      <p class="auth-subtitle">Accedi al tuo account HackHub</p>
     </div>
 
     <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()" autocomplete="on">
@@ -13,13 +13,13 @@
           type="email" 
           class="form-control" 
           formControlName="email"
-          placeholder="Enter your email"
+          placeholder="Inserisci la tua email"
           autocomplete="email"
           [class.is-invalid]="submitted && f['email'].errors"
         >
         <div class="invalid-feedback" *ngIf="submitted && f['email'].errors">
-          <span *ngIf="f['email'].errors['required']">Email is required</span>
-          <span *ngIf="f['email'].errors['email']">Please enter a valid email</span>
+          <span *ngIf="f['email'].errors['required']">L'email è obbligatoria</span>
+          <span *ngIf="f['email'].errors['email']">Inserisci un'email valida</span>
         </div>
       </div>
 
@@ -30,13 +30,13 @@
           type="password" 
           class="form-control" 
           formControlName="password"
-          placeholder="Enter your password"
+          placeholder="Inserisci la tua password"
           autocomplete="current-password"
           [class.is-invalid]="submitted && f['password'].errors"
         >
         <div class="invalid-feedback" *ngIf="submitted && f['password'].errors">
-          <span *ngIf="f['password'].errors['required']">Password is required</span>
-          <span *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</span>
+          <span *ngIf="f['password'].errors['required']">La password è obbligatoria</span>
+          <span *ngIf="f['password'].errors['minlength']">La password deve avere almeno 6 caratteri</span>
         </div>
       </div>
 
@@ -44,7 +44,7 @@
         <label class="checkbox-label">
           <input type="checkbox" formControlName="rememberMe">
           <span class="checkmark"></span>
-          Remember me
+          Ricordami
         </label>
       </div>
 
@@ -53,13 +53,13 @@
       </div>
 
       <button type="submit" class="btn btn-primary btn-block" [disabled]="isLoading || loginForm.invalid">
-        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="!isLoading">Accedi</span>
         <div class="spinner" *ngIf="isLoading"></div>
       </button>
     </form>
 
     <div class="auth-footer">
-      <p>Don't have an account? <a routerLink="../register" class="auth-link">Sign up</a></p>
+      <p>Non hai un account? <a routerLink="../register" class="auth-link">Registrati</a></p>
     </div>
   </div>
 </div>

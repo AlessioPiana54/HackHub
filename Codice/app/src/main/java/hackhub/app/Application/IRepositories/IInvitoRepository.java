@@ -45,4 +45,19 @@ public interface IInvitoRepository {
      * @param invito L'entità Invito da eliminare.
      */
     void delete(Invito invito);
+
+    /**
+     * Recupera tutti gli inviti nel sistema.
+     *
+     * @return Lista di tutti gli inviti.
+     */
+    List<Invito> findAll();
+
+    /**
+     * Trova tutti gli inviti inviati da un utente specifico.
+     *
+     * @param mittente L'utente mittente degli inviti.
+     * @return Lista di inviti inviati dall'utente.
+     */
+    List<Invito> findByMittente(User mittente);
 }

@@ -27,6 +27,7 @@ public class Hackathon {
   private LocalDateTime dataInizio;
   private LocalDateTime dataFine;
   private String luogo;
+  private String logoUrl;
   private double premioInDenaro;
   private LocalDateTime dataCreazione;
 
@@ -181,6 +182,14 @@ public class Hackathon {
 
   public void setLuogo(String luogo) {
     this.luogo = luogo;
+  }
+
+  public String getLogoUrl() {
+    return logoUrl;
+  }
+
+  public void setLogoUrl(String logoUrl) {
+    this.logoUrl = logoUrl;
   }
 
   public double getPremioInDenaro() {

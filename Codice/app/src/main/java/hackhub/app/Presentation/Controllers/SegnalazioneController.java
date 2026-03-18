@@ -28,15 +28,17 @@ public class SegnalazioneController extends AbstractController {
     }
 
     /**
-     * Crea una nuova segnalazione.
-     *
-     * @param token   Il token di autorizzazione dell'utente segnalante.
-     * @param request I dati della segnalazione.
-     * @return La segnalazione creata o un errore di validazione.
-     */
-    @PostMapping("/crea")
-    public ResponseEntity<?> creaSegnalazione(@RequestHeader("Authorization") String token,
-            @RequestBody CreaSegnalazioneRequest request) {
+   * Crea una nuova segnalazione per un team o un progetto.
+   *
+   * @param token   il token di sessione dell'utente autenticato
+   * @param request i dati per la creazione della segnalazione
+   * @return la segnalazione creata
+   */
+  @PostMapping("")
+  public ResponseEntity<Segnalazione> creaSegnalazione(
+    @RequestHeader("Authorization") String token,
+    @RequestBody CreaSegnalazioneRequest request
+  ) {
         User user = getAuthenticatedUser(token);
         validateRequest(validator.validateCreation(request));
         Segnalazione segnalazione = service.creaSegnalazione(request, user.getId());
