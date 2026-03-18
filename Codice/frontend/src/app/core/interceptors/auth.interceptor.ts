@@ -23,8 +23,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 || error.status === 403) {
-        // Token scaduto o non autorizzato
+      if (error.status === 401) {
+        // Token scaduto o non valido
         authService.clearAuth();
         router.navigate(['/auth/login']);
       }

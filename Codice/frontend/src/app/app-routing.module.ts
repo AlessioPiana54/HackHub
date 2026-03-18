@@ -34,12 +34,12 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/dashboard',
+    redirectTo: '/auth/login',
     pathMatch: 'full'
   },
   {
     path: '**',
-    redirectTo: '/dashboard'
+    redirectTo: '/auth/login'
   }
 ];
 

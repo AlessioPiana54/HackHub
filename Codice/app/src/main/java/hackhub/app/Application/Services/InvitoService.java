@@ -23,8 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class InvitoService extends AbstractService {
 
-  public InvitoService(IUnitOfWork unitOfWork) {
-    super(unitOfWork);
+  public InvitoService(
+    IUnitOfWork unitOfWork,
+    EntityFinder entityFinder,
+    AuthorizationChecker authorizationChecker
+  ) {
+    super(unitOfWork, entityFinder, authorizationChecker);
   }
 
   /**
@@ -133,10 +137,12 @@ public class InvitoService extends AbstractService {
    * @return Lista di InvitoDTO ricevuti.
    */
   public List<InvitoDTO> getReceivedInvitations(String userId) {
-    List<Invito> invitations = unitOfWork.invitoRepository().findAll()
-        .stream()
-        .filter(invito -> invito.getDestinatario().getId().equals(userId))
-        .toList();
+    List<Invito> invitations = unitOfWork
+      .invitoRepository()
+      .findAll()
+      .stream()
+      .filter(invito -> invito.getDestinatario().getId().equals(userId))
+      .toList();
 
     return invitations
       .stream()
@@ -151,10 +157,12 @@ public class InvitoService extends AbstractService {
    * @return Lista di InvitoDTO inviati.
    */
   public List<InvitoDTO> getSentInvitations(String userId) {
-    List<Invito> invitations = unitOfWork.invitoRepository().findAll()
-        .stream()
-        .filter(invito -> invito.getMittente().getId().equals(userId))
-        .toList();
+    List<Invito> invitations = unitOfWork
+      .invitoRepository()
+      .findAll()
+      .stream()
+      .filter(invito -> invito.getMittente().getId().equals(userId))
+      .toList();
 
     return invitations
       .stream()

@@ -12,40 +12,25 @@ export class SottomissioneService {
   constructor(private http: HttpClient) {}
 
   getMySubmissions(): Observable<Sottomissione[]> {
-    const token = localStorage.getItem('token');
-    return this.http.get<Sottomissione[]>(`${this.API_URL}/my-submissions`, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.get<Sottomissione[]>(`${this.API_URL}/my-submissions`);
   }
 
   inviaSottomissione(request: InviaSottomissioneRequest): Observable<Sottomissione> {
-    const token = localStorage.getItem('token');
-    return this.http.post<Sottomissione>(`${this.API_URL}`, request, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.post<Sottomissione>(`${this.API_URL}`, request);
   }
 
-  modificaSottomissione(request: ModificaSottomissioneRequest): Observable<Sottomissione> {
-    const token = localStorage.getItem('token');
-    return this.http.put<Sottomissione>(`${this.API_URL}/modifica`, request, {
-      headers: token ? { Authorization: token } : {}
-    });
+  modificaSottomissione(id: string, request: ModificaSottomissioneRequest): Observable<Sottomissione> {
+    return this.http.patch<Sottomissione>(`${this.API_URL}/${id}`, request);
   }
 
   valutaSottomissione(id: string, request: CreaValutazioneRequest): Observable<any> {
-    const token = localStorage.getItem('token');
-    return this.http.patch(`${this.API_URL}/${id}/evaluation`, request, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.patch(`${this.API_URL}/${id}/evaluation`, request);
   }
 
   /**
    * Recupera tutte le sottomissioni per un specifico Hackathon.
    */
   getSubmissionsByHackathon(hackathonId: string): Observable<Sottomissione[]> {
-    const token = localStorage.getItem('token');
-    return this.http.get<Sottomissione[]>(`${this.API_URL}/hackathon/${hackathonId}`, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.get<Sottomissione[]>(`${this.API_URL}/hackathon/${hackathonId}`);
   }
 }

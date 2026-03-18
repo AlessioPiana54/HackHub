@@ -12,7 +12,6 @@ import hackhub.app.Core.POJO_Entities.Sottomissione;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
-import hackhub.app.Infrastructure.Utils.SecurityUtils;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,9 +30,11 @@ public class SottomissioneService extends AbstractService {
 
   public SottomissioneService(
     IUnitOfWork unitOfWork,
+    EntityFinder entityFinder,
+    AuthorizationChecker authorizationChecker,
     LinkStrategyContext linkStrategyContext
   ) {
-    super(unitOfWork);
+    super(unitOfWork, entityFinder, authorizationChecker);
     this.linkStrategyContext = linkStrategyContext;
   }
 
@@ -52,64 +53,50 @@ public class SottomissioneService extends AbstractService {
    */
   public Sottomissione inviaSottomissione(
     InviaSottomissioneRequest request,
-    String userId,
-    String token
+    String userId
   ) {
-    // Verify ownership: check that the current authenticated user matches the userId
-    String currentUserId = SecurityUtils.getCurrentUserId(token);
-    if (!currentUserId.equals(userId)) {
+    // Verify ownership: userId is already validated by controller that extracted it from token
+
+    Team team = findTeamOrThrow(request.getIdTeam());
+    Hackathon hackathon = findHackathonOrThrow(request.getIdHackathon());
+
+    // Validate that user is part of the team
+    validateUserInTeam(
+      team,
+      userId,
+      "Solo i membri del team possono inviare sottomissioni."
+    );
+
+    // Check if hackathon is in correct state for submissions
+    if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
       throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "Non sei autorizzato a eseguire questa operazione per questo utente."
+        HttpStatus.BAD_REQUEST,
+        "Le sottomissioni sono accettate solo durante l'hackathon."
       );
     }
 
-    if (
-      !linkStrategyContext.validate(
-        request.getLinkProgetto(),
-        List.of("GitHub")
-      )
-    ) {
-      throw new IllegalArgumentException(
-        "Link repository non valido o non supportato."
-      );
-    }
-
+    // Check if team is registered for this hackathon
     Partecipazione partecipazione = findPartecipazioneOrThrow(
       request.getIdTeam(),
       request.getIdHackathon()
     );
-    Hackathon hackathon = partecipazione.getHackathon();
-    Team team = partecipazione.getTeam();
 
-    if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-      throw new IllegalStateException(
-        "L'Hackathon non è in corso. Impossibile inviare sottomissioni."
-      );
-    }
-
-    validateUserInTeam(
-      team,
-      userId,
-      "L'utente non fa parte del team specificato."
-    );
-
-    // Verifica che il team non abbia già inviato una sottomissione per questo
-    // hackathon
-    boolean exists = unitOfWork
+    // Check if team has already submitted
+    boolean esistente = unitOfWork
       .sottomissioneRepository()
       .existsByPartecipazione_Hackathon_IdAndPartecipazione_Team_Id(
         request.getIdHackathon(),
         request.getIdTeam()
       );
-    if (exists) {
-      throw new IllegalStateException(
-        "Il team ha già inviato una sottomissione per questo Hackathon."
+    if (esistente) {
+      throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "Il team ha già inviato una sottomissione per questo hackathon."
       );
     }
 
+    // Create new submission
     User mittente = findUserOrThrow(userId);
-
     Sottomissione sottomissione = new Sottomissione(
       partecipazione,
       mittente,
@@ -117,8 +104,13 @@ public class SottomissioneService extends AbstractService {
       request.getDescrizione()
     );
 
-    unitOfWork.sottomissioneRepository().save(sottomissione);
-    return sottomissione;
+    // Validate and store the link using the strategy pattern
+    linkStrategyContext.validate(
+      request.getLinkProgetto(),
+      java.util.List.of("GitHub")
+    );
+
+    return unitOfWork.sottomissioneRepository().save(sottomissione);
   }
 
   /**
@@ -135,17 +127,9 @@ public class SottomissioneService extends AbstractService {
   public Valutazione valutaSottomissione(
     CreaValutazioneRequest request,
     String giudiceId,
-    String token,
     String sottomissioneId
   ) {
-    // Verify ownership: check that the current authenticated user matches the giudiceId
-    String currentUserId = SecurityUtils.getCurrentUserId(token);
-    if (!currentUserId.equals(giudiceId)) {
-      throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "Non sei autorizzato a eseguire questa operazione per questo utente."
-      );
-    }
+    // Verify ownership: giudiceId is already validated by controller that extracted it from token
 
     Sottomissione sottomissione = findSottomissioneOrThrow(sottomissioneId);
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
@@ -202,17 +186,9 @@ public class SottomissioneService extends AbstractService {
   public Sottomissione modificaSottomissione(
     ModificaSottomissioneRequest request,
     String userId,
-    String token,
     String sottomissioneId
   ) {
-    // Verify ownership: check that the current authenticated user matches the userId
-    String currentUserId = SecurityUtils.getCurrentUserId(token);
-    if (!currentUserId.equals(userId)) {
-      throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "Non sei autorizzato a eseguire questa operazione per questo utente."
-      );
-    }
+    // Verify ownership: userId is already validated by controller that extracted it from token
 
     if (
       !linkStrategyContext.validate(
@@ -225,9 +201,7 @@ public class SottomissioneService extends AbstractService {
       );
     }
 
-    Sottomissione sottomissione = findSottomissioneOrThrow(
-      sottomissioneId
-    );
+    Sottomissione sottomissione = findSottomissioneOrThrow(sottomissioneId);
     Team team = sottomissione.getPartecipazione().getTeam();
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
@@ -255,13 +229,17 @@ public class SottomissioneService extends AbstractService {
    * @return Lista di sottomissioni del team.
    */
   public List<Sottomissione> getTeamSubmissions(String userId) {
-    return unitOfWork.sottomissioneRepository().findByPartecipazione_Team_Membri_Id(userId);
+    return unitOfWork
+      .sottomissioneRepository()
+      .findByPartecipazione_Team_Membri_Id(userId);
   }
 
   /**
    * Recupera tutte le sottomissioni per un specifico Hackathon.
    */
   public List<Sottomissione> getSubmissionsByHackathon(String hackathonId) {
-    return unitOfWork.sottomissioneRepository().findByPartecipazioneHackathonId(hackathonId);
+    return unitOfWork
+      .sottomissioneRepository()
+      .findByPartecipazioneHackathonId(hackathonId);
   }
 }

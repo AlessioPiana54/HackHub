@@ -1,9 +1,20 @@
 package hackhub.app.Application.Requests;
 
-public class ModificaSottomissioneRequest extends InviaSottomissioneRequest {
+public class ModificaSottomissioneRequest {
 
-    public ModificaSottomissioneRequest(String idHackathon, String idTeam, String linkProgetto,
-            String descrizione) {
-        super(idHackathon, idTeam, linkProgetto, descrizione);
-    }
+  private String linkProgetto;
+  private String descrizione;
+
+  public ModificaSottomissioneRequest(String linkProgetto, String descrizione) {
+    this.linkProgetto = linkProgetto;
+    this.descrizione = descrizione;
+  }
+
+  public String getLinkProgetto() {
+    return linkProgetto;
+  }
+
+  public String getDescrizione() {
+    return descrizione;
+  }
 }

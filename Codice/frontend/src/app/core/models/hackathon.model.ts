@@ -12,6 +12,7 @@ export interface HackathonSummaryDTO {
   nome: string;
   regolamento: string;
   descrizione?: string;
+  logoUrl?: string;
   inizioIscrizioni: string;
   scadenzaIscrizioni: string;
   dataInizio: string;
@@ -30,6 +31,7 @@ export interface CreaHackathonRequest {
   dataInizio: string;
   dataFine: string;
   luogo: string;
+  logoUrl?: string;
   premioInDenaro: number;
   idGiudice: string;
   idMentori: string[];

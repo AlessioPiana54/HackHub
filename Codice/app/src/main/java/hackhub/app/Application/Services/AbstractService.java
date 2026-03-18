@@ -9,15 +9,23 @@ import hackhub.app.Core.POJO_Entities.User;
 
 /**
  * Classe astratta base per i servizi dell'applicazione.
- * Fornisce l'accesso all'Unit of Work e metodi di utilità comuni per il
- * recupero delle entità.
+ * Fornisce l'accesso all'Unit of Work e delega a componenti specializzati
+ * per il recupero delle entità e la validazione delle autorizzazioni.
  */
 public abstract class AbstractService {
 
   protected final IUnitOfWork unitOfWork;
+  protected final EntityFinder entityFinder;
+  protected final AuthorizationChecker authorizationChecker;
 
-  public AbstractService(IUnitOfWork unitOfWork) {
+  public AbstractService(
+    IUnitOfWork unitOfWork,
+    EntityFinder entityFinder,
+    AuthorizationChecker authorizationChecker
+  ) {
     this.unitOfWork = unitOfWork;
+    this.entityFinder = entityFinder;
+    this.authorizationChecker = authorizationChecker;
   }
 
   /**
@@ -28,12 +36,7 @@ public abstract class AbstractService {
    * @throws IllegalArgumentException se l'utente non viene trovato
    */
   protected User findUserOrThrow(String id) {
-    return unitOfWork
-      .userRepository()
-      .findById(id)
-      .orElseThrow(() ->
-        new IllegalArgumentException("Utente non trovato nel database: " + id)
-      );
+    return entityFinder.findUserOrThrow(id);
   }
 
   /**
@@ -44,12 +47,7 @@ public abstract class AbstractService {
    * @throws IllegalArgumentException se l'hackathon non viene trovato
    */
   protected Hackathon findHackathonOrThrow(String id) {
-    return unitOfWork
-      .hackathonRepository()
-      .findByIdString(id)
-      .orElseThrow(() ->
-        new IllegalArgumentException("Hackathon non trovato: " + id)
-      );
+    return entityFinder.findHackathonOrThrow(id);
   }
 
   /**
@@ -60,11 +58,7 @@ public abstract class AbstractService {
    * @throws IllegalArgumentException se il team non viene trovato
    */
   protected Team findTeamOrThrow(String id) {
-    return unitOfWork
-      .teamRepository()
-      .findByIdString(id)
-      .orElseThrow(() -> new IllegalArgumentException("Team non trovato: " + id)
-      );
+    return entityFinder.findTeamOrThrow(id);
   }
 
   /**
@@ -80,14 +74,7 @@ public abstract class AbstractService {
     String teamId,
     String hackathonId
   ) {
-    return unitOfWork
-      .partecipazioneRepository()
-      .findByTeamIdAndHackathonId(teamId, hackathonId)
-      .orElseThrow(() ->
-        new IllegalArgumentException(
-          "Partecipazione non trovata per il team e hackathon specificati."
-        )
-      );
+    return entityFinder.findPartecipazioneOrThrow(teamId, hackathonId);
   }
 
   /**
@@ -99,12 +86,7 @@ public abstract class AbstractService {
    * @throws IllegalArgumentException se la sottomissione non viene trovata
    */
   protected Sottomissione findSottomissioneOrThrow(String id) {
-    return unitOfWork
-      .sottomissioneRepository()
-      .findById(id)
-      .orElseThrow(() ->
-        new IllegalArgumentException("Sottomissione non trovata: " + id)
-      );
+    return entityFinder.findSottomissioneOrThrow(id);
   }
 
   /**
@@ -121,9 +103,7 @@ public abstract class AbstractService {
     hackhub.app.Core.Enums.Ruolo expectedRole,
     String errorMessage
   ) {
-    if (user.getRuolo() != expectedRole) {
-      throw new SecurityException(errorMessage);
-    }
+    authorizationChecker.validateUserRole(user, expectedRole, errorMessage);
   }
 
   /**
@@ -140,15 +120,7 @@ public abstract class AbstractService {
     String userId,
     String errorMessage
   ) {
-    boolean isLeader = team.getLeaderSquadra().getId().equals(userId);
-    boolean isMembro = team
-      .getMembri()
-      .stream()
-      .anyMatch(m -> m.getId().equals(userId));
-
-    if (!isLeader && !isMembro) {
-      throw new SecurityException(errorMessage);
-    }
+    authorizationChecker.validateUserInTeam(team, userId, errorMessage);
   }
 
   /**
@@ -165,13 +137,10 @@ public abstract class AbstractService {
     String possibleMentorId,
     String errorMessage
   ) {
-    boolean isMentor = hackathon
-      .getMentori()
-      .stream()
-      .anyMatch(m -> m.getId().equals(possibleMentorId));
-
-    if (!isMentor) {
-      throw new SecurityException(errorMessage);
-    }
+    authorizationChecker.validateUserIsMentorInHackathon(
+      hackathon,
+      possibleMentorId,
+      errorMessage
+    );
   }
 }

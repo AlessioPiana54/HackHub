@@ -45,12 +45,8 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    const token = localStorage.getItem('token');
-    
     // Non pulire i dati qui, lascia che sia il componente a gestirlo
-    return this.http.post(`${this.API_URL}/logout`, {}, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.post(`${this.API_URL}/logout`, {});
   }
 
   // Metodo per logout completo (client-side)
@@ -60,19 +56,13 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<UserDTO> {
-    const token = localStorage.getItem('token');
-    return this.http.get<UserDTO>(`${this.USER_API_URL}/users/me`, {
-      headers: token ? { Authorization: token } : {}
-    }).pipe(
+    return this.http.get<UserDTO>(`${this.USER_API_URL}/users/me`).pipe(
       tap(user => this.currentUserSubject.next(user))
     );
   }
 
   updateProfile(request: any): Observable<UserDTO> {
-    const token = localStorage.getItem('token');
-    return this.http.put<UserDTO>(`${this.USER_API_URL}/users/me`, request, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.put<UserDTO>(`${this.USER_API_URL}/users/me`, request);
   }
 
   get currentUser(): UserDTO | null {
@@ -120,9 +110,6 @@ export class AuthService {
   }
 
   getUsersByRole(ruolo: string): Observable<UserDTO[]> {
-    const token = localStorage.getItem('token');
-    return this.http.get<UserDTO[]>(`${this.USER_API_URL}/users/by-role/${ruolo}`, {
-      headers: token ? { Authorization: token } : {}
-    });
+    return this.http.get<UserDTO[]>(`${this.USER_API_URL}/users/by-role/${ruolo}`);
   }
 }

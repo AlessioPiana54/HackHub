@@ -108,7 +108,6 @@ export class JudgeHackathonDashboardComponent implements OnInit {
     }
 
     const request = {
-      idSottomissione: this.selectedSubmission.id,
       voto: this.evaluationForm.voto,
       giudizio: this.evaluationForm.giudizio
     };

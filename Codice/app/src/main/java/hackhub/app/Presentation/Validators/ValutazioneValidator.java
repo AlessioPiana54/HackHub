@@ -14,7 +14,6 @@ public class ValutazioneValidator extends AbstractValidator {
             return errors;
         }
 
-        validateRequired(request.getIdSottomissione(), "ID Sottomissione mancante.", errors);
         validateRequired(request.getGiudizio(), "Il giudizio è obbligatorio.", errors);
 
         if (request.getVoto() < 0 || request.getVoto() > 10) {

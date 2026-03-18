@@ -1,18 +1,12 @@
 package hackhub.app.Application.Requests;
 
 public class CreaValutazioneRequest {
-    private String idSottomissione;
     private double voto;
     private String giudizio;
 
-    public CreaValutazioneRequest(String idSottomissione, double voto, String giudizio) {
-        this.idSottomissione = idSottomissione;
+    public CreaValutazioneRequest(double voto, String giudizio) {
         this.voto = voto;
         this.giudizio = giudizio;
-    }
-
-    public String getIdSottomissione() {
-        return idSottomissione;
     }
 
     public double getVoto() {

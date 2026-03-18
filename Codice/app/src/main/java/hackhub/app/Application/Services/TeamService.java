@@ -9,7 +9,6 @@ import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
-import hackhub.app.Infrastructure.Utils.SecurityUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -26,10 +25,16 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 public class TeamService extends AbstractService {
 
-  private static final Logger logger = LoggerFactory.getLogger(TeamService.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+    TeamService.class
+  );
 
-  public TeamService(IUnitOfWork unitOfWork) {
-    super(unitOfWork);
+  public TeamService(
+    IUnitOfWork unitOfWork,
+    EntityFinder entityFinder,
+    AuthorizationChecker authorizationChecker
+  ) {
+    super(unitOfWork, entityFinder, authorizationChecker);
   }
 
   /**
@@ -57,11 +62,17 @@ public class TeamService extends AbstractService {
       .collect(java.util.stream.Collectors.toList());
 
     for (User user : inconsistentUsers) {
-      logger.warn("Found inconsistent user {} - cleaning up orphaned team...", user.getId());
+      logger.warn(
+        "Found inconsistent user {} - cleaning up orphaned team...",
+        user.getId()
+      );
       unitOfWork.teamRepository().deleteByLeaderId(user.getId());
     }
 
-    logger.info("TeamService.cleanupOrphanedTeams() - Cleanup completed. Fixed {} inconsistencies.", inconsistentUsers.size());
+    logger.info(
+      "TeamService.cleanupOrphanedTeams() - Cleanup completed. Fixed {} inconsistencies.",
+      inconsistentUsers.size()
+    );
   }
 
   public Team creaTeam(CreaTeamRequest request, String leaderId) {
@@ -79,7 +90,10 @@ public class TeamService extends AbstractService {
 
     // **PREVENZIONE: Verifica che l'utente non sia già leader di un team orfano**
     if (unitOfWork.teamRepository().existsByLeaderId(leaderId)) {
-      logger.warn("User {} is already a leader. Cleaning up orphaned team...", leaderId);
+      logger.warn(
+        "User {} is already a leader. Cleaning up orphaned team...",
+        leaderId
+      );
       // Rimuovi il team orfano prima di crearne uno nuovo
       unitOfWork.teamRepository().deleteByLeaderId(leaderId);
     }
@@ -101,18 +115,33 @@ public class TeamService extends AbstractService {
    * @param leaderId l'ID dell'utente che richiede la modifica (deve essere il leader)
    * @return il Team aggiornato
    */
-  public Team updateTeam(String teamId, hackhub.app.Application.Requests.UpdateTeamRequest request, String leaderId) {
+  public Team updateTeam(
+    String teamId,
+    hackhub.app.Application.Requests.UpdateTeamRequest request,
+    String leaderId
+  ) {
     Team team = findTeamOrThrow(teamId);
 
     // Verifica che l'utente che fa la richiesta sia il leader del team
-    if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(leaderId)) {
-      throw new SecurityException("Solo il Leader del Team può modificare i dettagli del team.");
+    if (
+      team.getLeaderSquadra() == null ||
+      !team.getLeaderSquadra().getId().equals(leaderId)
+    ) {
+      throw new SecurityException(
+        "Solo il Leader del Team può modificare i dettagli del team."
+      );
     }
 
     // Se il nome è stato modificato, verifica che non esista già
-    if (request.getNomeTeam() != null && !request.getNomeTeam().trim().isEmpty() && !team.getNomeTeam().equals(request.getNomeTeam())) {
+    if (
+      request.getNomeTeam() != null &&
+      !request.getNomeTeam().trim().isEmpty() &&
+      !team.getNomeTeam().equals(request.getNomeTeam())
+    ) {
       if (unitOfWork.teamRepository().existsByNomeTeam(request.getNomeTeam())) {
-        throw new IllegalArgumentException("Esiste già un Team con questo nome.");
+        throw new IllegalArgumentException(
+          "Esiste già un Team con questo nome."
+        );
       }
       team.setNomeTeam(request.getNomeTeam().trim()); // Assuming setNomeTeam is added manually since we didn't add it in the previous step
     }
@@ -137,52 +166,54 @@ public class TeamService extends AbstractService {
   public Partecipazione iscriviTeam(
     String teamId,
     String hackathonId,
-    String richiedenteId,
-    String token
+    String richiedenteId
   ) {
-    // Verify ownership: check that the current authenticated user matches the richiedenteId
-    String currentUserId = SecurityUtils.getCurrentUserId(token);
-    if (!currentUserId.equals(richiedenteId)) {
-      throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "Non sei autorizzato a eseguire questa operazione per questo utente."
-      );
-    }
+    // Verify ownership: the richiedenteId is already validated by the controller
+    // that extracted it from the token
 
     Team team = findTeamOrThrow(teamId);
-
-    if (
-      team.getLeaderSquadra() == null ||
-      !team.getLeaderSquadra().getId().equals(richiedenteId)
-    ) {
-      throw new SecurityException(
-        "Solo il Leader del Team può effettuare l'iscrizione."
-      );
-    }
-
     Hackathon hackathon = findHackathonOrThrow(hackathonId);
 
+    // Validate that requester is team leader
+    validateUserInTeam(
+      team,
+      richiedenteId,
+      "Solo il leader del team può iscrivere il team all'hackathon."
+    );
+
+    // Check if hackathon is in registration phase
     if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
-      throw new IllegalArgumentException(
-        "Le iscrizioni per questo Hackathon non sono aperte."
+      throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "Le iscrizioni per questo hackathon sono chiuse."
       );
     }
 
-    // Verifica se il team è già impegnato in altre competizioni non ancora concluse
-    List<Partecipazione> partecipazioni = unitOfWork
-      .partecipazioneRepository()
-      .findByTeamId(teamId);
-    for (Partecipazione p : partecipazioni) {
-      if (p.getHackathon().getStato() != StatoHackathon.CONCLUSO) {
-        throw new IllegalArgumentException(
-          "Il Team è già iscritto ad un Hackathon attivo."
-        );
-      }
+    // Check if team is already registered
+    if (
+      unitOfWork
+        .partecipazioneRepository()
+        .findByTeamIdAndHackathonId(teamId, hackathonId)
+        .isPresent()
+    ) {
+      throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "Il team è già iscritto a questo hackathon."
+      );
     }
 
-    Partecipazione p = new Partecipazione(team, hackathon);
-    unitOfWork.partecipazioneRepository().save(p);
-    return p;
+    // Create participation
+    Partecipazione partecipazione = new Partecipazione(team, hackathon);
+    unitOfWork.partecipazioneRepository().save(partecipazione);
+
+    logger.info(
+      "Team {} iscritto all'hackathon {} da {}",
+      teamId,
+      hackathonId,
+      richiedenteId
+    );
+
+    return partecipazione;
   }
 
   /**
@@ -194,7 +225,11 @@ public class TeamService extends AbstractService {
    *                                  non fa parte del team
    */
   public void abbandonaTeam(String teamId, String memberId) {
-    logger.debug("TeamService.abbandonaTeam() called for teamId: {}, memberId: {}", teamId, memberId);
+    logger.debug(
+      "TeamService.abbandonaTeam() called for teamId: {}, memberId: {}",
+      teamId,
+      memberId
+    );
 
     Team team = findTeamOrThrow(teamId);
     User member = findUserOrThrow(memberId);
@@ -248,17 +283,30 @@ public class TeamService extends AbstractService {
    * @param newLeaderId     L'ID dell'utente a cui cedere la leadership.
    * @param currentLeaderId L'ID dell'attuale leader.
    */
-  public Team trasferisciLeadership(String teamId, String newLeaderId, String currentLeaderId) {
+  public Team trasferisciLeadership(
+    String teamId,
+    String newLeaderId,
+    String currentLeaderId
+  ) {
     Team team = findTeamOrThrow(teamId);
 
     // Verifica che chi fa la richiesta sia l'attuale leader
-    if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(currentLeaderId)) {
-      throw new SecurityException("Solo l'attuale Leader può trasferire la leadership.");
+    if (
+      team.getLeaderSquadra() == null ||
+      !team.getLeaderSquadra().getId().equals(currentLeaderId)
+    ) {
+      throw new SecurityException(
+        "Solo l'attuale Leader può trasferire la leadership."
+      );
     }
 
     // Verifica che il nuovo leader faccia parte del team
     User newLeader = findUserOrThrow(newLeaderId);
-    validateUserInTeam(team, newLeaderId, "L'utente designato non fa parte di questo Team.");
+    validateUserInTeam(
+      team,
+      newLeaderId,
+      "L'utente designato non fa parte di questo Team."
+    );
 
     // Aggiorna il ruolo del vecchio leader a MEMBRO_TEAM
     User currentLeader = team.getLeaderSquadra();

@@ -46,12 +46,8 @@ public class RichiestaSupportoController extends AbstractController {
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(validator.validateCreation(request));
-    RichiestaSupporto richiesta = supportoService.creaRichiesta(
-      request,
-      user.getId(),
-      token
-    );
-    return ResponseEntity.ok(richiesta);
+    supportoService.creaRichiestaSupporto(request, user.getId());
+    return ResponseEntity.ok().build();
   }
 
   /**

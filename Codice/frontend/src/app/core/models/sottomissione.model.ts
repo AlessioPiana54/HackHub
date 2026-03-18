@@ -44,7 +44,6 @@ export interface InviaSottomissioneRequest {
 }
 
 export interface ModificaSottomissioneRequest {
-  idSottomissione: string;
   linkProgetto: string;
   descrizione: string;
 }

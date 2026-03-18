@@ -7,12 +7,12 @@ import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
 import hackhub.app.Application.Strategies.LinkStrategyContext;
+import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
-import hackhub.app.Infrastructure.Utils.SecurityUtils;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,9 +31,11 @@ public class RichiestaSupportoService extends AbstractService {
 
   public RichiestaSupportoService(
     IUnitOfWork unitOfWork,
+    EntityFinder entityFinder,
+    AuthorizationChecker authorizationChecker,
     LinkStrategyContext linkStrategyContext
   ) {
-    super(unitOfWork);
+    super(unitOfWork, entityFinder, authorizationChecker);
     this.linkStrategyContext = linkStrategyContext;
   }
 
@@ -43,45 +45,55 @@ public class RichiestaSupportoService extends AbstractService {
    * @param request       i dati della richiesta
    * @param richiedenteId l'ID dell'utente che crea la richiesta (deve essere
    *                      membro o leader)
-   * @param token         il token di autenticazione per verifica ownership
    * @return la RichiestaSupporto creata
    * @throws IllegalArgumentException se partecipazione o utente non trovati
    * @throws SecurityException        se l'utente non fa parte del team
    */
-  public RichiestaSupporto creaRichiesta(
+  public void creaRichiestaSupporto(
     CreaRichiestaSupportoRequest request,
-    String richiedenteId,
-    String token
+    String richiedenteId
   ) {
-    // Verify ownership: check that the current authenticated user matches the richiedenteId
-    String currentUserId = SecurityUtils.getCurrentUserId(token);
-    if (!currentUserId.equals(richiedenteId)) {
+    // Verify ownership: richiedenteId is already validated by controller that extracted it from token
+
+    Team team = findTeamOrThrow(request.getTeamId());
+    Hackathon hackathon = findHackathonOrThrow(request.getHackathonId());
+
+    // Validate that user is part of the team
+    validateUserInTeam(
+      team,
+      richiedenteId,
+      "L'utente non fa parte di questo team."
+    );
+
+    // Check if hackathon is in correct state
+    if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
       throw new ResponseStatusException(
-        HttpStatus.FORBIDDEN,
-        "Non sei autorizzato a eseguire questa operazione per questo utente."
+        HttpStatus.BAD_REQUEST,
+        "Le richieste di supporto sono accettate solo durante l'hackathon."
       );
     }
 
+    // Check if team is registered for this hackathon
     Partecipazione partecipazione = findPartecipazioneOrThrow(
       request.getTeamId(),
       request.getHackathonId()
     );
+
+    // Create new support request
     User richiedente = findUserOrThrow(richiedenteId);
-
-    validateUserInTeam(
-      partecipazione.getTeam(),
-      richiedenteId,
-      "L'utente richiedente non appartiene al team partecipante."
-    );
-
-    RichiestaSupporto nuovaRichiesta = new RichiestaSupporto(
+    RichiestaSupporto richiestaSupporto = new RichiestaSupporto(
       partecipazione,
       richiedente,
       request.getDescrizione()
     );
-    unitOfWork.richiestaSupportoRepository().save(nuovaRichiesta);
 
-    return nuovaRichiesta;
+    // Validate and store the link using the strategy pattern (se presente)
+    // linkStrategyContext.validate(
+    //   request.getLinkProgetto(),
+    //   java.util.List.of("GitHub")
+    // );
+
+    unitOfWork.richiestaSupportoRepository().save(richiestaSupporto);
   }
 
   /**

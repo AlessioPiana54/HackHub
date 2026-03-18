@@ -53,8 +53,7 @@ public class SottomissioneController extends AbstractController {
     validateRequest(sottomissioneValidator.validateCreation(request));
     Sottomissione sottomissione = sottomissioneService.inviaSottomissione(
       request,
-      user.getId(),
-      token
+      user.getId()
     );
     return ResponseEntity.ok(sottomissione);
   }
@@ -79,7 +78,6 @@ public class SottomissioneController extends AbstractController {
     Sottomissione sottomissione = sottomissioneService.modificaSottomissione(
       request,
       user.getId(),
-      token,
       id
     );
     return ResponseEntity.ok(sottomissione);
@@ -103,7 +101,6 @@ public class SottomissioneController extends AbstractController {
     Valutazione valutazione = sottomissioneService.valutaSottomissione(
       request,
       user.getId(),
-      token,
       id
     );
     return ResponseEntity.ok(valutazione);
@@ -138,7 +135,9 @@ public class SottomissioneController extends AbstractController {
     @RequestHeader("Authorization") String token
   ) {
     // Audit log or security check could be added here to ensure only Judge/Organizer access
-    List<Sottomissione> submissions = sottomissioneService.getSubmissionsByHackathon(idHackathon);
+    List<Sottomissione> submissions = sottomissioneService.getSubmissionsByHackathon(
+      idHackathon
+    );
     return ResponseEntity.ok(submissions);
   }
 }

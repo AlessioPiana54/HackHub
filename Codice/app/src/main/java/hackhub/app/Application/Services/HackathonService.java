@@ -36,9 +36,11 @@ public class HackathonService extends AbstractService {
 
   public HackathonService(
     IUnitOfWork unitOfWork,
+    EntityFinder entityFinder,
+    AuthorizationChecker authorizationChecker,
     IPaymentManager paymentService
   ) {
-    super(unitOfWork);
+    super(unitOfWork, entityFinder, authorizationChecker);
     this.paymentService = paymentService;
   }
 
@@ -500,7 +502,9 @@ public class HackathonService extends AbstractService {
     Hackathon testHackathon = unitOfWork
       .hackathonRepository()
       .findByNome("Test")
-      .orElseThrow(() -> new IllegalArgumentException("Hackathon 'Test' non trovato"));
+      .orElseThrow(() ->
+        new IllegalArgumentException("Hackathon 'Test' non trovato")
+      );
 
     testHackathon.setStato(StatoHackathon.IN_CORSO);
     unitOfWork.hackathonRepository().save(testHackathon);
