@@ -4,7 +4,8 @@ import hackhub.app.Application.DTOs.MessageResponse;
 import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.Requests.CreaTeamRequest;
 import hackhub.app.Application.Services.TeamService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.TeamValidator;
@@ -28,9 +29,10 @@ public class TeamController extends AbstractController {
   public TeamController(
     TeamService teamService,
     TeamValidator teamValidator,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.teamService = teamService;
     this.teamValidator = teamValidator;
   }

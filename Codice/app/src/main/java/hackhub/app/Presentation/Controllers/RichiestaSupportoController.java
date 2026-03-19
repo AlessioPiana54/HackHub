@@ -4,7 +4,8 @@ import hackhub.app.Application.DTOs.RichiestaSupportoDTO;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
 import hackhub.app.Application.Services.RichiestaSupportoService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.RichiestaSupportoValidator;
@@ -25,9 +26,10 @@ public class RichiestaSupportoController extends AbstractController {
   public RichiestaSupportoController(
     RichiestaSupportoService supportoService,
     RichiestaSupportoValidator validator,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.supportoService = supportoService;
     this.validator = validator;
   }

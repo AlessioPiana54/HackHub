@@ -22,16 +22,16 @@ export class SupportRequestService {
   constructor(private http: HttpClient) { }
 
   getRequestsByHackathon(hackathonId: string): Observable<SupportRequest[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.get<SupportRequest[]>(`${this.API_URL}?hackathonId=${hackathonId}`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
   proposeCall(requestId: string, linkCall: string, dataCall: string): Observable<SupportRequest> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.patch<SupportRequest>(`${this.API_URL}/${requestId}/call`, { linkCall, dataCall }, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 }

@@ -12,12 +12,12 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const authService = inject(AuthService);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('hackhub_token');
 
   let request = req;
   if (token) {
     request = req.clone({
-      headers: req.headers.set('Authorization', token)
+      headers: req.headers.set('Authorization', `Bearer ${token}`)
     });
   }
 

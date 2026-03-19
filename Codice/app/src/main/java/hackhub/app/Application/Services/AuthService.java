@@ -3,8 +3,8 @@ package hackhub.app.Application.Services;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.LoginRequest;
 import hackhub.app.Application.Requests.RegisterRequest;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Application.Utils.IPasswordHasher;
-import hackhub.app.Application.Utils.ISessionManager;
 import hackhub.app.Core.POJO_Entities.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,18 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService extends AbstractService {
 
   private final IPasswordHasher passwordHasher;
-  private final ISessionManager sessionManager;
+  private final IJwtService jwtService;
 
   public AuthService(
     IUnitOfWork unitOfWork,
     EntityFinder entityFinder,
     AuthorizationChecker authorizationChecker,
     IPasswordHasher passwordHasher,
-    ISessionManager sessionManager
+    IJwtService jwtService
   ) {
     super(unitOfWork, entityFinder, authorizationChecker);
     this.passwordHasher = passwordHasher;
-    this.sessionManager = sessionManager;
+    this.jwtService = jwtService;
   }
 
   /**
@@ -77,7 +77,7 @@ public class AuthService extends AbstractService {
       throw new IllegalArgumentException("Credenziali non valide.");
     }
 
-    return sessionManager.createSession(user);
+    return jwtService.generateToken(user);
   }
 
   /**
@@ -86,6 +86,6 @@ public class AuthService extends AbstractService {
    * @param token il token di sessione da invalidare
    */
   public void logout(String token) {
-    sessionManager.invalidateSession(token);
+    // JWT stateless: logout gestito lato client
   }
 }

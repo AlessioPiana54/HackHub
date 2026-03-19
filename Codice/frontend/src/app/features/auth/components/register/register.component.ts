@@ -57,7 +57,7 @@ export class RegisterComponent implements OnInit {
         // La registrazione ora restituisce token e dati utente
         if (response && response.token && response.user) {
           // Salva il token e i dati utente
-          localStorage.setItem('token', response.token);
+          localStorage.setItem('hackhub_token', response.token);
           this.authService.setCurrentUser(response.user);
           
           // Vai alla dashboard

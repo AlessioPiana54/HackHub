@@ -3,7 +3,8 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Application.Services.HackathonService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.User;
@@ -29,9 +30,10 @@ public class HackathonController extends AbstractController {
   public HackathonController(
     HackathonService hackathonService,
     HackathonValidator hackathonValidator,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.hackathonService = hackathonService;
     this.hackathonValidator = hackathonValidator;
   }

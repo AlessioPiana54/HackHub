@@ -24,7 +24,7 @@ public class DataSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (unitOfWork.userRepository().count() > 0) {
+        if (!unitOfWork.userRepository().findAll().isEmpty()) {
             return;
         }
 
@@ -40,7 +40,9 @@ public class DataSeeder implements ApplicationRunner {
                 new User("Matteo", "Rosso", "utente2@hackhub.it", hashedPassword, Ruolo.UTENTE_SENZA_TEAM)
         );
 
-        unitOfWork.userRepository().saveAll(users);
+        for (User user : users) {
+            unitOfWork.userRepository().save(user);
+        }
     }
 }
 

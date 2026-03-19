@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { LoginRequest, LoginResponse, RegisterRequest, UserDTO } from '../models/user.model';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -13,28 +15,61 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<UserDTO | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    const token = localStorage.getItem('token');
+  constructor(private http: HttpClient, private router: Router) {
+    const token = localStorage.getItem('hackhub_token');
     if (token) {
-      // Carica l'utente se abbiamo un token per mantenere la sessione al reload (F5)
-      this.getCurrentUser().subscribe({
-        error: (err) => {
-          // Se il token è scaduto o non valido, puliamo la sessione
-          if (err.status === 401 || err.status === 403) {
-            this.clearAuth();
+      const payload = this.decodeToken(token);
+      const userFromToken = this.buildUserFromTokenPayload(payload);
+      if (userFromToken) {
+        this.currentUserSubject.next(userFromToken);
+      } else {
+        // Fallback: Carica l'utente se non abbiamo abbastanza dati nel token
+        this.getCurrentUser().subscribe({
+          error: (err) => {
+            if (err.status === 401 || err.status === 403) {
+              this.clearAuth();
+            }
           }
-        }
-      });
+        });
+      }
     }
+  }
+
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch {
+      return null;
+    }
+  }
+
+  private buildUserFromTokenPayload(payload: any): UserDTO | null {
+    if (!payload) return null;
+    const id = payload.sub;
+    const ruolo = payload.ruolo;
+    const nome = payload.nome;
+    const cognome = payload.cognome;
+    const email = payload.email;
+
+    if (!id || !ruolo || !nome || !cognome || !email) return null;
+    return { id, ruolo, nome, cognome, email } as UserDTO;
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/login`, credentials).pipe(
       tap(response => {
-        localStorage.setItem('token', response.token);
-        // Se la risposta include i dati utente, aggiorna il subject
+        localStorage.setItem('hackhub_token', response.token);
+
         if (response.user) {
           this.currentUserSubject.next(response.user);
+          return;
+        }
+
+        const payload = this.decodeToken(response.token);
+        const userFromToken = this.buildUserFromTokenPayload(payload);
+        if (userFromToken) {
+          this.currentUserSubject.next(userFromToken);
         }
       })
     );
@@ -45,13 +80,17 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    // Non pulire i dati qui, lascia che sia il componente a gestirlo
-    return this.http.post(`${this.API_URL}/logout`, {});
+    return this.http.post(`${this.API_URL}/logout`, {}).pipe(
+      finalize(() => {
+        this.clearAuth();
+        this.router.navigate(['/auth/login']);
+      })
+    );
   }
 
   // Metodo per logout completo (client-side)
   clearAuth(): void {
-    localStorage.removeItem('token');
+    localStorage.removeItem('hackhub_token');
     this.currentUserSubject.next(null);
   }
 
@@ -75,11 +114,11 @@ export class AuthService {
   }
 
   get isAuthenticated(): boolean {
-    return !!this.currentUser && !!localStorage.getItem('token');
+    return !!this.currentUser && !!localStorage.getItem('hackhub_token');
   }
 
   hasToken(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('hackhub_token');
   }
 
   hasAnyRole(roles: string[]): boolean {
@@ -101,7 +140,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('hackhub_token');
   }
 
   // Metodo per aggiornare manualmente i dati utente (senza chiamare API)

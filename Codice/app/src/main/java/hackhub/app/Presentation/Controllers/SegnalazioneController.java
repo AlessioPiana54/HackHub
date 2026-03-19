@@ -5,7 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaSegnalazioneRequest;
 import hackhub.app.Application.Services.SegnalazioneService;
 import hackhub.app.Core.POJO_Entities.Segnalazione;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.SegnalazioneValidator;
 import hackhub.app.Application.DTOs.SegnalazioneDTO;
@@ -21,8 +22,8 @@ public class SegnalazioneController extends AbstractController {
     private final SegnalazioneValidator validator;
 
     public SegnalazioneController(SegnalazioneService service, SegnalazioneValidator validator,
-            ISessionManager sessionManager) {
-        super(sessionManager);
+            IJwtService jwtService, IUnitOfWork unitOfWork) {
+        super(jwtService, unitOfWork);
         this.service = service;
         this.validator = validator;
     }

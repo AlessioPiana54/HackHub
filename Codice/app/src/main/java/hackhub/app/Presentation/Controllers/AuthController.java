@@ -5,7 +5,8 @@ import hackhub.app.Application.Requests.LoginRequest;
 import hackhub.app.Application.Requests.RegisterRequest;
 import hackhub.app.Application.Services.AuthService;
 import hackhub.app.Application.Services.UserService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.AuthValidator;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,10 @@ public class AuthController extends AbstractController {
     AuthService authService,
     AuthValidator authValidator,
     UserService userService,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.authService = authService;
     this.authValidator = authValidator;
     this.userService = userService;

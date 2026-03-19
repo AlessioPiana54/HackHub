@@ -3,7 +3,8 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.DTOs.UserDTO;
 import hackhub.app.Application.Requests.UpdateProfileRequest;
 import hackhub.app.Application.Services.UserService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.Enums.Ruolo;
 import org.slf4j.Logger;
@@ -23,9 +24,10 @@ public class UserController extends AbstractController {
 
   public UserController(
     UserService userService,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.userService = userService;
   }
 

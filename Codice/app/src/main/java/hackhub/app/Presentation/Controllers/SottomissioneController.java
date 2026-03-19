@@ -4,7 +4,8 @@ import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
 import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
 import hackhub.app.Application.Services.SottomissioneService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Sottomissione;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
@@ -29,9 +30,10 @@ public class SottomissioneController extends AbstractController {
     SottomissioneService sottomissioneService,
     SottomissioneValidator sottomissioneValidator,
     ValutazioneValidator valutazioneValidator,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.sottomissioneService = sottomissioneService;
     this.sottomissioneValidator = sottomissioneValidator;
     this.valutazioneValidator = valutazioneValidator;

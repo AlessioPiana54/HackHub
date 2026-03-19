@@ -20,44 +20,44 @@ export class HackathonService {
   }
 
   creaHackathon(request: CreaHackathonRequest): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.post(`${this.API_URL}`, request, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
   getClassifica(hackathonId: string): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.get(`${this.API_URL}/${hackathonId}/classifica`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
   terminaFaseValutazione(hackathonId: string): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.patch(`${this.API_URL}/${hackathonId}/status`, {}, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
   proclamaVincitore(hackathonId: string, teamId: string): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.post(`${this.API_URL}/${hackathonId}/winner?teamId=${teamId}`, {}, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
   joinHackathon(hackathonId: string, teamId: string): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.post(`${this.API_URL}/${hackathonId}/join?teamId=${teamId}`, {}, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
   getMyHackathons(): Observable<HackathonSummaryDTO[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.get<HackathonSummaryDTO[]>(`${this.API_URL}/my`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
@@ -65,9 +65,9 @@ export class HackathonService {
    * Recupera gli hackathon assegnati al giudice loggato.
    */
   getJudgeHackathons(): Observable<HackathonSummaryDTO[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.get<HackathonSummaryDTO[]>(`${this.API_URL}/judge/my`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
@@ -75,9 +75,9 @@ export class HackathonService {
    * Recupera gli hackathon assegnati al mentore loggato.
    */
   getMentorHackathons(): Observable<HackathonSummaryDTO[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.get<HackathonSummaryDTO[]>(`${this.API_URL}/mentor/my`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 
@@ -85,9 +85,9 @@ export class HackathonService {
    * Recupera i team partecipanti a un hackathon.
    */
   getParticipants(hackathonId: string): Observable<any[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     return this.http.get<any[]>(`${this.API_URL}/${hackathonId}/participants`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
 }

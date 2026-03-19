@@ -78,9 +78,9 @@ export class MyHackathonComponent implements OnInit {
 
   // --- Segnalazioni ---
   loadSegnalazioni(): void {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     this.http.get<any[]>(`/api/segnalazioni?hackathonId=${this.hackathonId}`, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     }).subscribe({
       next: (s) => this.segnalazioni = s,
       error: () => this.segnalazioneError = 'Impossibile caricare le segnalazioni.'
@@ -91,9 +91,9 @@ export class MyHackathonComponent implements OnInit {
 
   // --- Sottomissioni ---
   loadSottomissioni(): void {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     this.http.get<any[]>('/api/submissions/my-submissions', {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     }).subscribe({
       next: (s) => {
         // Filter only submissions for this hackathon
@@ -110,7 +110,7 @@ export class MyHackathonComponent implements OnInit {
     this.sottomissioneLoading = true;
     this.sottomissioneError = '';
     this.sottomissioneSuccess = '';
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('hackhub_token');
     const body = {
       idHackathon: this.hackathonId,
       idTeam: this.myTeam.id,
@@ -118,7 +118,7 @@ export class MyHackathonComponent implements OnInit {
       descrizione: this.nuovaSottomissione.descrizione.trim()
     };
     this.http.post<any>('/api/submissions', body, {
-      headers: token ? { Authorization: token } : {}
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     }).subscribe({
       next: (s) => {
         this.sottomissioni.unshift(s);

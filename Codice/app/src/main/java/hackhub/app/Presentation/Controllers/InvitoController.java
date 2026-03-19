@@ -4,7 +4,8 @@ import hackhub.app.Application.DTOs.InvitoDTO;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
 import hackhub.app.Application.Services.InvitoService;
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Invito;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.InvitoValidator;
@@ -25,9 +26,10 @@ public class InvitoController extends AbstractController {
   public InvitoController(
     InvitoService invitoService,
     InvitoValidator invitoValidator,
-    ISessionManager sessionManager
+    IJwtService jwtService,
+    IUnitOfWork unitOfWork
   ) {
-    super(sessionManager);
+    super(jwtService, unitOfWork);
     this.invitoService = invitoService;
     this.invitoValidator = invitoValidator;
   }

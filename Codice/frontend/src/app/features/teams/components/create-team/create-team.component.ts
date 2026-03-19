@@ -40,7 +40,7 @@ export class CreateTeamComponent implements OnInit {
     console.log('CreateTeamComponent - createTeam called');
     console.log('CreateTeamComponent - Form valid:', this.teamForm.valid);
     console.log('CreateTeamComponent - Form value:', this.teamForm.value);
-    console.log('CreateTeamComponent - Token in localStorage:', localStorage.getItem('token'));
+    console.log('CreateTeamComponent - Token in localStorage:', localStorage.getItem('hackhub_token'));
     
     if (this.teamForm.invalid) {
       // Mark all fields as touched to trigger validation messages

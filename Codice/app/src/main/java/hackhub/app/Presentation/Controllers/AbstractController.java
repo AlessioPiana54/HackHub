@@ -1,11 +1,13 @@
 package hackhub.app.Presentation.Controllers;
 
-import hackhub.app.Application.Utils.ISessionManager;
+import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
+import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Controller di base che fornisce funzionalità comuni per autenticazione e
@@ -13,10 +15,12 @@ import java.util.List;
  */
 public abstract class AbstractController {
 
-    protected final ISessionManager sessionManager;
+    protected final IJwtService jwtService;
+    protected final IUnitOfWork unitOfWork;
 
-    public AbstractController(ISessionManager sessionManager) {
-        this.sessionManager = sessionManager;
+    public AbstractController(IJwtService jwtService, IUnitOfWork unitOfWork) {
+        this.jwtService = jwtService;
+        this.unitOfWork = unitOfWork;
     }
 
     /**
@@ -30,11 +34,15 @@ public abstract class AbstractController {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        User user = sessionManager.getUser(token);
-        if (user == null) {
+        if (token == null || token.isBlank() || !jwtService.isTokenValid(token)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utente non autenticato.");
         }
-        return user;
+        String userId = jwtService.extractUserId(token);
+        Optional<User> user = unitOfWork.userRepository().findById(userId);
+        if (user.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utente non autenticato.");
+        }
+        return user.get();
     }
 
     /**
