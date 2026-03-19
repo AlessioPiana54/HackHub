@@ -27,6 +27,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Grant execute permission for mvnw
+        run: chmod +x mvnw
+
       - name: Build e Test con Maven
         run: ./mvnw clean verify
 
@@ -79,18 +82,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Lowercase repository owner
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> ${GITHUB_ENV}
+        env:
+          OWNER: ${{ github.repository_owner }}
+
       - name: Build e Push immagine Backend
         uses: docker/build-push-action@v5
         with:
           context: ./Codice/app
-          dockerfile: ./Codice/app/Dockerfile
+          file: ./Codice/app/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend:latest
+          tags: ghcr.io/${{ env.OWNER_LC }}/hackhub-backend:latest
 
       - name: Build e Push immagine Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./Codice/frontend
-          dockerfile: ./Codice/frontend/Dockerfile
+          file: ./Codice/frontend/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
+          tags: ghcr.io/${{ env.OWNER_LC }}/hackhub-frontend:latest
