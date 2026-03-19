@@ -30,54 +30,62 @@ Portale per la gestione di hackathon (utenti, team, iscrizioni, sottomissioni, i
         +---------------------+
 ```
 
-## Avvio con Docker Compose (DB)
+## Avvio con Docker Compose (Completo)
 
-Nel repository è presente un `docker-compose.yml` che avvia PostgreSQL.
+Il progetto è completamente containerizzato tramite `docker-compose.yml`, che avvia:
+- **PostgreSQL**: Database (porta 5432)
+- **Backend (Spring Boot)**: API REST (porta 8080)
+- **Frontend (Angular)**: Interfaccia utente (porta 4200, servita via Nginx)
 
 ### Prerequisiti
 
-- Docker Desktop
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Un file `.env` nella root del progetto (usa `.env.example` come template).
+
+### Configurazione Iniziale
+Prima di avviare, crea il tuo file delle variabili d'ambiente:
+```bash
+cp .env.example .env
+```
 
 ### Start/Stop
-
 ```bash
-docker compose up -d
+# Avvia l'intera stack (compresa la build delle immagini locali)
+docker compose up --build -d
+
+# Visualizza lo stato dei container
 docker compose ps
+
+# Ferma e rimuovi i container
 docker compose down
 ```
 
-### Credenziali DB (dev)
+### Credenziali DB (accessibili dal container backend)
 
-- **Host**: `localhost`
+- **Host**: `postgres` (o `localhost` per accesso esterno)
 - **Port**: `5432`
 - **Database**: `hackhub`
 - **Username**: `hackhub`
 - **Password**: `hackhub`
 
-> Il backend supporta variabili d’ambiente: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` (vedi `Codice/app/src/main/resources/application.properties`).
+---
 
-## Avvio Backend (Spring Boot)
+## Sviluppo Locale (Senza Docker)
 
+Se preferisci avviare i servizi separatamente per lo sviluppo:
+
+### Avvio Backend (Spring Boot)
 Il backend gira di default su **porta 8080**.
+Assicurati di avere un database PostgreSQL attivo (puoi usare `docker compose up postgres -d`).
 
 Da PowerShell:
-
 ```bash
 cd Codice/app
 ./mvnw spring-boot:run
 ```
 
-Oppure (se usi Maven installato):
-
-```bash
-cd Codice/app
-mvn spring-boot:run
-```
-
-## Avvio Frontend (Angular)
-
+### Avvio Frontend (Angular)
 Il frontend gira su **porta 4200** ed è configurato con proxy verso il backend:
-
 - `Codice/frontend/proxy.conf.json` inoltra `http://localhost:4200/api/*` a `http://localhost:8080/api/*`
 
 ```bash
