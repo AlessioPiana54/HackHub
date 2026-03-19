@@ -4,6 +4,7 @@ import { AuthService } from './core/services/auth.service';
 import { UserDTO } from './core/models/user.model';
 import { HackathonService } from './core/services/hackathon.service';
 import { HackathonSummaryDTO } from './core/models/hackathon.model';
+import { PwaService } from './core/services/pwa.service';
 
 @Component({
   selector: 'app-root',
@@ -18,14 +19,20 @@ export class AppComponent implements OnInit {
   myHackathons: HackathonSummaryDTO[] = [];
   judgeHackathons: HackathonSummaryDTO[] = [];
   mentorHackathons: HackathonSummaryDTO[] = [];
+  showInstallBanner = false;
 
   constructor(
     private authService: AuthService,
     private hackathonService: HackathonService,
-    private router: Router
+    private router: Router,
+    private pwaService: PwaService
   ) {}
 
   ngOnInit(): void {
+    this.pwaService.showInstallBanner$.subscribe(show => {
+      this.showInstallBanner = show;
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
@@ -82,6 +89,14 @@ export class AppComponent implements OnInit {
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  async installApp(): Promise<void> {
+    await this.pwaService.installApp();
+  }
+
+  closeInstallBanner(): void {
+    this.pwaService.hideBanner();
   }
 
   logout(): void {

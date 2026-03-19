@@ -211,6 +211,8 @@ Questa separazione garantisce testabilità, manutenibilità e indipendenza dai f
 - **Strategy Pattern**: Implementato per la validazione dei link esterni (GitHub, LinkedIn, etc.). Seguendo il principio *Open/Closed*, consente di aggiungere nuove piattaforme di sottomissione senza modificare la logica esistente.
 - **JWT Stateless**: Le API sono stateless, aderendo al principio 6 della *12-Factor App*. Questo permette una scalabilità orizzontale ottimale poiché il server non mantiene sessioni locali.
 - **BCrypt**: Utilizzato per l'hashing delle password. A differenza di SHA-256, BCrypt include un salt ed è volutamente lento, rendendolo estremamente resistente ad attacchi brute-force e rainbow table.
+- **Angular PWA**: Il frontend è una **Progressive Web App**. Include un **Service Worker** per il caching degli asset e delle API, permettendo il caricamento istantaneo e il supporto offline di base.
+- **PwaService (SRP)**: La logica per gestire l'installazione dell'app ("Add to Home Screen") è incapsulata in un servizio dedicato, seguendo il Single Responsibility Principle.
 - **Angular con TypeScript Strict**: Il frontend utilizza Angular con controlli di tipo rigorosi e **Lazy Loading** per i moduli di feature, ottimizzando i tempi di caricamento iniziali dell'applicazione.
 - **PostgreSQL + Docker Compose**: L'intera infrastruttura è containerizzata, garantendo la parità tra gli ambienti di sviluppo, test e produzione (Fattore 10).
 
@@ -235,6 +237,28 @@ Questa separazione garantisce testabilità, manutenibilità e indipendenza dai f
 | XIII. API First | ✅ | Interfaccia basata interamente su REST API documentate con Swagger. |
 | XIV. Telemetry | ✅ | Implementata tramite Spring Boot Actuator per il monitoraggio. |
 | XV. Security | ✅ | Autenticazione JWT e Spring Security a protezione di ogni endpoint. |
+
+---
+
+## Progressive Web App (PWA)
+
+HackHub è installabile come un'applicazione nativa su dispositivi mobile e desktop.
+- **Supporto Offline**: Grazie al Service Worker, le parti dell'app già visitate sono accessibili anche senza connessione.
+- **Banner di Installazione**: Un banner personalizzato invita l'utente a installare l'app quando i criteri di installabilità sono soddisfatti.
+- **Cache intelligente**: Le API sono configurate con strategia *Freshness* (prova a scaricare da rete, se fallisce usa la cache) per garantire dati sempre aggiornati ma accessibili offline.
+
+### Come testare la PWA localmente
+Il Service Worker **non è attivo** con `ng serve`. Per testare le funzionalità PWA (installazione e offline):
+1.  Genera il build di produzione:
+    ```bash
+    cd Codice/frontend
+    npm run build -- --configuration production
+    ```
+2.  Avvia un server statico (es. `http-server` o `npx http-server`):
+    ```bash
+    npx http-server dist/frontend -p 4200
+    ```
+3.  Apri [http://localhost:4200](http://localhost:4200) in Chrome e verifica in `DevTools -> Application -> Service Workers`.
 
 ---
 

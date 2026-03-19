@@ -88,3 +88,38 @@
     box-shadow: 0 2px 8px rgba(255, 71, 87, 0.2);
   }
 }
+
+/* PWA Install Banner */
+.install-banner {
+  background: var(--primary);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  z-index: var(--z-fixed);
+  position: relative;
+
+  .banner-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    margin-left: var(--spacing-md);
+    opacity: 0.8;
+    transition: var(--transition-fast);
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

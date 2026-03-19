@@ -67,6 +67,15 @@
 
   <!-- Main Content -->
   <div class="main-content">
+    <!-- Installation Banner -->
+    <div class="install-banner" *ngIf="showInstallBanner">
+      <span>📱 Installa HackHub sul tuo dispositivo</span>
+      <div class="banner-actions">
+        <button class="btn btn-primary btn-sm" (click)="installApp()">Installa</button>
+        <button class="btn-close" (click)="closeInstallBanner()">✕</button>
+      </div>
+    </div>
+
     <!-- Topbar -->
     <header class="topbar">
       <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
