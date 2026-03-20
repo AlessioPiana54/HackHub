@@ -2,6 +2,19 @@
 
 Portale per la gestione di hackathon (utenti, team, iscrizioni, sottomissioni, inviti, richieste di supporto).
 
+## Funzionalità principali
+
+- **Autenticazione**: Registrazione e login con JWT stateless. Ruoli distinti: Organizzatore, Giudice, Mentore, Utente senza team, Leader team, Membro team.
+- **Gestione Hackathon**: Creazione, avanzamento automatico degli stati (In Attesa → Iscrizioni → In Corso → Valutazione → Premiazione → Concluso) tramite scheduler.
+- **Gestione Team**: Creazione team, inviti via email, accettazione/rifiuto, trasferimento leadership, abbandono team.
+- **Iscrizioni**: I team possono iscriversi agli hackathon durante la fase di iscrizioni aperte.
+- **Sottomissioni**: I team iscritti possono sottomettere il link GitHub del progetto durante la fase In Corso.
+- **Valutazioni**: I giudici assegnati valutano le sottomissioni con voto (0-10) e giudizio testuale.
+- **Classifica**: Visualizzazione della classifica finale con i punteggi dei team.
+- **Richieste di supporto**: I team possono richiedere supporto ai mentori con proposta di call (Google Meet/Webex).
+- **Segnalazioni**: I team possono segnalare problemi all'organizzatore durante l'hackathon.
+- **PWA**: Installabile come app nativa, con supporto offline per i contenuti già visitati.
+
 ## Architettura del sistema (overview)
 
 ```
@@ -48,6 +61,16 @@ Prima di avviare, crea il tuo file delle variabili d'ambiente:
 cp .env.example .env
 ```
 
+Il file `.env.example` contiene questi valori di default pronti per lo sviluppo locale:
+```env
+JWT_SECRET=cambia-questa-chiave-in-produzione-minimo-32-caratteri
+JWT_EXPIRATION=86400000
+DB_URL=jdbc:postgresql://postgres:5432/hackhub
+DB_USERNAME=hackhub
+DB_PASSWORD=hackhub
+```
+Per sviluppo locale i valori di default sono sufficienti. In produzione sostituire almeno JWT_SECRET con una chiave casuale sicura.
+
 ### Start/Stop
 ```bash
 # Avvia l'intera stack (compresa la build delle immagini locali)
@@ -92,6 +115,27 @@ Il frontend gira su **porta 4200** ed è configurato con proxy verso il backend:
 cd Codice/frontend
 npm install
 npm start
+```
+
+## Esecuzione dei Test
+
+### Test Backend (Unit Test)
+I test unitari coprono i service principali (AuthService, HackathonService, TeamService) e usano JUnit 5 + Mockito.
+
+```bash
+cd Codice/app
+./mvnw test
+```
+Per generare il report di coverage:
+```bash
+./mvnw verify
+```
+Il report HTML sarà disponibile in `Codice/app/target/site/jacoco/index.html`.
+
+### Test Frontend
+```bash
+cd Codice/frontend
+npm test
 ```
 
 ## Swagger / OpenAPI
@@ -267,14 +311,17 @@ Il Service Worker **non è attivo** con `ng serve`. Per testare le funzionalità
 ### Diagramma di Deploy
 ```mermaid
 graph TD
-    User((User Browser)) -->|port 4200| Angular[Angular Frontend]
-    Angular -->|/api/* proxy| Spring[Spring Boot Backend]
-    Spring -->|port 8080| DB[(PostgreSQL)]
-    
-    subgraph Docker Network
-        Spring
-        DB
+    User((Browser Utente)) -->|http://localhost:4200| Frontend
+
+    subgraph Docker Network - hackhub-network
+        Frontend[Angular + Nginx :4200/80]
+        Backend[Spring Boot :8080]
+        DB[(PostgreSQL :5432)]
     end
+
+    Frontend -->|/api/* proxy_pass| Backend
+    Backend -->|JDBC| DB
+    Backend -->|healthcheck| DB
 ```
 
 ### Diagramma architettura backend

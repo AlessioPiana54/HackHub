@@ -11,6 +11,7 @@ export class PwaService {
 
   constructor() {
     window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('PwaService: beforeinstallprompt event fired');
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Stash the event so it can be triggered later.
@@ -26,10 +27,13 @@ export class PwaService {
 
   async installApp(): Promise<void> {
     if (!this.deferredPrompt) {
+      console.warn('PwaService: No deferredPrompt available to show');
       return;
     }
+    console.log('PwaService: Triggering install prompt');
     this.deferredPrompt.prompt();
     const { outcome } = await this.deferredPrompt.userChoice;
+    console.log(`PwaService: User response to install prompt: ${outcome}`);
     if (outcome === 'accepted') {
       this.showInstallBannerSubject.next(false);
     }
