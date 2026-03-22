@@ -3,7 +3,7 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.DTOs.InvitoDTO;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
-import hackhub.app.Application.Services.InvitoService;
+import hackhub.app.Application.Services.Interfaces.IInvitoService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Invito;
@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/invitations")
 public class InvitoController extends AbstractController {
 
-  private final InvitoService invitoService;
+  private final IInvitoService invitoService;
   private final InvitoValidator invitoValidator;
 
   public InvitoController(
-    InvitoService invitoService,
+    IInvitoService invitoService,
     InvitoValidator invitoValidator,
     IJwtService jwtService,
     IUnitOfWork unitOfWork

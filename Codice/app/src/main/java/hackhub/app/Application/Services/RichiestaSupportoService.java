@@ -14,10 +14,10 @@ import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+
+import hackhub.app.Application.Services.Interfaces.IRichiestaSupportoService;
 
 /**
  * Servizio per la gestione delle richieste di supporto.
@@ -25,7 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Service
 @Transactional
-public class RichiestaSupportoService extends AbstractService {
+public class RichiestaSupportoService extends AbstractService implements IRichiestaSupportoService {
 
   private final LinkStrategyContext linkStrategyContext;
 
@@ -67,8 +67,7 @@ public class RichiestaSupportoService extends AbstractService {
 
     // Check if hackathon is in correct state
     if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-      throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
+      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
         "Le richieste di supporto sono accettate solo durante l'hackathon."
       );
     }

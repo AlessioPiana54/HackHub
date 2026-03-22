@@ -3,7 +3,7 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.DTOs.RichiestaSupportoDTO;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
-import hackhub.app.Application.Services.RichiestaSupportoService;
+import hackhub.app.Application.Services.Interfaces.IRichiestaSupportoService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/support-requests")
 public class RichiestaSupportoController extends AbstractController {
 
-  private final RichiestaSupportoService supportoService;
+  private final IRichiestaSupportoService supportoService;
   private final RichiestaSupportoValidator validator;
 
   public RichiestaSupportoController(
-    RichiestaSupportoService supportoService,
+    IRichiestaSupportoService supportoService,
     RichiestaSupportoValidator validator,
     IJwtService jwtService,
     IUnitOfWork unitOfWork

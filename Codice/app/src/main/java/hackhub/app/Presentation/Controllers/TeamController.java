@@ -3,7 +3,7 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.DTOs.MessageResponse;
 import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.Requests.CreaTeamRequest;
-import hackhub.app.Application.Services.TeamService;
+import hackhub.app.Application.Services.Interfaces.ITeamService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Team;
@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.*;
 public class TeamController extends AbstractController {
 
   private static final Logger logger = LoggerFactory.getLogger(TeamController.class);
-  private final TeamService teamService;
+  private final ITeamService teamService;
   private final TeamValidator teamValidator;
 
   public TeamController(
-    TeamService teamService,
+    ITeamService teamService,
     TeamValidator teamValidator,
     IJwtService jwtService,
     IUnitOfWork unitOfWork

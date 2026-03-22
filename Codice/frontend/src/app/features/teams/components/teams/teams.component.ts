@@ -35,14 +35,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
     // Ascolta gli aggiornamenti dei team
     this.teamUpdateSubscription = this.teamUpdateService.teamUpdate$.subscribe(() => {
       console.log('TeamsComponent - Team update received, refreshing all data...');
-      // Forza aggiornamento completo dell'applicazione
-      this.ngZone.run(() => {
-        this.loadContent();
-        // Forza change detection su tutta l'applicazione
-        setTimeout(() => {
-          this.appRef.tick();
-        }, 0);
-      });
+      this.loadContent();
     });
     
     // Forza il caricamento immediato
@@ -101,18 +94,11 @@ export class TeamsComponent implements OnInit, OnDestroy {
         console.log('TeamsComponent - User teams loaded:', teams);
         this.teams = teams;
         console.log('TeamsComponent - Teams count:', this.teams.length);
-        // Forza change detection immediato dentro ngZone
-        this.ngZone.run(() => {
-          this.cdr.detectChanges();
-        });
       },
       error: (error) => {
         console.error('TeamsComponent - Error loading teams:', error);
         this.errorMessage = 'Failed to load teams. Please try again.';
         this.isLoading = false;
-        this.ngZone.run(() => {
-          this.cdr.detectChanges();
-        });
       }
     });
   }
@@ -147,13 +133,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
           }
           
           // Ricarica i dati dei team
-          setTimeout(() => {
-            this.loadTeams();
-            // Forza change detection per aggiornare la GUI
-            this.ngZone.run(() => {
-              this.appRef.tick();
-            });
-          }, 200);
+          this.loadTeams();
         },
         error: (error) => {
           console.error('TeamsComponent - Error abandoning team:', error);

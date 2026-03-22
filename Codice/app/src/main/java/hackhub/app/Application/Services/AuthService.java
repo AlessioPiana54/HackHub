@@ -6,6 +6,7 @@ import hackhub.app.Application.Requests.RegisterRequest;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Application.Utils.IPasswordHasher;
 import hackhub.app.Core.POJO_Entities.User;
+import hackhub.app.Application.Services.Interfaces.IAuthService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class AuthService extends AbstractService {
+public class AuthService extends AbstractService implements IAuthService {
 
   private final IPasswordHasher passwordHasher;
   private final IJwtService jwtService;

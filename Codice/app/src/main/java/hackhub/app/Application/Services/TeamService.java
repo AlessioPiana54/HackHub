@@ -1,5 +1,6 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.Services.Interfaces.ITeamService;
 import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaTeamRequest;
@@ -13,17 +14,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Servizio per la gestione dei Team e delle relative operazioni.
  */
 @Service
 @Transactional
-public class TeamService extends AbstractService {
+public class TeamService extends AbstractService implements ITeamService {
 
   private static final Logger logger = LoggerFactory.getLogger(
     TeamService.class
@@ -183,8 +182,7 @@ public class TeamService extends AbstractService {
 
     // Check if hackathon is in registration phase
     if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
-      throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
+      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
         "Le iscrizioni per questo hackathon sono chiuse."
       );
     }
@@ -196,8 +194,7 @@ public class TeamService extends AbstractService {
         .findByTeamIdAndHackathonId(teamId, hackathonId)
         .isPresent()
     ) {
-      throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
+      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
         "Il team è già iscritto a questo hackathon."
       );
     }

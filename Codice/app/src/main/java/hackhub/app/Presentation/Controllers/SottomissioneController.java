@@ -3,7 +3,7 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
 import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
-import hackhub.app.Application.Services.SottomissioneService;
+import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Sottomissione;
@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/submissions")
 public class SottomissioneController extends AbstractController {
 
-  private final SottomissioneService sottomissioneService;
+  private final ISottomissioneService sottomissioneService;
   private final SottomissioneValidator sottomissioneValidator;
   private final ValutazioneValidator valutazioneValidator;
 
   public SottomissioneController(
-    SottomissioneService sottomissioneService,
+    ISottomissioneService sottomissioneService,
     SottomissioneValidator sottomissioneValidator,
     ValutazioneValidator valutazioneValidator,
     IJwtService jwtService,

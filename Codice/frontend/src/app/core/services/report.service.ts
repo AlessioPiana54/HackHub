@@ -23,16 +23,10 @@ export class ReportService {
   constructor(private http: HttpClient) { }
 
   getReportsByHackathon(hackathonId: string): Observable<Report[]> {
-    const token = localStorage.getItem('hackhub_token');
-    return this.http.get<Report[]>(`${this.API_URL}?hackathonId=${hackathonId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
+    return this.http.get<Report[]>(`${this.API_URL}?hackathonId=${hackathonId}`);
   }
 
   createReport(report: { idHackathon: string, idTeam: string, descrizione: string }): Observable<Report> {
-    const token = localStorage.getItem('hackhub_token');
-    return this.http.post<Report>(`${this.API_URL}/crea`, report, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
+    return this.http.post<Report>(`${this.API_URL}`, report);
   }
 }

@@ -7,6 +7,7 @@ import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.POJO_Entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import hackhub.app.Application.Services.Interfaces.IUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
-public class UserService {
+public class UserService implements IUserService {
 
   private static final Logger logger = LoggerFactory.getLogger(
     UserService.class

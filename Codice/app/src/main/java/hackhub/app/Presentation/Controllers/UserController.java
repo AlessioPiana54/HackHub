@@ -2,7 +2,7 @@ package hackhub.app.Presentation.Controllers;
 
 import hackhub.app.Application.DTOs.UserDTO;
 import hackhub.app.Application.Requests.UpdateProfileRequest;
-import hackhub.app.Application.Services.UserService;
+import hackhub.app.Application.Services.Interfaces.IUserService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
@@ -20,10 +20,10 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController extends AbstractController {
 
-  private final UserService userService;
+  private final IUserService userService;
 
   public UserController(
-    UserService userService,
+    IUserService userService,
     IJwtService jwtService,
     IUnitOfWork unitOfWork
   ) {

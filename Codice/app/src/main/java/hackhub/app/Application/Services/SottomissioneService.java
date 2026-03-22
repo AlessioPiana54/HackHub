@@ -13,10 +13,10 @@ import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+
+import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 
 /**
  * Servizio per la gestione delle sottomissioni dei progetti.
@@ -24,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Service
 @Transactional
-public class SottomissioneService extends AbstractService {
+public class SottomissioneService extends AbstractService implements ISottomissioneService {
 
   private final LinkStrategyContext linkStrategyContext;
 
@@ -69,8 +69,7 @@ public class SottomissioneService extends AbstractService {
 
     // Check if hackathon is in correct state for submissions
     if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-      throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
+      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
         "Le sottomissioni sono accettate solo durante l'hackathon."
       );
     }
@@ -89,8 +88,7 @@ public class SottomissioneService extends AbstractService {
         request.getIdTeam()
       );
     if (esistente) {
-      throw new ResponseStatusException(
-        HttpStatus.BAD_REQUEST,
+      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
         "Il team ha già inviato una sottomissione per questo hackathon."
       );
     }

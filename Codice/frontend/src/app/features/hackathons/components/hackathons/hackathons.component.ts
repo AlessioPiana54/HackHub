@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { switchMap, catchError } from 'rxjs/operators';
+import { of, throwError } from 'rxjs';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { TeamService } from '../../../../core/services/team.service';
 import { HackathonSummaryDTO, StatoHackathon } from '../../../../core/models/hackathon.model';
@@ -90,25 +92,25 @@ export class HackathonsComponent implements OnInit {
   }
 
   joinHackathon(hackathon: HackathonSummaryDTO): void {
-    this.teamService.getMyTeams().subscribe({
-      next: (teams) => {
+    this.teamService.getMyTeams().pipe(
+      switchMap(teams => {
         if (!teams || teams.length === 0) {
-          this.errorMessage = 'Devi essere in un team per iscriverti a un hackathon.';
-          return;
+          return throwError(() => new Error('NO_TEAM'));
         }
-        const teamId = teams[0].id;
-        this.hackathonService.joinHackathon(hackathon.id, teamId).subscribe({
-          next: (response) => {
-            console.log('Team successfully registered:', response);
-            alert(`Team iscritto con successo a ${hackathon.nome}!`);
-          },
-          error: (error) => {
-            this.errorMessage = error.error?.message || 'Errore durante l\'iscrizione. Riprova.';
-          }
-        });
-      },
-      error: () => {
-        this.errorMessage = 'Impossibile recuperare le informazioni del team. Riprova.';
+        return this.hackathonService.joinHackathon(hackathon.id, teams[0].id);
+      }),
+      catchError(error => {
+        if (error.message === 'NO_TEAM') {
+          this.errorMessage = 'Devi essere in un team per iscriverti a un hackathon.';
+        } else {
+          this.errorMessage = error.error?.message || 'Errore durante l\'iscrizione. Riprova.';
+        }
+        return of(null);
+      })
+    ).subscribe(response => {
+      if (response) {
+        console.log('Team successfully registered:', response);
+        alert(`Team iscritto con successo a ${hackathon.nome}!`);
       }
     });
   }

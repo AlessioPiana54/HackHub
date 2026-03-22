@@ -16,12 +16,14 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import hackhub.app.Application.Services.Interfaces.IInvitoService;
+
 /**
  * Servizio per la gestione degli inviti ai team.
  */
 @Service
 @Transactional
-public class InvitoService extends AbstractService {
+public class InvitoService extends AbstractService implements IInvitoService {
 
   public InvitoService(
     IUnitOfWork unitOfWork,

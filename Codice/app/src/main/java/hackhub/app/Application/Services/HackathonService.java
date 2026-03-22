@@ -1,5 +1,7 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.Services.Interfaces.IHackathonService;
+
 import hackhub.app.Application.DTOs.ClassificaTeamDTO;
 import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
@@ -30,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class HackathonService extends AbstractService {
+public class HackathonService extends AbstractService implements IHackathonService {
 
   private final IPaymentManager paymentService;
 

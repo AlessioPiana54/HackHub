@@ -13,12 +13,14 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import hackhub.app.Application.Services.Interfaces.ISegnalazioneService;
+
 /**
  * Servizio per la gestione delle segnalazioni da parte dei mentori.
  */
 @Service
 @Transactional
-public class SegnalazioneService extends AbstractService {
+public class SegnalazioneService extends AbstractService implements ISegnalazioneService {
 
   public SegnalazioneService(
     IUnitOfWork unitOfWork,

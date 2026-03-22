@@ -1,6 +1,10 @@
 package hackhub.app.Presentation.Handlers;
 
 import hackhub.app.Application.DTOs.MessageResponse;
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.DomainException;
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
+import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,15 +26,22 @@ public class GlobalExceptionHandler {
    * @param e L'eccezione catturata.
    * @return Una ResponseEntity con lo stato 400 e il messaggio dell'errore.
    */
-  @ExceptionHandler(
-    { IllegalArgumentException.class, IllegalStateException.class }
-  )
-  public ResponseEntity<MessageResponse> handleBadRequest(RuntimeException e) {
-    if ("Credenziali non valide.".equals(e.getMessage())) {
-      return ResponseEntity
-        .status(HttpStatus.UNAUTHORIZED)
-        .body(new MessageResponse(e.getMessage()));
-    }
+  @ExceptionHandler(EntityNotFoundException.class)
+  public ResponseEntity<MessageResponse> handleEntityNotFound(EntityNotFoundException e) {
+    return ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
+      .body(new MessageResponse(e.getMessage()));
+  }
+
+  @ExceptionHandler(UnauthorizedOperationException.class)
+  public ResponseEntity<MessageResponse> handleUnauthorizedOperation(UnauthorizedOperationException e) {
+    return ResponseEntity
+      .status(HttpStatus.FORBIDDEN)
+      .body(new MessageResponse(e.getMessage()));
+  }
+
+  @ExceptionHandler({BusinessRuleException.class, DomainException.class})
+  public ResponseEntity<MessageResponse> handleDomainExceptions(RuntimeException e) {
     return ResponseEntity
       .status(HttpStatus.BAD_REQUEST)
       .body(new MessageResponse(e.getMessage()));

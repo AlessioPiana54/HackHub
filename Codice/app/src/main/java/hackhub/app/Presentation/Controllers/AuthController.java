@@ -3,8 +3,8 @@ package hackhub.app.Presentation.Controllers;
 import hackhub.app.Application.DTOs.UserDTO;
 import hackhub.app.Application.Requests.LoginRequest;
 import hackhub.app.Application.Requests.RegisterRequest;
-import hackhub.app.Application.Services.AuthService;
-import hackhub.app.Application.Services.UserService;
+import hackhub.app.Application.Services.Interfaces.IAuthService;
+import hackhub.app.Application.Services.Interfaces.IUserService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController extends AbstractController {
 
-  private final AuthService authService;
+  private final IAuthService authService;
   private final AuthValidator authValidator;
-  private final UserService userService;
+  private final IUserService userService;
 
   public AuthController(
-    AuthService authService,
+    IAuthService authService,
     AuthValidator authValidator,
-    UserService userService,
+    IUserService userService,
     IJwtService jwtService,
     IUnitOfWork unitOfWork
   ) {

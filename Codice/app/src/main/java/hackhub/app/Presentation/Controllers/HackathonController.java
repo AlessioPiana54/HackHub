@@ -2,7 +2,7 @@ package hackhub.app.Presentation.Controllers;
 
 import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
-import hackhub.app.Application.Services.HackathonService;
+import hackhub.app.Application.Services.Interfaces.IHackathonService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -12,7 +12,6 @@ import hackhub.app.Presentation.Validators.HackathonValidator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,11 +23,11 @@ import org.springframework.web.bind.annotation.*;
 public class HackathonController extends AbstractController {
 
   private static final Logger logger = LoggerFactory.getLogger(HackathonController.class);
-  private final HackathonService hackathonService;
+  private final IHackathonService hackathonService;
   private final HackathonValidator hackathonValidator;
 
   public HackathonController(
-    HackathonService hackathonService,
+    IHackathonService hackathonService,
     HackathonValidator hackathonValidator,
     IJwtService jwtService,
     IUnitOfWork unitOfWork
@@ -95,20 +94,10 @@ public class HackathonController extends AbstractController {
   public ResponseEntity<HackathonSummaryDTO> getHackathonById(
     @PathVariable String hackathonId
   ) {
-    try {
-      logger.debug("Searching for hackathon with ID: {}", hackathonId);
-      HackathonSummaryDTO hackathon = hackathonService.getHackathonById(
-        hackathonId
-      );
-      logger.debug("Hackathon found: {}", hackathon.getNome());
-      return ResponseEntity.ok(hackathon);
-    } catch (IllegalArgumentException e) {
-      logger.warn("Hackathon not found: {}", e.getMessage());
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    } catch (Exception e) {
-      logger.error("Error occurred while fetching hackathon {}: {}", hackathonId, e.getMessage(), e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-    }
+    logger.debug("Searching for hackathon with ID: {}", hackathonId);
+    HackathonSummaryDTO hackathon = hackathonService.getHackathonById(hackathonId);
+    logger.debug("Hackathon found: {}", hackathon.getNome());
+    return ResponseEntity.ok(hackathon);
   }
 
   /**
@@ -196,30 +185,14 @@ public class HackathonController extends AbstractController {
     @RequestParam String teamId,
     @RequestHeader(value = "Authorization", required = false) String token
   ) {
-    try {
-      User user = getAuthenticatedUser(token);
-
-      // Forza il trattamento di hackathonId come String
-      validateIds(hackathonId, teamId);
-
-      Partecipazione partecipazione = hackathonService.iscriviTeamAHackathon(
-        hackathonId,
-        teamId,
-        user.getId()
-      );
-
-      return ResponseEntity.ok(partecipazione);
-    } catch (IllegalStateException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-    } catch (SecurityException e) {
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-    } catch (Exception e) {
-      return ResponseEntity
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body("Errore durante l'iscrizione: " + e.getMessage());
-    }
+    User user = getAuthenticatedUser(token);
+    validateIds(hackathonId, teamId);
+    Partecipazione partecipazione = hackathonService.iscriviTeamAHackathon(
+      hackathonId,
+      teamId,
+      user.getId()
+    );
+    return ResponseEntity.ok(partecipazione);
   }
 
   /**
