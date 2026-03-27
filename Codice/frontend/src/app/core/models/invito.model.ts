@@ -7,6 +7,8 @@ export interface InvitoDTO {
   teamId: string;
   teamNome: string;
   dataInvio: string;
+  messaggio?: string;
+  stato?: string;
 }
 
 export interface CreaInvitoRequest {

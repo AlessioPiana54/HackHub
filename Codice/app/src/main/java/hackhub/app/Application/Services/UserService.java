@@ -1,6 +1,7 @@
 package hackhub.app.Application.Services;
 
 import hackhub.app.Application.DTOs.UserDTO;
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.UpdateProfileRequest;
 import hackhub.app.Core.Enums.Ruolo;
@@ -42,7 +43,7 @@ public class UserService implements IUserService {
       User user = unitOfWork
         .userRepository()
         .findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("Utente non trovato."));
+        .orElseThrow(() -> new EntityNotFoundException("Utente non trovato."));
 
       logger.info("Found user: {} {}", user.getNome(), user.getCognome());
 
@@ -73,7 +74,7 @@ public class UserService implements IUserService {
     User user = unitOfWork
       .userRepository()
       .findById(userId)
-      .orElseThrow(() -> new IllegalArgumentException("Utente non trovato."));
+      .orElseThrow(() -> new EntityNotFoundException("Utente non trovato."));
 
     // Aggiorna solo i campi permessi
     if (request.getNome() != null && !request.getNome().trim().isEmpty()) {

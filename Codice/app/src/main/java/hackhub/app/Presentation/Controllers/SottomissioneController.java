@@ -1,12 +1,12 @@
 package hackhub.app.Presentation.Controllers;
 
+import hackhub.app.Application.DTOs.SottomissioneDTO;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
 import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
 import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
-import hackhub.app.Core.POJO_Entities.Sottomissione;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import hackhub.app.Presentation.Validators.SottomissioneValidator;
@@ -47,13 +47,13 @@ public class SottomissioneController extends AbstractController {
    * @return La sottomissione creata o un errore di validazione.
    */
   @PostMapping("")
-  public ResponseEntity<?> inviaSottomissione(
+  public ResponseEntity<SottomissioneDTO> inviaSottomissione(
     @RequestHeader("Authorization") String token,
     @RequestBody InviaSottomissioneRequest request
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(sottomissioneValidator.validateCreation(request));
-    Sottomissione sottomissione = sottomissioneService.inviaSottomissione(
+    SottomissioneDTO sottomissione = sottomissioneService.inviaSottomissione(
       request,
       user.getId()
     );
@@ -69,7 +69,7 @@ public class SottomissioneController extends AbstractController {
    * @return La sottomissione aggiornata.
    */
   @PatchMapping("/{id}")
-  public ResponseEntity<?> modificaSottomissione(
+  public ResponseEntity<SottomissioneDTO> modificaSottomissione(
     @PathVariable String id,
     @RequestHeader("Authorization") String token,
     @RequestBody ModificaSottomissioneRequest request
@@ -77,7 +77,7 @@ public class SottomissioneController extends AbstractController {
     User user = getAuthenticatedUser(token);
     validateIds(id);
     validateRequest(sottomissioneValidator.validateModification(request));
-    Sottomissione sottomissione = sottomissioneService.modificaSottomissione(
+    SottomissioneDTO sottomissione = sottomissioneService.modificaSottomissione(
       request,
       user.getId(),
       id
@@ -93,7 +93,7 @@ public class SottomissioneController extends AbstractController {
    * @return La valutazione creata o un errore di validazione.
    */
   @PatchMapping("/{id}/evaluation")
-  public ResponseEntity<?> valutaSottomissione(
+  public ResponseEntity<Valutazione> valutaSottomissione(
     @RequestHeader("Authorization") String token,
     @PathVariable String id,
     @RequestBody CreaValutazioneRequest request
@@ -115,11 +115,11 @@ public class SottomissioneController extends AbstractController {
    * @return Lista di sottomissioni del team.
    */
   @GetMapping("/my-submissions")
-  public ResponseEntity<List<Sottomissione>> getMySubmissions(
+  public ResponseEntity<List<SottomissioneDTO>> getMySubmissions(
     @RequestHeader("Authorization") String token
   ) {
     User user = getAuthenticatedUser(token);
-    List<Sottomissione> submissions = sottomissioneService.getTeamSubmissions(
+    List<SottomissioneDTO> submissions = sottomissioneService.getTeamSubmissions(
       user.getId()
     );
     return ResponseEntity.ok(submissions);
@@ -132,12 +132,12 @@ public class SottomissioneController extends AbstractController {
    * @return Lista di sottomissioni.
    */
   @GetMapping("/hackathon/{idHackathon}")
-  public ResponseEntity<List<Sottomissione>> getSubmissionsByHackathon(
+  public ResponseEntity<List<SottomissioneDTO>> getSubmissionsByHackathon(
     @PathVariable String idHackathon,
     @RequestHeader("Authorization") String token
   ) {
     // Audit log or security check could be added here to ensure only Judge/Organizer access
-    List<Sottomissione> submissions = sottomissioneService.getSubmissionsByHackathon(
+    List<SottomissioneDTO> submissions = sottomissioneService.getSubmissionsByHackathon(
       idHackathon
     );
     return ResponseEntity.ok(submissions);

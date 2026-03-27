@@ -1,6 +1,9 @@
 package hackhub.app.Application.Services;
 
 import hackhub.app.Application.DTOs.InvitoDTO;
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
+import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
@@ -43,14 +46,14 @@ public class InvitoService extends AbstractService implements IInvitoService {
    *                                  trovati, o se il destinatario ha già un
    *                                  ruolo
    */
-  public Invito inviaInvito(CreaInvitoRequest request, String mittenteId) {
+  public InvitoDTO inviaInvito(CreaInvitoRequest request, String mittenteId) {
     Team team = findTeamOrThrow(request.getTeamId());
     User mittente = findUserOrThrow(mittenteId);
 
     User destinatario = unitOfWork
       .userRepository()
       .findByEmail(request.getEmailDestinatario());
-    if (destinatario == null) throw new IllegalArgumentException(
+    if (destinatario == null) throw new EntityNotFoundException(
       "Destinatario non trovato"
     );
 
@@ -68,7 +71,7 @@ public class InvitoService extends AbstractService implements IInvitoService {
 
     Invito invito = new Invito(team, destinatario, mittente);
     unitOfWork.invitoRepository().save(invito);
-    return invito;
+    return convertToDTO(invito);
   }
 
   /**
@@ -87,12 +90,12 @@ public class InvitoService extends AbstractService implements IInvitoService {
     Invito invito = unitOfWork
       .invitoRepository()
       .findById(invitoId)
-      .orElseThrow(() -> new IllegalArgumentException("Invito non trovato"));
+      .orElseThrow(() -> new EntityNotFoundException("Invito non trovato"));
 
     User user = findUserOrThrow(userId);
 
     if (!invito.getDestinatario().getId().equals(user.getId())) {
-      throw new IllegalArgumentException("Questo invito non è per te.");
+      throw new UnauthorizedOperationException("Questo invito non è per te.");
     }
 
     if (request.getAccettato()) {
@@ -115,7 +118,7 @@ public class InvitoService extends AbstractService implements IInvitoService {
         h.getStato() == StatoHackathon.IN_VALUTAZIONE ||
         h.getStato() == StatoHackathon.IN_PREMIAZIONE
       ) {
-        throw new IllegalStateException(
+        throw new BusinessRuleException(
           "Impossibile entrare nel team: il team è partecipante ad un Hackathon attivo."
         );
       }

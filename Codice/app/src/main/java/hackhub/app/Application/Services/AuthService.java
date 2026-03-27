@@ -1,5 +1,7 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.LoginRequest;
 import hackhub.app.Application.Requests.RegisterRequest;
@@ -41,7 +43,7 @@ public class AuthService extends AbstractService implements IAuthService {
    */
   public void register(RegisterRequest request) {
     if (unitOfWork.userRepository().findByEmail(request.getEmail()) != null) {
-      throw new IllegalArgumentException("Email già registrata.");
+      throw new BusinessRuleException("Email già registrata.");
     }
 
     // Hashing della password
@@ -71,11 +73,11 @@ public class AuthService extends AbstractService implements IAuthService {
   public String login(LoginRequest request) {
     User user = unitOfWork.userRepository().findByEmail(request.getEmail());
     if (user == null) {
-      throw new IllegalArgumentException("Credenziali non valide.");
+      throw new EntityNotFoundException("Credenziali non valide.");
     }
 
     if (!passwordHasher.verify(request.getPassword(), user.getPassword())) {
-      throw new IllegalArgumentException("Credenziali non valide.");
+      throw new BusinessRuleException("Credenziali non valide.");
     }
 
     return jwtService.generateToken(user);

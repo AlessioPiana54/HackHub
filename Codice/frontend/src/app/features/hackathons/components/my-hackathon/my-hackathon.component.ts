@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { TeamService } from '../../../../core/services/team.service';
 import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
 import { TeamDTO } from '../../../../core/models/team.model';
+import { Sottomissione } from '../../../../core/models/sottomissione.model';
+import { Report } from '../../../../core/services/report.service';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -11,17 +15,19 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './my-hackathon.component.html',
   styleUrls: ['./my-hackathon.component.scss']
 })
-export class MyHackathonComponent implements OnInit {
+export class MyHackathonComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hackathon: HackathonSummaryDTO | null = null;
   myTeam: TeamDTO | null = null;
   activeTab: 'details' | 'segnalazioni' | 'sottomissioni' = 'details';
 
   // Segnalazioni
-  segnalazioni: any[] = [];
+  segnalazioni: Report[] = [];
   segnalazioneError = '';
 
   // Sottomissioni
-  sottomissioni: any[] = [];
+  sottomissioni: Sottomissione[] = [];
   nuovaSottomissione = { linkProgetto: '', descrizione: '' };
   sottomissioneLoading = false;
   sottomissioneError = '';
@@ -40,15 +46,22 @@ export class MyHackathonComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      this.hackathonId = params.get('id') || '';
-      if (!this.hackathonId) {
-        this.errorMessage = 'Hackathon non trovato.';
-        this.isLoading = false;
-        return;
-      }
-      this.loadData();
-    });
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.hackathonId = params.get('id') || '';
+        if (!this.hackathonId) {
+          this.errorMessage = 'Hackathon non trovato.';
+          this.isLoading = false;
+          return;
+        }
+        this.loadData();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadData(): void {
@@ -79,7 +92,7 @@ export class MyHackathonComponent implements OnInit {
   // --- Segnalazioni ---
   loadSegnalazioni(): void {
     const token = localStorage.getItem('hackhub_token');
-    this.http.get<any[]>(`/api/segnalazioni?hackathonId=${this.hackathonId}`, {
+    this.http.get<Report[]>(`/api/segnalazioni?hackathonId=${this.hackathonId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     }).subscribe({
       next: (s) => this.segnalazioni = s,
@@ -92,7 +105,7 @@ export class MyHackathonComponent implements OnInit {
   // --- Sottomissioni ---
   loadSottomissioni(): void {
     const token = localStorage.getItem('hackhub_token');
-    this.http.get<any[]>('/api/submissions/my-submissions', {
+    this.http.get<Sottomissione[]>('/api/submissions/my-submissions', {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     }).subscribe({
       next: (s) => {
@@ -117,7 +130,7 @@ export class MyHackathonComponent implements OnInit {
       linkProgetto: this.nuovaSottomissione.linkProgetto.trim(),
       descrizione: this.nuovaSottomissione.descrizione.trim()
     };
-    this.http.post<any>('/api/submissions', body, {
+    this.http.post<Sottomissione>('/api/submissions', body, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     }).subscribe({
       next: (s) => {
@@ -126,7 +139,7 @@ export class MyHackathonComponent implements OnInit {
         this.sottomissioneSuccess = 'Sottomissione inviata con successo!';
         this.sottomissioneLoading = false;
       },
-      error: (err) => {
+      error: (err: { error?: { message?: string } }) => {
         this.sottomissioneError = err.error?.message || 'Errore nell\'invio della sottomissione.';
         this.sottomissioneLoading = false;
       }

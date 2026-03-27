@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hackhub-config
+  namespace: hackhub
+data:
+  SPRING_PROFILES_ACTIVE: "dev"
+  DB_URL: "jdbc:postgresql://postgres:5432/hackhub"
+  DB_USERNAME: "hackhub"
+  JWT_EXPIRATION: "86400000"
+  ALLOWED_ORIGINS: "http://localhost"
+  BACKEND_URL: "http://backend:8080"

@@ -1,25 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { SottomissioneService } from '../../../../core/services/sottomissione.service';
-import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
+import { HackathonSummaryDTO, ClassificaTeamDTO } from '../../../../core/models/hackathon.model';
+import { Sottomissione } from '../../../../core/models/sottomissione.model';
 
 @Component({
   selector: 'app-judge-hackathon-dashboard',
   templateUrl: './judge-hackathon-dashboard.component.html',
   styleUrls: ['./judge-hackathon-dashboard.component.scss']
 })
-export class JudgeHackathonDashboardComponent implements OnInit {
+export class JudgeHackathonDashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hackathonId: string | null = null;
   hackathon: HackathonSummaryDTO | null = null;
   activeTab: 'submissions' | 'ranking' = 'submissions';
-  submissions: any[] = [];
-  ranking: any[] = [];
+  submissions: Sottomissione[] = [];
+  ranking: ClassificaTeamDTO[] = [];
   isLoading = true;
   errorMessage = '';
   isClosing = false;
   showEvaluationModal = false;
-  selectedSubmission: any = null;
+  selectedSubmission: Sottomissione | null = null;
   evaluationForm = {
     voto: 0,
     giudizio: ''
@@ -33,18 +38,25 @@ export class JudgeHackathonDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      this.hackathonId = params.get('id');
-      if (this.hackathonId) {
-        this.loadData();
-      }
-    });
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.hackathonId = params.get('id');
+        if (this.hackathonId) {
+          this.loadData();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadData(): void {
     if (!this.hackathonId) return;
     this.isLoading = true;
-    
+
     // In a real app we would use forkJoin, but for simplicity:
     this.hackathonService.getHackathonById(this.hackathonId).subscribe({
       next: (data) => {
@@ -52,7 +64,7 @@ export class JudgeHackathonDashboardComponent implements OnInit {
         this.loadSubmissions();
         this.loadRanking();
       },
-      error: (err) => {
+      error: () => {
         this.errorMessage = 'Errore nel caricamento dell\'hackathon.';
         this.isLoading = false;
       }
@@ -66,7 +78,7 @@ export class JudgeHackathonDashboardComponent implements OnInit {
         this.submissions = data;
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error('Error loading submissions', err);
         this.isLoading = false;
       }
@@ -76,8 +88,8 @@ export class JudgeHackathonDashboardComponent implements OnInit {
   loadRanking(): void {
     if (!this.hackathonId) return;
     this.hackathonService.getClassifica(this.hackathonId).subscribe({
-      next: (data: any[]) => this.ranking = data,
-      error: (err: any) => console.error('Error loading ranking', err)
+      next: (data: ClassificaTeamDTO[]) => this.ranking = data,
+      error: (err: Error) => console.error('Error loading ranking', err)
     });
   }
 
@@ -85,11 +97,12 @@ export class JudgeHackathonDashboardComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  openEvaluationModal(submission: any): void {
+  openEvaluationModal(submission: Sottomissione): void {
     this.selectedSubmission = submission;
+    const firstValutazione = submission.valutazioni?.[0];
     this.evaluationForm = {
-      voto: submission.valutazione?.voto || 0,
-      giudizio: submission.valutazione?.giudizio || ''
+      voto: firstValutazione?.voto || 0,
+      giudizio: firstValutazione?.giudizio || ''
     };
     this.showEvaluationModal = true;
   }
@@ -119,7 +132,8 @@ export class JudgeHackathonDashboardComponent implements OnInit {
         this.loadSubmissions();
         this.loadRanking();
       },
-      error: (err) => alert('Errore durante il salvataggio: ' + (err.error?.message || err.message))
+      error: (err: { error?: { message?: string }; message?: string }) =>
+        alert('Errore durante il salvataggio: ' + (err.error?.message || err.message))
     });
   }
 
@@ -132,7 +146,7 @@ export class JudgeHackathonDashboardComponent implements OnInit {
         this.loadData();
         this.isClosing = false;
       },
-      error: (err) => {
+      error: (err: { error?: string }) => {
         alert('Errore nella chiusura della valutazione: ' + err.error);
         this.isClosing = false;
       }

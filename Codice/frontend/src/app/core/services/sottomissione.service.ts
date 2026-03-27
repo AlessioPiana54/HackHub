@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Sottomissione, InviaSottomissioneRequest, ModificaSottomissioneRequest, CreaValutazioneRequest } from '../models/sottomissione.model';
+import { Sottomissione, InviaSottomissioneRequest, ModificaSottomissioneRequest, CreaValutazioneRequest, Valutazione } from '../models/sottomissione.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,8 +23,8 @@ export class SottomissioneService {
     return this.http.patch<Sottomissione>(`${this.API_URL}/${id}`, request);
   }
 
-  valutaSottomissione(id: string, request: CreaValutazioneRequest): Observable<any> {
-    return this.http.patch(`${this.API_URL}/${id}/evaluation`, request);
+  valutaSottomissione(id: string, request: CreaValutazioneRequest): Observable<Valutazione> {
+    return this.http.patch<Valutazione>(`${this.API_URL}/${id}/evaluation`, request);
   }
 
   /**

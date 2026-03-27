@@ -102,7 +102,7 @@
         </div>
         <div class="item-card" *ngFor="let s of segnalazioni">
           <div class="item-header">
-            <span class="item-team">👥 {{ s.teamNome || s.team?.nomeTeam || 'Team' }}</span>
+            <span class="item-team">👥 {{ s.nomeTeam || 'Team' }}</span>
             <span class="item-date">{{ s.dataSegnalazione | date:'dd MMM yyyy' }}</span>
           </div>
           <p class="item-body">{{ s.descrizione }}</p>
@@ -149,7 +149,7 @@
         <div class="item-card" *ngFor="let s of sottomissioni">
           <div class="item-header">
             <span class="item-team">🚀 Sottomissione</span>
-            <span class="item-date">{{ s.dataSottomissione | date:'dd MMM yyyy, HH:mm' }}</span>
+            <span class="item-date">{{ s.dataInvio | date:'dd MMM yyyy, HH:mm' }}</span>
           </div>
           <a [href]="s.linkProgetto" target="_blank" class="project-link">🔗 {{ s.linkProgetto }}</a>
           <p class="item-body" *ngIf="s.descrizione">{{ s.descrizione }}</p>

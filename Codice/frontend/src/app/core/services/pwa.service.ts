@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class PwaService {
-  private deferredPrompt: any;
+  private deferredPrompt: BeforeInstallPromptEvent | null = null;
   private showInstallBannerSubject = new BehaviorSubject<boolean>(false);
   showInstallBanner$ = this.showInstallBannerSubject.asObservable();
 
@@ -15,7 +20,7 @@ export class PwaService {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
       // Stash the event so it can be triggered later.
-      this.deferredPrompt = e;
+      this.deferredPrompt = e as BeforeInstallPromptEvent;
       this.showInstallBannerSubject.next(true);
     });
 

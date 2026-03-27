@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../../../core/services/auth.service';
-import { RegisterRequest } from '../../../../core/models/user.model';
+import { LoginResponse, RegisterRequest } from '../../../../core/models/user.model';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   registerForm: FormGroup;
   isLoading = false;
   errorMessage = '';
@@ -29,6 +33,11 @@ export class RegisterComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
     const password = form.get('password')?.value;
@@ -52,40 +61,42 @@ export class RegisterComponent implements OnInit {
     const { confirmPassword, ...registerData } = this.registerForm.value;
     const registrationData: RegisterRequest = registerData;
 
-    this.authService.register(registrationData).subscribe({
-      next: (response) => {
-        // La registrazione ora restituisce token e dati utente
-        if (response && response.token && response.user) {
-          // Salva il token e i dati utente
-          localStorage.setItem('hackhub_token', response.token);
-          this.authService.setCurrentUser(response.user);
-          
-          // Vai alla dashboard
-          this.router.navigate(['/dashboard']);
-        } else {
-          // Fallback: prova login manuale
-          this.authService.login({
-            email: registrationData.email,
-            password: registrationData.password
-          }).subscribe({
-            next: () => {
-              this.router.navigate(['/dashboard']);
-            },
-            error: (error) => {
-              this.errorMessage = 'Registration successful but login failed. Please try logging in manually.';
-              this.isLoading = false;
-            },
-            complete: () => {
-              this.isLoading = false;
-            }
-          });
+    this.authService.register(registrationData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: LoginResponse) => {
+          // La registrazione ora restituisce token e dati utente
+          if (response && response.token && response.user) {
+            // Salva il token e i dati utente
+            localStorage.setItem('hackhub_token', response.token);
+            this.authService.setCurrentUser(response.user);
+
+            // Vai alla dashboard
+            this.router.navigate(['/dashboard']);
+          } else {
+            // Fallback: prova login manuale
+            this.authService.login({
+              email: registrationData.email,
+              password: registrationData.password
+            }).pipe(takeUntil(this.destroy$)).subscribe({
+              next: () => {
+                this.router.navigate(['/dashboard']);
+              },
+              error: () => {
+                this.errorMessage = 'Registration successful but login failed. Please try logging in manually.';
+                this.isLoading = false;
+              },
+              complete: () => {
+                this.isLoading = false;
+              }
+            });
+          }
+        },
+        error: (error: { error?: { message?: string } }) => {
+          this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+          this.isLoading = false;
         }
-      },
-      error: (error) => {
-        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
-        this.isLoading = false;
-      }
-    });
+      });
   }
 
   get nome() { return this.registerForm.get('nome'); }

@@ -87,7 +87,7 @@
           <div class="timeline-dot">📬</div>
           <div class="timeline-content">
             <h4>Invitation from {{ invitation.mittenteNome || 'Unknown' }}</h4>
-            <p class="timeline-time">{{ invitation.dataInvito | date:'short' }}</p>
+            <p class="timeline-time">{{ invitation.dataInvio | date:'short' }}</p>
           </div>
         </div>
         <div class="timeline-empty" *ngIf="recentInvitations.length === 0">

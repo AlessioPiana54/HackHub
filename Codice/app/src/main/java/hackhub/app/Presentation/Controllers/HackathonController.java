@@ -1,12 +1,13 @@
 package hackhub.app.Presentation.Controllers;
 
+import hackhub.app.Application.DTOs.ClassificaTeamDTO;
 import hackhub.app.Application.DTOs.HackathonSummaryDTO;
+import hackhub.app.Application.DTOs.MessageResponse;
+import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
 import hackhub.app.Application.Services.Interfaces.IHackathonService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
-import hackhub.app.Core.POJO_Entities.Hackathon;
-import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.HackathonValidator;
 import java.util.List;
@@ -108,13 +109,13 @@ public class HackathonController extends AbstractController {
    * @return L'hackathon creato o un errore di validazione.
    */
   @PostMapping("")
-  public ResponseEntity<?> creaHackathon(
+  public ResponseEntity<HackathonSummaryDTO> creaHackathon(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaHackathonRequest request
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(hackathonValidator.validateCreation(request));
-    Hackathon hackathon = hackathonService.creaHackathon(request, user.getId());
+    HackathonSummaryDTO hackathon = hackathonService.creaHackathon(request, user.getId());
     return ResponseEntity.ok(hackathon);
   }
 
@@ -146,7 +147,7 @@ public class HackathonController extends AbstractController {
    * @return La classifica dei team.
    */
   @GetMapping("/{hackathonId}/classifica")
-  public ResponseEntity<?> getClassifica(
+  public ResponseEntity<List<ClassificaTeamDTO>> getClassifica(
     @PathVariable String hackathonId,
     @RequestHeader("Authorization") String token
   ) {
@@ -164,7 +165,7 @@ public class HackathonController extends AbstractController {
    * @return Lista di team partecipanti.
    */
   @GetMapping("/{hackathonId}/participants")
-  public ResponseEntity<List<hackhub.app.Core.POJO_Entities.Team>> getParticipants(
+  public ResponseEntity<List<TeamDTO>> getParticipants(
     @PathVariable String hackathonId
   ) {
     validateIds(hackathonId);
@@ -180,19 +181,19 @@ public class HackathonController extends AbstractController {
    * @return La partecipazione creata o un errore.
    */
   @PostMapping("/{hackathonId}/join")
-  public ResponseEntity<?> iscriviTeam(
+  public ResponseEntity<MessageResponse> iscriviTeam(
     @PathVariable String hackathonId,
     @RequestParam String teamId,
     @RequestHeader(value = "Authorization", required = false) String token
   ) {
     User user = getAuthenticatedUser(token);
     validateIds(hackathonId, teamId);
-    Partecipazione partecipazione = hackathonService.iscriviTeamAHackathon(
+    hackathonService.iscriviTeamAHackathon(
       hackathonId,
       teamId,
       user.getId()
     );
-    return ResponseEntity.ok(partecipazione);
+    return ResponseEntity.ok(new MessageResponse("Team iscritto all'hackathon con successo."));
   }
 
   /**

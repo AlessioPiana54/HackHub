@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { TeamService } from '../../../../core/services/team.service';
 import { TeamDTO } from '../../../../core/models/team.model';
 
@@ -8,7 +10,9 @@ import { TeamDTO } from '../../../../core/models/team.model';
   templateUrl: './team-details.component.html',
   styleUrls: ['./team-details.component.scss']
 })
-export class TeamDetailsComponent implements OnInit {
+export class TeamDetailsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   team: TeamDTO | null = null;
   isLoading = true;
   errorMessage = '';
@@ -30,22 +34,29 @@ export class TeamDetailsComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadTeamDetails(): void {
     this.isLoading = true;
     this.errorMessage = '';
-    
-    this.teamService.getTeamDetails(this.teamId).subscribe({
-      next: (team) => {
-        this.team = team;
-        this.isLoading = false;
-        console.log('TeamDetailsComponent - Team loaded:', team);
-      },
-      error: (error) => {
-        console.error('TeamDetailsComponent - Error loading team:', error);
-        this.errorMessage = 'Failed to load team details. Please try again.';
-        this.isLoading = false;
-      }
-    });
+
+    this.teamService.getTeamDetails(this.teamId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (team) => {
+          this.team = team;
+          this.isLoading = false;
+          console.log('TeamDetailsComponent - Team loaded:', team);
+        },
+        error: (error: Error) => {
+          console.error('TeamDetailsComponent - Error loading team:', error);
+          this.errorMessage = 'Failed to load team details. Please try again.';
+          this.isLoading = false;
+        }
+      });
   }
 
   goBack(): void {

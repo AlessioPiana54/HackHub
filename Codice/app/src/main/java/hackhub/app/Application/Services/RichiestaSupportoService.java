@@ -3,6 +3,8 @@ package hackhub.app.Application.Services;
 import static java.util.stream.Collectors.toList;
 
 import hackhub.app.Application.DTOs.RichiestaSupportoDTO;
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
@@ -67,7 +69,7 @@ public class RichiestaSupportoService extends AbstractService implements IRichie
 
     // Check if hackathon is in correct state
     if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
+      throw new BusinessRuleException(
         "Le richieste di supporto sono accettate solo durante l'hackathon."
       );
     }
@@ -135,7 +137,7 @@ public class RichiestaSupportoService extends AbstractService implements IRichie
    *                                  esiste
    * @throws SecurityException        se l'utente non è un mentore per l'hackathon
    */
-  public RichiestaSupporto proponiCall(
+  public RichiestaSupportoDTO proponiCall(
     ProponiCallRequest request,
     String mentorId,
     String richiestaId
@@ -146,7 +148,7 @@ public class RichiestaSupportoService extends AbstractService implements IRichie
         List.of("Google Meet", "Webex")
       )
     ) {
-      throw new IllegalArgumentException(
+      throw new BusinessRuleException(
         "Il link della call deve essere di Google Meet o Webex."
       );
     }
@@ -155,7 +157,7 @@ public class RichiestaSupportoService extends AbstractService implements IRichie
       .richiestaSupportoRepository()
       .findById(richiestaId)
       .orElseThrow(() ->
-        new IllegalArgumentException("Richiesta di supporto non trovata")
+        new EntityNotFoundException("Richiesta di supporto non trovata")
       );
 
     validateUserIsMentorInHackathon(
@@ -166,7 +168,8 @@ public class RichiestaSupportoService extends AbstractService implements IRichie
 
     richiesta.setLinkCall(request.getLinkCall());
     richiesta.setDataCall(request.getDataCall());
-    return unitOfWork.richiestaSupportoRepository().save(richiesta);
+    RichiestaSupporto saved = unitOfWork.richiestaSupportoRepository().save(richiesta);
+    return mapToDTO(saved);
   }
 
   /**

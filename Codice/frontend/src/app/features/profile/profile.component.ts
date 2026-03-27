@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { UserDTO, UpdateProfileRequest } from '../../core/models/user.model';
 
@@ -8,7 +10,9 @@ import { UserDTO, UpdateProfileRequest } from '../../core/models/user.model';
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   profileForm: FormGroup;
   isLoading = false;
   errorMessage = '';
@@ -28,19 +32,26 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('ProfileComponent - Initializing...');
-    
+
     // Ascolta i cambiamenti dell'utente
-    this.authService.currentUser$.subscribe(user => {
-      console.log('ProfileComponent - User updated:', user);
-      this.currentUser = user;
-      if (user) {
-        this.profileForm.patchValue({
-          nome: user.nome,
-          cognome: user.cognome,
-          email: user.email
-        });
-      }
-    });
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        console.log('ProfileComponent - User updated:', user);
+        this.currentUser = user;
+        if (user) {
+          this.profileForm.patchValue({
+            nome: user.nome,
+            cognome: user.cognome,
+            email: user.email
+          });
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSubmit(): void {
@@ -59,19 +70,21 @@ export class ProfileComponent implements OnInit {
     };
 
     console.log('ProfileComponent - Updating profile:', updateData);
-    this.authService.updateProfile(updateData).subscribe({
-      next: (updatedUser) => {
-        console.log('ProfileComponent - Profile updated successfully:', updatedUser);
-        this.currentUser = updatedUser;
-        this.successMessage = 'Profile updated successfully!';
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('ProfileComponent - Error updating profile:', error);
-        this.errorMessage = error.error?.message || 'Failed to update profile. Please try again.';
-        this.isLoading = false;
-      }
-    });
+    this.authService.updateProfile(updateData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updatedUser) => {
+          console.log('ProfileComponent - Profile updated successfully:', updatedUser);
+          this.currentUser = updatedUser;
+          this.successMessage = 'Profile updated successfully!';
+          this.isLoading = false;
+        },
+        error: (error: { error?: { message?: string } }) => {
+          console.error('ProfileComponent - Error updating profile:', error);
+          this.errorMessage = error.error?.message || 'Failed to update profile. Please try again.';
+          this.isLoading = false;
+        }
+      });
   }
 
   get nome() { return this.profileForm.get('nome'); }

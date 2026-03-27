@@ -40,7 +40,7 @@ public class SegnalazioneService extends AbstractService implements ISegnalazion
    *                                  il team non partecipa
    * @throws SecurityException        se l'utente non è un mentore per l'hackathon
    */
-  public Segnalazione creaSegnalazione(
+  public SegnalazioneDTO creaSegnalazione(
     CreaSegnalazioneRequest request,
     String mentoreId
   ) {
@@ -65,7 +65,7 @@ public class SegnalazioneService extends AbstractService implements ISegnalazion
       request.getDescrizione()
     );
     unitOfWork.segnalazioneRepository().save(segnalazione);
-    return segnalazione;
+    return mapToDTO(segnalazione);
   }
 
   /**

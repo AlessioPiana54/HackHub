@@ -1,10 +1,13 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, ApplicationRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TeamUpdateService } from '../../../../core/services/team-update.service';
 import { TeamDTO } from '../../../../core/models/team.model';
-import { Subscription } from 'rxjs';
+import { UserDTO } from '../../../../core/models/user.model';
+import { InvitoDTO } from '../../../../core/models/invito.model';
 
 @Component({
   selector: 'app-teams',
@@ -12,12 +15,13 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./teams.component.scss']
 })
 export class TeamsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   teams: TeamDTO[] = [];
-  receivedInvitations: any[] = [];
+  receivedInvitations: InvitoDTO[] = [];
   isLoading = true;
   errorMessage = '';
-  currentUser: any = null;
-  private teamUpdateSubscription: Subscription | null = null;
+  currentUser: UserDTO | null = null;
 
   constructor(
     private teamService: TeamService,
@@ -31,37 +35,40 @@ export class TeamsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('TeamsComponent - Initializing...');
-    
+
     // Ascolta gli aggiornamenti dei team
-    this.teamUpdateSubscription = this.teamUpdateService.teamUpdate$.subscribe(() => {
-      console.log('TeamsComponent - Team update received, refreshing all data...');
-      this.loadContent();
-    });
-    
+    this.teamUpdateService.teamUpdate$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('TeamsComponent - Team update received, refreshing all data...');
+        this.loadContent();
+      });
+
     // Forza il caricamento immediato
     this.loadContent();
-    
+
     // Ascolta i cambiamenti dell'utente
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      console.log('TeamsComponent - User updated:', user);
-      console.log('TeamsComponent - Current user after update:', this.currentUser);
-      
-      // Ricarica i dati quando cambia l'utente
-      if (user) {
-        this.loadContent();
-      }
-    });
-    
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.currentUser = user;
+        console.log('TeamsComponent - User updated:', user);
+        console.log('TeamsComponent - Current user after update:', this.currentUser);
+
+        // Ricarica i dati quando cambia l'utente
+        if (user) {
+          this.loadContent();
+        }
+      });
+
     // Debug: check if there's a token
     console.log('TeamsComponent - Has token:', this.authService.hasToken());
     console.log('TeamsComponent - Token:', this.authService.getToken());
   }
 
   ngOnDestroy(): void {
-    if (this.teamUpdateSubscription) {
-      this.teamUpdateSubscription.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadContent(): void {
@@ -135,7 +142,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
           // Ricarica i dati dei team
           this.loadTeams();
         },
-        error: (error) => {
+        error: (error: { error?: { message?: string } }) => {
           console.error('TeamsComponent - Error abandoning team:', error);
           this.errorMessage = error.error?.message || 'Failed to abandon team. Please try again.';
         }
@@ -184,42 +191,29 @@ export class TeamsComponent implements OnInit, OnDestroy {
   }
 
   // Helper methods for team display
-  isCurrentUserLeader(team: any): boolean {
+  isCurrentUserLeader(team: TeamDTO): boolean {
     if (!this.currentUser || !team) return false;
-    
-    // Check if user is the leader based on different possible structures
-    if (team.leaderSquadra && team.leaderSquadra.id) {
-      return team.leaderSquadra.id === this.currentUser.id;
-    }
-    
+
     if (team.leaderId) {
       return team.leaderId === this.currentUser.id;
     }
-    
+
     return false;
   }
 
-  getTeamMemberCount(team: any): number {
+  getTeamMemberCount(team: TeamDTO): number {
     if (!team) return 0;
-    
-    if (team.membri && Array.isArray(team.membri)) {
-      return team.membri.length;
-    }
-    
+
     if (team.membriIds && Array.isArray(team.membriIds)) {
       return team.membriIds.length;
     }
-    
+
     return 0;
   }
 
-  getTeamMembers(team: any): any[] {
+  getTeamMembers(team: TeamDTO): Array<{ id: string; nome: string; cognome: string }> {
     if (!team) return [];
-    
-    if (team.membri && Array.isArray(team.membri)) {
-      return team.membri;
-    }
-    
+
     // If we only have member names/IDs, create placeholder objects
     if (team.membriNomi && Array.isArray(team.membriNomi)) {
       return team.membriNomi.map((nome: string, index: number) => ({
@@ -228,21 +222,17 @@ export class TeamsComponent implements OnInit, OnDestroy {
         id: team.membriIds?.[index] || ''
       }));
     }
-    
+
     return [];
   }
 
-  isTeamLeader(member: any, team: any): boolean {
+  isTeamLeader(member: { id: string }, team: TeamDTO): boolean {
     if (!member || !team) return false;
-    
-    if (team.leaderSquadra && team.leaderSquadra.id) {
-      return member.id === team.leaderSquadra.id;
-    }
-    
+
     if (team.leaderId) {
       return member.id === team.leaderId;
     }
-    
+
     return false;
   }
 

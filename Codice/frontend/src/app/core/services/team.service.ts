@@ -19,14 +19,14 @@ export class TeamService {
     return this.http.get<TeamDTO>(`${this.API_URL}/${teamId}`);
   }
 
-  creaTeam(request: CreaTeamRequest): Observable<any> {
-    return this.http.post(`${this.API_URL}`, request);
+  creaTeam(request: CreaTeamRequest): Observable<TeamDTO> {
+    return this.http.post<TeamDTO>(`${this.API_URL}`, request);
   }
 
 
 
-  abbandonaTeam(teamId: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${teamId}/members/me`);
+  abbandonaTeam(teamId: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${teamId}/members/me`);
   }
 
   transferLeadership(teamId: string, newLeaderId: string): Observable<TeamDTO> {

@@ -4,7 +4,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import hackhub.app.Application.Requests.CreaSegnalazioneRequest;
 import hackhub.app.Application.Services.Interfaces.ISegnalazioneService;
-import hackhub.app.Core.POJO_Entities.Segnalazione;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
@@ -36,13 +35,13 @@ public class SegnalazioneController extends AbstractController {
    * @return la segnalazione creata
    */
   @PostMapping("")
-  public ResponseEntity<Segnalazione> creaSegnalazione(
+  public ResponseEntity<SegnalazioneDTO> creaSegnalazione(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaSegnalazioneRequest request
   ) {
         User user = getAuthenticatedUser(token);
         validateRequest(validator.validateCreation(request));
-        Segnalazione segnalazione = service.creaSegnalazione(request, user.getId());
+        SegnalazioneDTO segnalazione = service.creaSegnalazione(request, user.getId());
         return ResponseEntity.ok(segnalazione);
     }
 
@@ -54,7 +53,7 @@ public class SegnalazioneController extends AbstractController {
      * @return Una lista di Segnalazioni.
      */
     @GetMapping
-    public ResponseEntity<?> getSegnalazioni(@RequestParam String hackathonId,
+    public ResponseEntity<List<SegnalazioneDTO>> getSegnalazioni(@RequestParam String hackathonId,
             @RequestHeader("Authorization") String token) {
         User user = getAuthenticatedUser(token);
         validateIds(hackathonId);

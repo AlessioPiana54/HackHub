@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { switchMap, catchError } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { TeamService } from '../../../../core/services/team.service';
@@ -11,7 +12,9 @@ import { HackathonSummaryDTO, StatoHackathon } from '../../../../core/models/hac
   templateUrl: './hackathons.component.html',
   styleUrls: ['./hackathons.component.scss']
 })
-export class HackathonsComponent implements OnInit {
+export class HackathonsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   activeFilter = 'all';
   hackathons: HackathonSummaryDTO[] = [];
   myHackathonIds: Set<string> = new Set();
@@ -28,31 +31,40 @@ export class HackathonsComponent implements OnInit {
     this.loadHackathons();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadHackathons(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.hackathonService.getHackathons().subscribe({
-      next: (hackathons) => {
-        this.hackathons = hackathons;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load hackathons. Please try again.';
-        this.isLoading = false;
-      }
-    });
+    this.hackathonService.getHackathons()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (hackathons) => {
+          this.hackathons = hackathons;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage = 'Failed to load hackathons. Please try again.';
+          this.isLoading = false;
+        }
+      });
 
     // Load user's registered hackathons (silently — no hard error if user has no team)
-    this.hackathonService.getMyHackathons().subscribe({
-      next: (myHackathons) => {
-        this.myHackathonIds = new Set(myHackathons.map(h => h.id));
-      },
-      error: () => {
-        // If user has no token or no team, just leave the set empty
-        this.myHackathonIds = new Set();
-      }
-    });
+    this.hackathonService.getMyHackathons()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (myHackathons) => {
+          this.myHackathonIds = new Set(myHackathons.map(h => h.id));
+        },
+        error: () => {
+          // If user has no token or no team, just leave the set empty
+          this.myHackathonIds = new Set();
+        }
+      });
   }
 
   get filteredHackathons(): HackathonSummaryDTO[] {
@@ -99,14 +111,15 @@ export class HackathonsComponent implements OnInit {
         }
         return this.hackathonService.joinHackathon(hackathon.id, teams[0].id);
       }),
-      catchError(error => {
+      catchError((error: { message?: string; error?: { message?: string } }) => {
         if (error.message === 'NO_TEAM') {
           this.errorMessage = 'Devi essere in un team per iscriverti a un hackathon.';
         } else {
           this.errorMessage = error.error?.message || 'Errore durante l\'iscrizione. Riprova.';
         }
         return of(null);
-      })
+      }),
+      takeUntil(this.destroy$)
     ).subscribe(response => {
       if (response) {
         console.log('Team successfully registered:', response);

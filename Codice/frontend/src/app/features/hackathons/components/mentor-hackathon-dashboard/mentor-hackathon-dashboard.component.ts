@@ -1,21 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { SupportRequestService, SupportRequest } from '../../../../core/services/support-request.service';
 import { ReportService, Report } from '../../../../core/services/report.service';
-import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
+import { HackathonSummaryDTO, PartecipazioneDTO } from '../../../../core/models/hackathon.model';
 
 @Component({
   selector: 'app-mentor-hackathon-dashboard',
   templateUrl: './mentor-hackathon-dashboard.component.html',
   styleUrls: ['./mentor-hackathon-dashboard.component.scss']
 })
-export class MentorHackathonDashboardComponent implements OnInit {
+export class MentorHackathonDashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hackathonId: string | null = null;
   hackathon: HackathonSummaryDTO | null = null;
   supportRequests: SupportRequest[] = [];
   reports: Report[] = [];
-  participants: any[] = [];
+  participants: PartecipazioneDTO[] = [];
   activeTab: 'support' | 'reports' = 'support';
   isLoading = true;
 
@@ -34,12 +38,19 @@ export class MentorHackathonDashboardComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      this.hackathonId = params.get('id');
-      if (this.hackathonId) {
-        this.loadData();
-      }
-    });
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.hackathonId = params.get('id');
+        if (this.hackathonId) {
+          this.loadData();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadData(): void {
@@ -54,7 +65,7 @@ export class MentorHackathonDashboardComponent implements OnInit {
         this.loadParticipants();
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error('Error loading hackathon details:', err);
         this.isLoading = false;
         alert('Errore nel caricamento dell\'hackathon.');
@@ -93,7 +104,8 @@ export class MentorHackathonDashboardComponent implements OnInit {
           alert('Call proposta con successo!');
           this.loadSupportRequests();
         },
-        error: (err) => alert('Errore: ' + (err.error?.message || err.message))
+        error: (err: { error?: { message?: string }; message?: string }) =>
+          alert('Errore: ' + (err.error?.message || err.message))
       });
     }
   }
@@ -123,7 +135,8 @@ export class MentorHackathonDashboardComponent implements OnInit {
         this.closeReportModal();
         this.loadReports();
       },
-      error: (err) => alert('Errore: ' + (err.error?.message || err.message))
+      error: (err: { error?: { message?: string }; message?: string }) =>
+        alert('Errore: ' + (err.error?.message || err.message))
     });
   }
 }

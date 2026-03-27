@@ -1,12 +1,12 @@
 package hackhub.app.Presentation.Controllers;
 
+import hackhub.app.Application.DTOs.MessageResponse;
 import hackhub.app.Application.DTOs.RichiestaSupportoDTO;
 import hackhub.app.Application.Requests.CreaRichiestaSupportoRequest;
 import hackhub.app.Application.Requests.ProponiCallRequest;
 import hackhub.app.Application.Services.Interfaces.IRichiestaSupportoService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
-import hackhub.app.Core.POJO_Entities.RichiestaSupporto;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.RichiestaSupportoValidator;
 import java.util.List;
@@ -42,14 +42,14 @@ public class RichiestaSupportoController extends AbstractController {
    * @return La richiesta creata o un errore di validazione.
    */
   @PostMapping("")
-  public ResponseEntity<?> creaRichiesta(
+  public ResponseEntity<MessageResponse> creaRichiesta(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaRichiestaSupportoRequest request
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(validator.validateCreation(request));
     supportoService.creaRichiestaSupporto(request, user.getId());
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(new MessageResponse("Richiesta di supporto creata con successo."));
   }
 
   /**
@@ -61,7 +61,7 @@ public class RichiestaSupportoController extends AbstractController {
    * @return Una lista di Richieste di Supporto.
    */
   @GetMapping("")
-  public ResponseEntity<?> getRichiestePerMentore(
+  public ResponseEntity<List<RichiestaSupportoDTO>> getRichiestePerMentore(
     @RequestParam String hackathonId,
     @RequestHeader("Authorization") String token
   ) {
@@ -82,14 +82,14 @@ public class RichiestaSupportoController extends AbstractController {
    * @return La richiesta aggiornata con la proposta di call.
    */
   @PatchMapping("/{id}/call")
-  public ResponseEntity<?> proponiCall(
+  public ResponseEntity<RichiestaSupportoDTO> proponiCall(
     @RequestHeader("Authorization") String token,
     @PathVariable String id,
     @RequestBody ProponiCallRequest request
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(validator.validateProponiCall(request));
-    RichiestaSupporto richiesta = supportoService.proponiCall(
+    RichiestaSupportoDTO richiesta = supportoService.proponiCall(
       request,
       user.getId(),
       id
@@ -106,7 +106,7 @@ public class RichiestaSupportoController extends AbstractController {
    * @return Una lista di Richieste di Supporto.
    */
   @GetMapping("/proposte-call")
-  public ResponseEntity<?> getRichiesteGestitePerTeam(
+  public ResponseEntity<List<RichiestaSupportoDTO>> getRichiesteGestitePerTeam(
     @RequestParam String hackathonId,
     @RequestParam String teamId,
     @RequestHeader("Authorization") String token

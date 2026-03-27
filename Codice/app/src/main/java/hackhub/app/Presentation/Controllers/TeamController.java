@@ -2,11 +2,11 @@ package hackhub.app.Presentation.Controllers;
 
 import hackhub.app.Application.DTOs.MessageResponse;
 import hackhub.app.Application.DTOs.TeamDTO;
+import hackhub.app.Application.Exceptions.BusinessRuleException;
 import hackhub.app.Application.Requests.CreaTeamRequest;
 import hackhub.app.Application.Services.Interfaces.ITeamService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
-import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.TeamValidator;
 import java.util.List;
@@ -46,7 +46,7 @@ public class TeamController extends AbstractController {
    * @return Il team creato o un errore di validazione.
    */
   @PostMapping("")
-  public ResponseEntity<?> creaTeam(
+  public ResponseEntity<TeamDTO> creaTeam(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaTeamRequest request
   ) {
@@ -54,8 +54,8 @@ public class TeamController extends AbstractController {
 
     User user = getAuthenticatedUser(token);
     validateRequest(teamValidator.validateCreation(request));
-    Team team = teamService.creaTeam(request, user.getId());
-    logger.info("Team creato con successo: {}", team.getNomeTeam());
+    TeamDTO team = teamService.creaTeam(request, user.getId());
+    logger.info("Team creato con successo: {}", team.getNome());
     return ResponseEntity.ok(team);
   }
 
@@ -68,23 +68,23 @@ public class TeamController extends AbstractController {
    * @return Il team aggiornato.
    */
   @PutMapping("/{teamId}")
-  public ResponseEntity<?> updateTeam(
+  public ResponseEntity<TeamDTO> updateTeam(
     @RequestHeader("Authorization") String token,
     @PathVariable String teamId,
     @RequestBody hackhub.app.Application.Requests.UpdateTeamRequest request
   ) {
     logger.debug("TeamController.updateTeam() called for teamId: {}", teamId);
-    
+
     User user = getAuthenticatedUser(token);
     validateIds(teamId);
-    
+
     // Validazione base
     if ((request.getNomeTeam() == null || request.getNomeTeam().trim().isEmpty())) {
-      return ResponseEntity.badRequest().body(new MessageResponse("Nessun dato da aggiornare fornito."));
+      throw new BusinessRuleException("Nessun dato da aggiornare fornito.");
     }
-    
-    Team team = teamService.updateTeam(teamId, request, user.getId());
-    logger.info("Team aggiornato: {}", team.getNomeTeam());
+
+    TeamDTO team = teamService.updateTeam(teamId, request, user.getId());
+    logger.info("Team aggiornato: {}", team.getNome());
     return ResponseEntity.ok(team);
   }
 
@@ -96,7 +96,7 @@ public class TeamController extends AbstractController {
    * @return Un messaggio di conferma.
    */
   @DeleteMapping("/{teamId}/members/me")
-  public ResponseEntity<?> abbandonaTeam(
+  public ResponseEntity<MessageResponse> abbandonaTeam(
     @RequestHeader("Authorization") String token,
     @PathVariable String teamId
   ) {
@@ -120,7 +120,7 @@ public class TeamController extends AbstractController {
    * @return Il team aggiornato.
    */
   @PatchMapping("/{teamId}/leader/{newLeaderId}")
-  public ResponseEntity<?> trasferisciLeadership(
+  public ResponseEntity<TeamDTO> trasferisciLeadership(
     @RequestHeader("Authorization") String token,
     @PathVariable String teamId,
     @PathVariable String newLeaderId
@@ -129,7 +129,7 @@ public class TeamController extends AbstractController {
 
     User user = getAuthenticatedUser(token);
     validateIds(teamId, newLeaderId);
-    Team team = teamService.trasferisciLeadership(teamId, newLeaderId, user.getId());
+    TeamDTO team = teamService.trasferisciLeadership(teamId, newLeaderId, user.getId());
     logger.info("Leadership trasferita nel team {} a {}", teamId, newLeaderId);
     return ResponseEntity.ok(team);
   }

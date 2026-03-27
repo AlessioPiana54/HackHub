@@ -62,3 +62,18 @@ export interface Hackathon {
     cognome: string;
   };
 }
+
+export interface ClassificaTeamDTO {
+  teamId: string;
+  nomeTeam: string;
+  punteggio: number;
+}
+
+export interface PartecipazioneDTO {
+  id: string;
+  teamId: string;
+  nomeTeam: string;
+  hackathonId: string;
+  nomeHackathon: string;
+  dataIscrizione: string;
+}

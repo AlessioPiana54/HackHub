@@ -1,5 +1,8 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.DTOs.SottomissioneDTO;
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
@@ -13,6 +16,7 @@ import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +55,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
    *                                  già sottomesso
    * @throws SecurityException        se l'utente non fa parte del team
    */
-  public Sottomissione inviaSottomissione(
+  public SottomissioneDTO inviaSottomissione(
     InviaSottomissioneRequest request,
     String userId
   ) {
@@ -69,7 +73,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
 
     // Check if hackathon is in correct state for submissions
     if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
+      throw new BusinessRuleException(
         "Le sottomissioni sono accettate solo durante l'hackathon."
       );
     }
@@ -88,7 +92,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
         request.getIdTeam()
       );
     if (esistente) {
-      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
+      throw new BusinessRuleException(
         "Il team ha già inviato una sottomissione per questo hackathon."
       );
     }
@@ -108,7 +112,8 @@ public class SottomissioneService extends AbstractService implements ISottomissi
       java.util.List.of("GitHub")
     );
 
-    return unitOfWork.sottomissioneRepository().save(sottomissione);
+    Sottomissione saved = unitOfWork.sottomissioneRepository().save(sottomissione);
+    return convertToDTO(saved);
   }
 
   /**
@@ -133,13 +138,13 @@ public class SottomissioneService extends AbstractService implements ISottomissi
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
     if (hackathon.getStato() != StatoHackathon.IN_VALUTAZIONE) {
-      throw new IllegalStateException(
+      throw new BusinessRuleException(
         "L'Hackathon non è in fase di valutazione."
       );
     }
 
     if (!hackathon.getGiudice().getId().equals(giudiceId)) {
-      throw new SecurityException(
+      throw new UnauthorizedOperationException(
         "Solo il giudice dell'Hackathon può valutare le sottomissioni."
       );
     }
@@ -151,7 +156,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
         .valutazioneRepository()
         .existsBySottomissioneId(sottomissione.getId())
     ) {
-      throw new IllegalArgumentException(
+      throw new BusinessRuleException(
         "Questa sottomissione è già stata valutata."
       );
     }
@@ -181,7 +186,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
    * @throws IllegalStateException    se l'hackathon non è in corso
    * @throws SecurityException        se l'utente non fa parte del team
    */
-  public Sottomissione modificaSottomissione(
+  public SottomissioneDTO modificaSottomissione(
     ModificaSottomissioneRequest request,
     String userId,
     String sottomissioneId
@@ -194,7 +199,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
         java.util.List.of("GitHub")
       )
     ) {
-      throw new IllegalArgumentException(
+      throw new BusinessRuleException(
         "Link repository non valido o non supportato."
       );
     }
@@ -204,7 +209,7 @@ public class SottomissioneService extends AbstractService implements ISottomissi
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
     if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
-      throw new IllegalStateException("Le sottomissioni sono chiuse.");
+      throw new BusinessRuleException("Le sottomissioni sono chiuse.");
     }
 
     validateUserInTeam(
@@ -216,8 +221,8 @@ public class SottomissioneService extends AbstractService implements ISottomissi
     sottomissione.setLinkProgetto(request.getLinkProgetto());
     sottomissione.setDescrizione(request.getDescrizione());
 
-    unitOfWork.sottomissioneRepository().save(sottomissione);
-    return sottomissione;
+    Sottomissione saved = unitOfWork.sottomissioneRepository().save(sottomissione);
+    return convertToDTO(saved);
   }
 
   /**
@@ -226,18 +231,40 @@ public class SottomissioneService extends AbstractService implements ISottomissi
    * @param userId L'ID dell'utente.
    * @return Lista di sottomissioni del team.
    */
-  public List<Sottomissione> getTeamSubmissions(String userId) {
+  public List<SottomissioneDTO> getTeamSubmissions(String userId) {
     return unitOfWork
       .sottomissioneRepository()
-      .findByPartecipazione_Team_Membri_Id(userId);
+      .findByPartecipazione_Team_Membri_Id(userId)
+      .stream()
+      .map(this::convertToDTO)
+      .collect(Collectors.toList());
   }
 
   /**
    * Recupera tutte le sottomissioni per un specifico Hackathon.
    */
-  public List<Sottomissione> getSubmissionsByHackathon(String hackathonId) {
+  public List<SottomissioneDTO> getSubmissionsByHackathon(String hackathonId) {
     return unitOfWork
       .sottomissioneRepository()
-      .findByPartecipazioneHackathonId(hackathonId);
+      .findByPartecipazioneHackathonId(hackathonId)
+      .stream()
+      .map(this::convertToDTO)
+      .collect(Collectors.toList());
+  }
+
+  // --- Private Helper Methods ---
+
+  private SottomissioneDTO convertToDTO(Sottomissione s) {
+    return new SottomissioneDTO(
+      s.getId(),
+      s.getHackathon().getId(),
+      s.getTeam().getId(),
+      s.getTeam().getNomeTeam(),
+      s.getMittente().getId(),
+      s.getMittente().getNome() + " " + s.getMittente().getCognome(),
+      s.getLinkProgetto(),
+      s.getDescrizione(),
+      s.getDataSottomissione()
+    );
   }
 }

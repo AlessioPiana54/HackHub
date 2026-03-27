@@ -1,16 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { InvitationsService } from '../../../../core/services/invitations.service';
 import { TeamDTO } from '../../../../core/models/team.model';
+import { UserDTO } from '../../../../core/models/user.model';
 
 @Component({
   selector: 'app-team-manage',
   templateUrl: './team-manage.component.html',
   styleUrls: ['./team-manage.component.scss']
 })
-export class TeamManageComponent implements OnInit {
+export class TeamManageComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   team: TeamDTO | null = null;
   isLoading = true;
   errorMessage = '';
@@ -23,9 +28,9 @@ export class TeamManageComponent implements OnInit {
   inviteEmail: string = '';
   inviteMessage: string = '';
   inviteError: string = '';
-  
+
   // Utente corrente
-  currentUser: any = null;
+  currentUser: UserDTO | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -36,9 +41,11 @@ export class TeamManageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.currentUser = user;
+      });
 
     this.teamId = this.route.snapshot.paramMap.get('teamId') || '';
     if (this.teamId) {
@@ -47,6 +54,11 @@ export class TeamManageComponent implements OnInit {
       this.errorMessage = 'Team ID not provided';
       this.isLoading = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadTeamDetails(): void {

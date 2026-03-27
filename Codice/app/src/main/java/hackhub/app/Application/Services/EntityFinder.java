@@ -1,5 +1,6 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
@@ -33,7 +34,7 @@ public class EntityFinder {
             .userRepository()
             .findById(id)
             .orElseThrow(() ->
-                new IllegalArgumentException("Utente non trovato nel database: " + id)
+                new EntityNotFoundException("Utente non trovato nel database: " + id)
             );
     }
 
@@ -49,7 +50,7 @@ public class EntityFinder {
             .hackathonRepository()
             .findByIdString(id)
             .orElseThrow(() ->
-                new IllegalArgumentException("Hackathon non trovato: " + id)
+                new EntityNotFoundException("Hackathon non trovato: " + id)
             );
     }
 
@@ -64,7 +65,7 @@ public class EntityFinder {
         return unitOfWork
             .teamRepository()
             .findByIdString(id)
-            .orElseThrow(() -> new IllegalArgumentException("Team non trovato: " + id)
+            .orElseThrow(() -> new EntityNotFoundException("Team non trovato: " + id)
             );
     }
 
@@ -85,7 +86,7 @@ public class EntityFinder {
             .partecipazioneRepository()
             .findByTeamIdAndHackathonId(teamId, hackathonId)
             .orElseThrow(() ->
-                new IllegalArgumentException(
+                new EntityNotFoundException(
                     "Partecipazione non trovata per il team e hackathon specificati."
                 )
             );
@@ -104,7 +105,7 @@ public class EntityFinder {
             .sottomissioneRepository()
             .findById(id)
             .orElseThrow(() ->
-                new IllegalArgumentException("Sottomissione non trovata: " + id)
+                new EntityNotFoundException("Sottomissione non trovata: " + id)
             );
     }
 }

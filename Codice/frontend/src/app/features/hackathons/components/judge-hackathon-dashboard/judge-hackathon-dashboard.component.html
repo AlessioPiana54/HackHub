@@ -29,7 +29,7 @@
       <div class="card-grid" *ngIf="submissions.length > 0; else noSubmissions">
         <div class="submission-card" *ngFor="let s of submissions">
           <div class="card-header">
-            <h3>{{ s.team.nomeTeam }}</h3>
+            <h3>{{ s.partecipazione.team.nomeTeam }}</h3>
           </div>
           <p class="desc">{{ s.descrizione }}</p>
           <div class="links">
@@ -37,7 +37,7 @@
           </div>
           <div class="actions">
             <button class="btn-eval" (click)="openEvaluationModal(s)">
-              {{ s.valutata ? '✅ Modifica Voto' : '📝 Valuta Roma' }}
+              {{ s.valutazioni.length ? '✅ Modifica Voto' : '📝 Valuta Roma' }}
             </button>
           </div>
         </div>
@@ -66,7 +66,7 @@
   <div class="modal-overlay" *ngIf="showEvaluationModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>⭐ Valuta Progetto: {{ selectedSubmission?.team?.nomeTeam }}</h2>
+        <h2>⭐ Valuta Progetto: {{ selectedSubmission?.partecipazione?.team?.nomeTeam }}</h2>
         <button class="close-btn" (click)="closeEvaluationModal()">×</button>
       </div>
       

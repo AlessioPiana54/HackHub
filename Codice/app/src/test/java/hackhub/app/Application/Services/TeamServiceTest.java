@@ -42,8 +42,8 @@ class TeamServiceTest {
         when(entityFinder.findUserOrThrow("u-1")).thenReturn(user);
         when(teamRepository.existsByNomeTeam("TeamX")).thenReturn(false);
 
-        SecurityException ex = assertThrows(
-                SecurityException.class,
+        hackhub.app.Application.Exceptions.UnauthorizedOperationException ex = assertThrows(
+                hackhub.app.Application.Exceptions.UnauthorizedOperationException.class,
                 () -> teamService.creaTeam(new CreaTeamRequest("TeamX"), "u-1")
         );
         assertEquals("L'utente specificato non ha i permessi necessari.", ex.getMessage());
@@ -63,12 +63,12 @@ class TeamServiceTest {
 
         when(entityFinder.findTeamOrThrow("team-1")).thenReturn(team);
         when(entityFinder.findUserOrThrow("user-2")).thenReturn(member);
-        doThrow(new SecurityException("L'utente non fa parte di questo Team."))
+        doThrow(new hackhub.app.Application.Exceptions.UnauthorizedOperationException("L'utente non fa parte di questo Team."))
                 .when(authorizationChecker)
                 .validateUserInTeam(any(Team.class), eq("user-2"), anyString());
 
-        SecurityException ex = assertThrows(
-                SecurityException.class,
+        hackhub.app.Application.Exceptions.UnauthorizedOperationException ex = assertThrows(
+                hackhub.app.Application.Exceptions.UnauthorizedOperationException.class,
                 () -> teamService.abbandonaTeam("team-1", "user-2")
         );
         assertEquals("L'utente non fa parte di questo Team.", ex.getMessage());
@@ -83,8 +83,8 @@ class TeamServiceTest {
         Team team = new Team("Alpha", leader);
         when(entityFinder.findTeamOrThrow("team-1")).thenReturn(team);
 
-        SecurityException ex = assertThrows(
-                SecurityException.class,
+        hackhub.app.Application.Exceptions.UnauthorizedOperationException ex = assertThrows(
+                hackhub.app.Application.Exceptions.UnauthorizedOperationException.class,
                 () -> teamService.trasferisciLeadership("team-1", "newLeader", "notLeader")
         );
         assertEquals("Solo l'attuale Leader può trasferire la leadership.", ex.getMessage());

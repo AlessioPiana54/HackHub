@@ -52,3 +52,30 @@ export interface CreaValutazioneRequest {
   giudizio: string;
   voto: number;
 }
+
+export interface SottomissioneDTO {
+  id: string;
+  linkProgetto: string;
+  descrizione: string;
+  dataInvio: string;
+  partecipazioneId: string;
+  nomeTeam: string;
+  nomeHackathon: string;
+  mittente: {
+    id: string;
+    nome: string;
+    cognome: string;
+  };
+  valutazioni: ValutazioneDTO[];
+}
+
+export interface ValutazioneDTO {
+  id: string;
+  giudizio: string;
+  voto: number;
+  giudice: {
+    id: string;
+    nome: string;
+    cognome: string;
+  };
+}

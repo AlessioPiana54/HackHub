@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { TeamService } from '../../../../core/services/team.service';
 import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
@@ -9,7 +11,9 @@ import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
   templateUrl: './hackathon-details.component.html',
   styleUrls: ['./hackathon-details.component.css']
 })
-export class HackathonDetailsComponent implements OnInit {
+export class HackathonDetailsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hackathon: HackathonSummaryDTO | null = null;
   isLoading = true;
   errorMessage = '';
@@ -31,50 +35,59 @@ export class HackathonDetailsComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadHackathonByIndex(index: number): void {
     this.isLoading = true;
     this.errorMessage = '';
 
     // Carichiamo tutti gli hackathons e prendiamo quello per indice
-    this.hackathonService.getHackathons().subscribe({
-      next: (hackathons) => {
-        if (hackathons[index]) {
-          // Aggiungiamo i dati mancanti per la visualizzazione
-          const hackathonData = hackathons[index];
-          this.hackathon = {
-            ...hackathonData,
-            id: `hackathon-${index}`,
-            descrizione: `Hackathon ${hackathonData.nome} - ${hackathonData.regolamento.substring(0, 100)}...`,
-            inizioIscrizioni: hackathonData.dataInizio, // Temporaneamente usiamo dataInizio
-            scadenzaIscrizioni: hackathonData.dataFine, // Temporaneamente usiamo dataFine
-          };
-          this.isLoading = false;
-        } else {
-          this.errorMessage = 'Hackathon not found';
+    this.hackathonService.getHackathons()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (hackathons) => {
+          if (hackathons[index]) {
+            // Aggiungiamo i dati mancanti per la visualizzazione
+            const hackathonData = hackathons[index];
+            this.hackathon = {
+              ...hackathonData,
+              id: `hackathon-${index}`,
+              descrizione: `Hackathon ${hackathonData.nome} - ${hackathonData.regolamento.substring(0, 100)}...`,
+              inizioIscrizioni: hackathonData.dataInizio, // Temporaneamente usiamo dataInizio
+              scadenzaIscrizioni: hackathonData.dataFine, // Temporaneamente usiamo dataFine
+            };
+            this.isLoading = false;
+          } else {
+            this.errorMessage = 'Hackathon not found';
+            this.isLoading = false;
+          }
+        },
+        error: () => {
+          this.errorMessage = 'Failed to load hackathon details. Please try again.';
           this.isLoading = false;
         }
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load hackathon details. Please try again.';
-        this.isLoading = false;
-      }
-    });
+      });
   }
 
   loadHackathonDetails(id: string): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.hackathonService.getHackathonById(id).subscribe({
-      next: (hackathon) => {
-        this.hackathon = hackathon;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load hackathon details. Please try again.';
-        this.isLoading = false;
-      }
-    });
+    this.hackathonService.getHackathonById(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (hackathon) => {
+          this.hackathon = hackathon;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage = 'Failed to load hackathon details. Please try again.';
+          this.isLoading = false;
+        }
+      });
   }
 
   goBack(): void {
@@ -90,28 +103,32 @@ export class HackathonDetailsComponent implements OnInit {
     }
 
     // Fetch the user's team first, then join
-    this.teamService.getMyTeams().subscribe({
-      next: (teams) => {
-        if (!teams || teams.length === 0) {
-          this.errorMessage = 'Devi essere in un team per iscriverti a un hackathon.';
-          return;
-        }
-        const teamId = teams[0].id;
-        this.hackathonService.joinHackathon(this.hackathon!.id, teamId).subscribe({
-          next: (response) => {
-            console.log('Team successfully registered:', response);
-            alert(`Team iscritto con successo a ${this.hackathon?.nome || 'questo hackathon'}!`);
-          },
-          error: (error) => {
-            console.error('Registration failed:', error);
-            this.errorMessage = error.error?.message || 'Errore durante l\'iscrizione. Riprova.';
+    this.teamService.getMyTeams()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (teams) => {
+          if (!teams || teams.length === 0) {
+            this.errorMessage = 'Devi essere in un team per iscriverti a un hackathon.';
+            return;
           }
-        });
-      },
-      error: () => {
-        this.errorMessage = 'Impossibile recuperare le informazioni del team. Riprova.';
-      }
-    });
+          const teamId = teams[0].id;
+          this.hackathonService.joinHackathon(this.hackathon!.id, teamId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (response) => {
+                console.log('Team successfully registered:', response);
+                alert(`Team iscritto con successo a ${this.hackathon?.nome || 'questo hackathon'}!`);
+              },
+              error: (error: { error?: { message?: string } }) => {
+                console.error('Registration failed:', error);
+                this.errorMessage = error.error?.message || 'Errore durante l\'iscrizione. Riprova.';
+              }
+            });
+        },
+        error: () => {
+          this.errorMessage = 'Impossibile recuperare le informazioni del team. Riprova.';
+        }
+      });
   }
 
   getStatusDisplay(stato: string): string {

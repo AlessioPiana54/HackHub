@@ -1,5 +1,6 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
@@ -27,7 +28,7 @@ public class AuthorizationChecker {
         String errorMessage
     ) {
         if (user.getRuolo() != expectedRole) {
-            throw new SecurityException(errorMessage);
+            throw new UnauthorizedOperationException(errorMessage);
         }
     }
 
@@ -52,7 +53,7 @@ public class AuthorizationChecker {
             .anyMatch(m -> m.getId().equals(userId));
 
         if (!isLeader && !isMembro) {
-            throw new SecurityException(errorMessage);
+            throw new UnauthorizedOperationException(errorMessage);
         }
     }
 
@@ -76,7 +77,7 @@ public class AuthorizationChecker {
             .anyMatch(m -> m.getId().equals(possibleMentorId));
 
         if (!isMentor) {
-            throw new SecurityException(errorMessage);
+            throw new UnauthorizedOperationException(errorMessage);
         }
     }
 }

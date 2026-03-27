@@ -82,13 +82,10 @@ services:
       dockerfile: Dockerfile
     container_name: hackhub-frontend-prod
     restart: always
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8080}
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      # Monta i certificati TLS (generati con Certbot o forniti dal cloud provider)
-      # Sostituisci con il percorso reale dei tuoi certificati
-      - ${TLS_CERT_DIR:-./certs}:/etc/nginx/certs:ro
+      - "80:8080"
     depends_on:
       backend:
         condition: service_healthy

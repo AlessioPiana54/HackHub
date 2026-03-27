@@ -19,12 +19,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   /**
-   * Gestisce le eccezioni di tipo IllegalArgumentException e
-   * IllegalStateException.
-   * Restituisce uno stato HTTP 400 (Bad Request).
+   * Gestisce le eccezioni di tipo EntityNotFoundException.
+   * Restituisce uno stato HTTP 404 (Not Found).
    *
    * @param e L'eccezione catturata.
-   * @return Una ResponseEntity con lo stato 400 e il messaggio dell'errore.
+   * @return Una ResponseEntity con lo stato 404 e il messaggio dell'errore.
    */
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<MessageResponse> handleEntityNotFound(EntityNotFoundException e) {

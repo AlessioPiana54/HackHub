@@ -42,7 +42,7 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest("Mario", "Rossi", "mario@hackhub.it", "Test1234!");
         when(userRepository.findByEmail(request.getEmail())).thenReturn(new User());
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> authService.register(request));
+        hackhub.app.Application.Exceptions.BusinessRuleException ex = assertThrows(hackhub.app.Application.Exceptions.BusinessRuleException.class, () -> authService.register(request));
         assertEquals("Email già registrata.", ex.getMessage());
         verify(userRepository, never()).save(any());
         verify(passwordHasher, never()).hash(anyString());
@@ -73,7 +73,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("missing@hackhub.it", "Test1234!");
         when(userRepository.findByEmail(request.getEmail())).thenReturn(null);
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> authService.login(request));
+        hackhub.app.Application.Exceptions.EntityNotFoundException ex = assertThrows(hackhub.app.Application.Exceptions.EntityNotFoundException.class, () -> authService.login(request));
         assertEquals("Credenziali non valide.", ex.getMessage());
         verify(passwordHasher, never()).verify(anyString(), anyString());
         verify(jwtService, never()).generateToken(any());

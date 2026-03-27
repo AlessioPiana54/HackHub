@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: hackhub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: hackhub-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: hackhub-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hackhub-config
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hackhub-config
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hackhub-secrets
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: hackhub-secrets
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: hackhub-config
+                  key: JWT_EXPIRATION
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: hackhub-config
+                  key: ALLOWED_ORIGINS
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: hackhub
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8080
+      targetPort: 8080

@@ -1,12 +1,12 @@
 package hackhub.app.Presentation.Controllers;
 
 import hackhub.app.Application.DTOs.InvitoDTO;
+import hackhub.app.Application.DTOs.MessageResponse;
 import hackhub.app.Application.Requests.CreaInvitoRequest;
 import hackhub.app.Application.Requests.RispostaInvitoRequest;
 import hackhub.app.Application.Services.Interfaces.IInvitoService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
-import hackhub.app.Core.POJO_Entities.Invito;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Presentation.Validators.InvitoValidator;
 import java.util.List;
@@ -42,13 +42,13 @@ public class InvitoController extends AbstractController {
    * @return L'invito creato o un errore di validazione.
    */
   @PostMapping("")
-  public ResponseEntity<?> inviaInvito(
+  public ResponseEntity<InvitoDTO> inviaInvito(
     @RequestHeader("Authorization") String token,
     @RequestBody CreaInvitoRequest request
   ) {
     User user = getAuthenticatedUser(token);
     validateRequest(invitoValidator.validateCreation(request));
-    Invito invito = invitoService.inviaInvito(request, user.getId());
+    InvitoDTO invito = invitoService.inviaInvito(request, user.getId());
     return ResponseEntity.ok(invito);
   }
 
@@ -60,7 +60,7 @@ public class InvitoController extends AbstractController {
    * @return Un messaggio di conferma.
    */
   @PatchMapping("/{id}")
-  public ResponseEntity<?> rispondiInvito(
+  public ResponseEntity<MessageResponse> rispondiInvito(
     @RequestHeader("Authorization") String token,
     @PathVariable String id,
     @RequestBody RispostaInvitoRequest request
@@ -68,7 +68,7 @@ public class InvitoController extends AbstractController {
     User user = getAuthenticatedUser(token);
     validateRequest(invitoValidator.validateRisposta(request));
     invitoService.gestisciRisposta(request, user.getId(), id);
-    return ResponseEntity.ok(new hackhub.app.Application.DTOs.MessageResponse("Risposta registrata con successo."));
+    return ResponseEntity.ok(new MessageResponse("Risposta registrata con successo."));
   }
 
   /**

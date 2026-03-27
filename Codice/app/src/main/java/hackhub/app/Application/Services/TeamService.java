@@ -1,5 +1,7 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import hackhub.app.Application.Services.Interfaces.ITeamService;
 import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
@@ -74,15 +76,15 @@ public class TeamService extends AbstractService implements ITeamService {
     );
   }
 
-  public Team creaTeam(CreaTeamRequest request, String leaderId) {
-    User new_leader = findUserOrThrow(leaderId);
+  public TeamDTO creaTeam(CreaTeamRequest request, String leaderId) {
+    User newLeader = findUserOrThrow(leaderId);
 
     if (unitOfWork.teamRepository().existsByNomeTeam(request.getNomeTeam())) {
-      throw new IllegalArgumentException("Esiste già un Team con questo nome.");
+      throw new BusinessRuleException("Esiste già un Team con questo nome.");
     }
 
-    if (new_leader.getRuolo() != Ruolo.UTENTE_SENZA_TEAM) {
-      throw new SecurityException(
+    if (newLeader.getRuolo() != Ruolo.UTENTE_SENZA_TEAM) {
+      throw new UnauthorizedOperationException(
         "L'utente specificato non ha i permessi necessari."
       );
     }
@@ -97,13 +99,13 @@ public class TeamService extends AbstractService implements ITeamService {
       unitOfWork.teamRepository().deleteByLeaderId(leaderId);
     }
 
-    new_leader.setRuolo(Ruolo.LEADER_TEAM);
-    unitOfWork.userRepository().save(new_leader);
+    newLeader.setRuolo(Ruolo.LEADER_TEAM);
+    unitOfWork.userRepository().save(newLeader);
 
-    Team nuovoTeam = new Team(request.getNomeTeam(), new_leader);
+    Team nuovoTeam = new Team(request.getNomeTeam(), newLeader);
     unitOfWork.teamRepository().save(nuovoTeam);
 
-    return nuovoTeam;
+    return convertToTeamDTO(nuovoTeam);
   }
 
   /**
@@ -114,7 +116,7 @@ public class TeamService extends AbstractService implements ITeamService {
    * @param leaderId l'ID dell'utente che richiede la modifica (deve essere il leader)
    * @return il Team aggiornato
    */
-  public Team updateTeam(
+  public TeamDTO updateTeam(
     String teamId,
     hackhub.app.Application.Requests.UpdateTeamRequest request,
     String leaderId
@@ -126,7 +128,7 @@ public class TeamService extends AbstractService implements ITeamService {
       team.getLeaderSquadra() == null ||
       !team.getLeaderSquadra().getId().equals(leaderId)
     ) {
-      throw new SecurityException(
+      throw new UnauthorizedOperationException(
         "Solo il Leader del Team può modificare i dettagli del team."
       );
     }
@@ -138,7 +140,7 @@ public class TeamService extends AbstractService implements ITeamService {
       !team.getNomeTeam().equals(request.getNomeTeam())
     ) {
       if (unitOfWork.teamRepository().existsByNomeTeam(request.getNomeTeam())) {
-        throw new IllegalArgumentException(
+        throw new BusinessRuleException(
           "Esiste già un Team con questo nome."
         );
       }
@@ -146,7 +148,7 @@ public class TeamService extends AbstractService implements ITeamService {
     }
 
     unitOfWork.teamRepository().save(team);
-    return team;
+    return convertToTeamDTO(team);
   }
 
   /**
@@ -182,7 +184,7 @@ public class TeamService extends AbstractService implements ITeamService {
 
     // Check if hackathon is in registration phase
     if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
-      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
+      throw new BusinessRuleException(
         "Le iscrizioni per questo hackathon sono chiuse."
       );
     }
@@ -194,7 +196,7 @@ public class TeamService extends AbstractService implements ITeamService {
         .findByTeamIdAndHackathonId(teamId, hackathonId)
         .isPresent()
     ) {
-      throw new hackhub.app.Application.Exceptions.BusinessRuleException(
+      throw new BusinessRuleException(
         "Il team è già iscritto a questo hackathon."
       );
     }
@@ -244,7 +246,7 @@ public class TeamService extends AbstractService implements ITeamService {
       // Leader can abandon only if they are the only member
       if (team.getMembri().size() > 1) {
         logger.error("Leader cannot abandon team with multiple members!");
-        throw new IllegalArgumentException(
+        throw new BusinessRuleException(
           "Il Leader può abbandonare il team solo se è l'unico membro. Deve prima cedere il ruolo a un altro membro."
         );
       }
@@ -280,7 +282,7 @@ public class TeamService extends AbstractService implements ITeamService {
    * @param newLeaderId     L'ID dell'utente a cui cedere la leadership.
    * @param currentLeaderId L'ID dell'attuale leader.
    */
-  public Team trasferisciLeadership(
+  public TeamDTO trasferisciLeadership(
     String teamId,
     String newLeaderId,
     String currentLeaderId
@@ -292,7 +294,7 @@ public class TeamService extends AbstractService implements ITeamService {
       team.getLeaderSquadra() == null ||
       !team.getLeaderSquadra().getId().equals(currentLeaderId)
     ) {
-      throw new SecurityException(
+      throw new UnauthorizedOperationException(
         "Solo l'attuale Leader può trasferire la leadership."
       );
     }
@@ -318,7 +320,7 @@ public class TeamService extends AbstractService implements ITeamService {
     team.setLeaderSquadra(newLeader);
     unitOfWork.teamRepository().save(team);
 
-    return team;
+    return convertToTeamDTO(team);
   }
 
   /**

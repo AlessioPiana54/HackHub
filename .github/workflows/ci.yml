@@ -1,8 +1,5 @@
 name: CI/CD Pipeline
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 on:
   push:
     branches: [ main ]
@@ -49,10 +46,10 @@ jobs:
       - name: Checkout codice
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: Codice/frontend/package-lock.json
 
@@ -79,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Login a GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -92,7 +89,7 @@ jobs:
           OWNER: ${{ github.repository_owner }}
 
       - name: Build e Push immagine Backend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Codice/app
           file: ./Codice/app/Dockerfile
@@ -100,7 +97,7 @@ jobs:
           tags: ghcr.io/${{ env.OWNER_LC }}/hackhub-backend:latest
 
       - name: Build e Push immagine Frontend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Codice/frontend
           file: ./Codice/frontend/Dockerfile

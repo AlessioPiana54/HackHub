@@ -64,11 +64,11 @@ class HackathonServiceTest {
 
         when(entityFinder.findUserOrThrow(organizzatoreId)).thenReturn(organizzatore);
         when(entityFinder.findUserOrThrow(giudiceId)).thenReturn(giudice);
-        doThrow(new SecurityException("L'utente specificato come organizzatore non ha i permessi necessari."))
+        doThrow(new hackhub.app.Application.Exceptions.UnauthorizedOperationException("L'utente specificato come organizzatore non ha i permessi necessari."))
                 .when(authorizationChecker)
                 .validateUserRole(any(User.class), eq(Ruolo.ORGANIZZATORE), anyString());
 
-        assertThrows(SecurityException.class, () -> hackathonService.creaHackathon(request, organizzatoreId));
+        assertThrows(hackhub.app.Application.Exceptions.UnauthorizedOperationException.class, () -> hackathonService.creaHackathon(request, organizzatoreId));
     }
 
     @Test
@@ -78,8 +78,8 @@ class HackathonServiceTest {
 
         when(entityFinder.findHackathonOrThrow("hack-1")).thenReturn(hackathon);
 
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
+        hackhub.app.Application.Exceptions.BusinessRuleException ex = assertThrows(
+                hackhub.app.Application.Exceptions.BusinessRuleException.class,
                 () -> hackathonService.terminaFaseValutazione("hack-1", "judge-1")
         );
         assertEquals("L'Hackathon non è in fase di valutazione", ex.getMessage());
@@ -97,8 +97,8 @@ class HackathonServiceTest {
 
         when(entityFinder.findHackathonOrThrow("hack-1")).thenReturn(hackathon);
 
-        SecurityException ex = assertThrows(
-                SecurityException.class,
+        hackhub.app.Application.Exceptions.UnauthorizedOperationException ex = assertThrows(
+                hackhub.app.Application.Exceptions.UnauthorizedOperationException.class,
                 () -> hackathonService.proclamaVincitore("hack-1", "team-1", "not-org")
         );
         assertEquals("Solo l'organizzatore può proclamare il vincitore.", ex.getMessage());

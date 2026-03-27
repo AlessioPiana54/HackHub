@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { LoginRequest, LoginResponse, RegisterRequest, UserDTO } from '../models/user.model';
+import { LoginRequest, LoginResponse, RegisterRequest, UpdateProfileRequest, UserDTO } from '../models/user.model';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
@@ -35,22 +35,22 @@ export class AuthService {
     }
   }
 
-  private decodeToken(token: string): any {
+  private decodeToken(token: string): Record<string, unknown> | null {
     try {
       const payload = token.split('.')[1];
-      return JSON.parse(atob(payload));
+      return JSON.parse(atob(payload)) as Record<string, unknown>;
     } catch {
       return null;
     }
   }
 
-  private buildUserFromTokenPayload(payload: any): UserDTO | null {
+  private buildUserFromTokenPayload(payload: Record<string, unknown> | null): UserDTO | null {
     if (!payload) return null;
-    const id = payload.sub;
-    const ruolo = payload.ruolo;
-    const nome = payload.nome;
-    const cognome = payload.cognome;
-    const email = payload.email;
+    const id = payload['sub'];
+    const ruolo = payload['ruolo'];
+    const nome = payload['nome'];
+    const cognome = payload['cognome'];
+    const email = payload['email'];
 
     if (!id || !ruolo || !nome || !cognome || !email) return null;
     return { id, ruolo, nome, cognome, email } as UserDTO;
@@ -75,12 +75,12 @@ export class AuthService {
     );
   }
 
-  register(userData: RegisterRequest): Observable<any> {
-    return this.http.post(`${this.API_URL}/register`, userData);
+  register(userData: RegisterRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.API_URL}/register`, userData);
   }
 
-  logout(): Observable<any> {
-    return this.http.post(`${this.API_URL}/logout`, {}).pipe(
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/logout`, {}).pipe(
       finalize(() => {
         this.clearAuth();
         this.router.navigate(['/auth/login']);
@@ -100,7 +100,7 @@ export class AuthService {
     );
   }
 
-  updateProfile(request: any): Observable<UserDTO> {
+  updateProfile(request: UpdateProfileRequest): Observable<UserDTO> {
     return this.http.put<UserDTO>(`${this.USER_API_URL}/users/me`, request);
   }
 

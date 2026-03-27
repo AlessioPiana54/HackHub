@@ -1,5 +1,7 @@
 package hackhub.app.Presentation.Controllers;
 
+import hackhub.app.Application.DTOs.AuthResponse;
+import hackhub.app.Application.DTOs.MessageResponse;
 import hackhub.app.Application.DTOs.UserDTO;
 import hackhub.app.Application.Requests.LoginRequest;
 import hackhub.app.Application.Requests.RegisterRequest;
@@ -45,7 +47,7 @@ public class AuthController extends AbstractController {
    *         validazione.
    */
   @PostMapping("/register")
-  public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+  public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
     validateRequest(authValidator.validateRegister(request));
     authService.register(request);
 
@@ -58,12 +60,7 @@ public class AuthController extends AbstractController {
     User user = getAuthenticatedUser(token);
     UserDTO userDTO = userService.getUserProfile(user.getId());
 
-    // Crea risposta con token e dati utente
-    java.util.Map<String, Object> response = new java.util.HashMap<>();
-    response.put("token", token);
-    response.put("user", userDTO);
-
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(new AuthResponse(token, userDTO));
   }
 
   /**
@@ -74,7 +71,7 @@ public class AuthController extends AbstractController {
    *         validazione.
    */
   @PostMapping("/login")
-  public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+  public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
     validateRequest(authValidator.validateLogin(request));
     String token = authService.login(request);
 
@@ -82,12 +79,7 @@ public class AuthController extends AbstractController {
     User user = getAuthenticatedUser(token);
     UserDTO userDTO = userService.getUserProfile(user.getId());
 
-    // Crea risposta con token e dati utente
-    java.util.Map<String, Object> response = new java.util.HashMap<>();
-    response.put("token", token);
-    response.put("user", userDTO);
-
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(new AuthResponse(token, userDTO));
   }
 
   /**
@@ -98,21 +90,14 @@ public class AuthController extends AbstractController {
    *         è mancante.
    */
   @PostMapping("/logout")
-  public ResponseEntity<?> logout(
+  public ResponseEntity<MessageResponse> logout(
     @RequestHeader("Authorization") String token
   ) {
     if (token != null && !token.isEmpty()) {
       authService.logout(token);
-
-      // Restituisci risposta JSON invece di testo
-      java.util.Map<String, String> response = new java.util.HashMap<>();
-      response.put("message", "Logout effettuato con successo.");
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(new MessageResponse("Logout effettuato con successo."));
     }
 
-    // Restituisci errore JSON invece di testo
-    java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
-    errorResponse.put("error", "Token mancante.");
-    return ResponseEntity.badRequest().body(errorResponse);
+    return ResponseEntity.badRequest().body(new MessageResponse("Token mancante."));
   }
 }

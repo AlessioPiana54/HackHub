@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CreaHackathonRequest } from '../../../../core/models/hackathon.model';
@@ -11,7 +13,9 @@ import { UserDTO, Ruolo } from '../../../../core/models/user.model';
   templateUrl: './create-hackathon.component.html',
   styleUrls: ['./create-hackathon.component.scss']
 })
-export class CreateHackathonComponent implements OnInit {
+export class CreateHackathonComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   hackathonForm: FormGroup;
   isSubmitting = false;
   errorMessage = '';
@@ -68,45 +72,56 @@ export class CreateHackathonComponent implements OnInit {
   }
 
   // Metodo per creare LocalDateTime a partire da una stringa date (YYYY-MM-DD)
-  private createLocalDateTime(dateString: string): any {
+  private createLocalDateTime(dateString: string): Date {
     // Crea una data con mezzanotte nel timezone locale
     const [year, month, day] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day, 0, 0, 0);
   }
 
-  loadUsers(): void {
-    this.authService.getUsersByRole(Ruolo.GIUDICE).subscribe({
-      next: (users) => this.giudici = users,
-      error: (err) => console.error('Errore caricamento giudici:', err)
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-    this.authService.getUsersByRole(Ruolo.MENTORE).subscribe({
-      next: (users) => this.mentori = users,
-      error: (err) => console.error('Errore caricamento mentori:', err)
-    });
+  loadUsers(): void {
+    this.authService.getUsersByRole(Ruolo.GIUDICE)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (users) => this.giudici = users,
+        error: (err: Error) => console.error('Errore caricamento giudici:', err)
+      });
+
+    this.authService.getUsersByRole(Ruolo.MENTORE)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (users) => this.mentori = users,
+        error: (err: Error) => console.error('Errore caricamento mentori:', err)
+      });
   }
 
   onSubmit(): void {
     if (this.hackathonForm.valid) {
       this.isSubmitting = true;
       this.errorMessage = '';
-      
+
       const formValue = this.hackathonForm.value;
       const request: CreaHackathonRequest = {
         ...formValue,
         idMentori: formValue.idMentori
       };
-      
-      this.hackathonService.creaHackathon(request).subscribe({
-        next: () => {
-          this.isSubmitting = false;
-          this.router.navigate(['/hackathons']);
-        },
-        error: (err) => {
-          this.isSubmitting = false;
-          this.errorMessage = err.error?.message || 'Error occurred while creating the hackathon. Please try again.';
-        }
-      });
+
+      this.hackathonService.creaHackathon(request)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.isSubmitting = false;
+            this.router.navigate(['/hackathons']);
+          },
+          error: (err: { error?: { message?: string } }) => {
+            this.isSubmitting = false;
+            this.errorMessage = err.error?.message || 'Error occurred while creating the hackathon. Please try again.';
+          }
+        });
     } else {
       Object.keys(this.hackathonForm.controls).forEach(key => {
         this.hackathonForm.get(key)?.markAsTouched();

@@ -4,6 +4,9 @@
 /dist
 /tmp
 
+# Angular CLI cache (rigenerato automaticamente da ng build/serve)
+/.angular/
+
 # dependencies
 /node_modules
 
