@@ -306,6 +306,43 @@ Il Service Worker **non è attivo** con `ng serve`. Per testare le funzionalità
 
 ---
 
+## Deploy su Railway (Cloud)
+
+L'app è deployata su [Railway](https://railway.app) con tre servizi separati: PostgreSQL, Backend e Frontend.
+
+### URL pubblici
+
+- **Frontend**: `https://hackhub-frontend-production.up.railway.app`
+- **Backend**: `https://hackhub-backend-production.up.railway.app`
+
+### Configurazione servizi
+
+**Backend** — Root Directory: `Codice/app`, Dockerfile: `Codice/app/Dockerfile`, porta `8080`
+
+| Variabile | Valore |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | `dev` |
+| `DB_URL` | `jdbc:postgresql://${{Postgres.PGHOST}}:5432/${{Postgres.PGDATABASE}}` |
+| `DB_USERNAME` | `${{Postgres.PGUSER}}` |
+| `DB_PASSWORD` | `${{Postgres.PGPASSWORD}}` |
+| `JWT_SECRET` | stringa random ≥ 64 caratteri |
+| `JWT_EXPIRATION` | `86400000` |
+| `ALLOWED_ORIGINS` | `https://hackhub-frontend-production.up.railway.app` |
+
+**Frontend** — Root Directory: `Codice/frontend`, Dockerfile: `Codice/frontend/Dockerfile`, porta `8080`
+
+| Variabile | Valore |
+|---|---|
+| `BACKEND_URL` | `http://<nome-backend>.railway.internal:8080` |
+
+> L'hostname privato del backend si trova in Railway → HackHub-Backend → Settings → Networking → Private Networking.
+
+### Note
+- Il frontend comunica col backend tramite la **rete privata interna** Railway, non l'URL pubblico.
+- `ALLOWED_ORIGINS` deve corrispondere esattamente all'URL del frontend (con `https://`, senza slash finale).
+
+---
+
 ## Diagrammi
 
 ### Diagramma di Deploy

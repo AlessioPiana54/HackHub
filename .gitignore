@@ -1,2 +1,36 @@
 # Variabili d'ambiente locali
 .env
+.env.local
+.env.*.local
+
+# Certificati TLS (non committare mai chiavi private)
+certs/
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# Maven bundled (scaricato automaticamente da mvnw)
+Codice/apache-maven-3.9.4/
+
+# Build artifacts (gestiti anche nei .gitignore locali)
+**/target/
+**/dist/
+**/node_modules/
+
+# Log
+*.log
+logs/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
