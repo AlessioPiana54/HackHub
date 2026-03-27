@@ -17,14 +17,17 @@ public class RichiestaSupporto {
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "partecipazione_id")
+    @JoinColumn(name = "partecipazione_id", nullable = false)
     private Partecipazione partecipazione;
 
     @ManyToOne
-    @JoinColumn(name = "richiedente_id")
+    @JoinColumn(name = "richiedente_id", nullable = false)
     private User richiedente;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String descrizione;
+
+    @Column(nullable = false)
     private LocalDateTime dataRichiesta;
 
     private String linkCall;

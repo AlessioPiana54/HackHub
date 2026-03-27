@@ -1,5 +1,6 @@
 package hackhub.app.Core.Builders;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import hackhub.app.Core.Enums.StatoHackathon;
@@ -19,7 +20,7 @@ public class HackathonBuilder {
     private LocalDateTime dataFine;
     private String luogo;
     private String logoUrl;
-    private double premioInDenaro;
+    private BigDecimal premioInDenaro;
     private User organizzatore;
     private User giudice;
     private List<User> mentori;
@@ -59,7 +60,7 @@ public class HackathonBuilder {
         return this;
     }
 
-    public HackathonBuilder setPremioInDenaro(double premioInDenaro) {
+    public HackathonBuilder setPremioInDenaro(BigDecimal premioInDenaro) {
         this.premioInDenaro = premioInDenaro;
         return this;
     }

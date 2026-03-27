@@ -1,5 +1,6 @@
 package hackhub.app.Application.Requests;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,13 +13,13 @@ public class CreaHackathonRequest {
     private LocalDateTime dataFine;
     private String luogo;
     private String logoUrl;
-    private double premioInDenaro;
+    private BigDecimal premioInDenaro;
     private String idGiudice;
     private List<String> idMentori;
 
     public CreaHackathonRequest(String nome, String regolamento, LocalDateTime inizioIscrizioni,
             LocalDateTime scadenzaIscrizioni, LocalDateTime dataInizio,
-            LocalDateTime dataFine, String luogo, String logoUrl, double premioInDenaro,
+            LocalDateTime dataFine, String luogo, String logoUrl, BigDecimal premioInDenaro,
             String idGiudice,
             List<String> idMentori) {
         this.nome = nome;
@@ -66,7 +67,7 @@ public class CreaHackathonRequest {
         return logoUrl;
     }
 
-    public double getPremioInDenaro() {
+    public BigDecimal getPremioInDenaro() {
         return premioInDenaro;
     }
 

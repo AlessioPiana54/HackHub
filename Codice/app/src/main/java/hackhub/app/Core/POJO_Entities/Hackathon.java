@@ -2,6 +2,7 @@ package hackhub.app.Core.POJO_Entities;
 
 import hackhub.app.Core.Enums.StatoHackathon;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,22 +14,43 @@ import java.util.List;
  * </p>
  */
 @Entity
-@Table(name = "hackathons")
+@Table(name = "hackathons", indexes = {
+  @Index(name = "idx_hackathons_stato", columnList = "stato"),
+  @Index(name = "idx_hackathons_organizzatore", columnList = "organizzatore_id")
+})
 public class Hackathon {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  @Column(nullable = false)
   private String nome;
+
+  @Column(nullable = false, columnDefinition = "TEXT")
   private String regolamento;
+
+  @Column(nullable = false)
   private LocalDateTime inizioIscrizioni;
+
+  @Column(nullable = false)
   private LocalDateTime scadenzaIscrizioni;
+
+  @Column(nullable = false)
   private LocalDateTime dataInizio;
+
+  @Column(nullable = false)
   private LocalDateTime dataFine;
+
+  @Column(nullable = false)
   private String luogo;
+
   private String logoUrl;
-  private double premioInDenaro;
+
+  @Column(nullable = false, precision = 10, scale = 2)
+  private BigDecimal premioInDenaro;
+
+  @Column(nullable = false)
   private LocalDateTime dataCreazione;
 
   @Enumerated(EnumType.STRING)
@@ -66,7 +88,7 @@ public class Hackathon {
     LocalDateTime dataInizio,
     LocalDateTime dataFine,
     String luogo,
-    double premioInDenaro,
+    BigDecimal premioInDenaro,
     User organizzatore,
     User giudice,
     List<User> mentori,
@@ -192,11 +214,11 @@ public class Hackathon {
     this.logoUrl = logoUrl;
   }
 
-  public double getPremioInDenaro() {
+  public BigDecimal getPremioInDenaro() {
     return premioInDenaro;
   }
 
-  public void setPremioInDenaro(double premioInDenaro) {
+  public void setPremioInDenaro(BigDecimal premioInDenaro) {
     this.premioInDenaro = premioInDenaro;
   }
 

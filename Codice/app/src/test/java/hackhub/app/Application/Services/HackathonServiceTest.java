@@ -57,7 +57,7 @@ class HackathonServiceTest {
                 LocalDateTime.now().plusDays(3),
                 "Roma",
                 null,
-                100.0,
+                java.math.BigDecimal.valueOf(100.0),
                 giudiceId,
                 List.of()
         );

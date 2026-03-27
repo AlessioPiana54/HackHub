@@ -13,12 +13,15 @@ import java.time.LocalDateTime;
  * </p>
  */
 @Entity
-@Table(name = "teams")
+@Table(name = "teams", indexes = {
+    @Index(name = "idx_teams_leader", columnList = "leader_id")
+})
 public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(nullable = false)
     private String nomeTeam;
 
     @OneToOne
@@ -32,6 +35,7 @@ public class Team {
     private LocalDateTime dataCreazione;
 
     public Team() {
+        this.membri = new ArrayList<>();
         this.dataCreazione = LocalDateTime.now();
     }
 

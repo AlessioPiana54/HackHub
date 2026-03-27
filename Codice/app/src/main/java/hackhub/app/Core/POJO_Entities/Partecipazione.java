@@ -10,20 +10,26 @@ import java.time.LocalDateTime;
  * </p>
  */
 @Entity
-@Table(name = "partecipazioni", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "team_id", "hackathon_id" })
-})
+@Table(name = "partecipazioni",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_partecipazione_team_hackathon", columnNames = { "team_id", "hackathon_id" })
+    },
+    indexes = {
+        @Index(name = "idx_partecipazioni_hackathon", columnList = "hackathon_id"),
+        @Index(name = "idx_partecipazioni_team", columnList = "team_id")
+    }
+)
 public class Partecipazione {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "team_id")
+    @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
     @ManyToOne
-    @JoinColumn(name = "hackathon_id")
+    @JoinColumn(name = "hackathon_id", nullable = false)
     private Hackathon hackathon;
 
     private LocalDateTime dataIscrizione;

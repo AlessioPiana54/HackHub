@@ -8,7 +8,7 @@ import hackhub.app.Application.Utils.IPaymentManager;
 public class MockPaymentManager implements IPaymentManager {
 
     @Override
-    public void processPayment(String userId, double amount) {
+    public void processPayment(String userId, java.math.BigDecimal amount) {
         System.out.println("Processing mock payment of " + amount + " to user " + userId);
     }
 }

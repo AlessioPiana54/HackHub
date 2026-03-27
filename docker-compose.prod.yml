@@ -1,0 +1,108 @@
+# =============================================================================
+# docker-compose.prod.yml — HackHub PRODUZIONE
+#
+# Utilizzo:
+#   1. Copia .env.example.env in .env e compila TUTTE le variabili obbligatorie
+#   2. docker compose -f docker-compose.prod.yml up -d --build
+#
+# Differenze rispetto al compose di sviluppo:
+#   - SPRING_PROFILES_ACTIVE=prod  → ddl-auto=validate + Flyway + no show-sql
+#   - DB porta NON esposta all'host (accessibile solo interno alla rete)
+#   - JWT_SECRET obbligatorio (nessun default insicuro)
+#   - Resource limits su tutti i container
+#   - Nginx con header HSTS + proxy X-Forwarded-Proto per TLS termination
+# =============================================================================
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: hackhub-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_DB:       ${DB_NAME:?DB_NAME obbligatorio}
+      POSTGRES_USER:     ${DB_USERNAME:?DB_USERNAME obbligatorio}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD obbligatorio}
+    # Porta NON esposta all'esterno — il backend accede via rete interna
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hackhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  backend:
+    build:
+      context: ./Codice/app
+      dockerfile: Dockerfile
+    container_name: hackhub-backend-prod
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL:          jdbc:postgresql://postgres:5432/${DB_NAME:?DB_NAME obbligatorio}
+      DB_USERNAME:     ${DB_USERNAME:?DB_USERNAME obbligatorio}
+      DB_PASSWORD:     ${DB_PASSWORD:?DB_PASSWORD obbligatorio}
+      JWT_SECRET:      ${JWT_SECRET:?JWT_SECRET obbligatorio — minimo 64 caratteri}
+      JWT_EXPIRATION:  ${JWT_EXPIRATION:-86400000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?ALLOWED_ORIGINS obbligatorio (es. https://app.example.com)}
+    # Porta NON esposta — il frontend Nginx fa da proxy
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hackhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 768M
+
+  frontend:
+    build:
+      context: ./Codice/frontend
+      dockerfile: Dockerfile
+    container_name: hackhub-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Monta i certificati TLS (generati con Certbot o forniti dal cloud provider)
+      # Sostituisci con il percorso reale dei tuoi certificati
+      - ${TLS_CERT_DIR:-./certs}:/etc/nginx/certs:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - hackhub-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+volumes:
+  postgres_data:
+
+networks:
+  hackhub-network:
+    driver: bridge

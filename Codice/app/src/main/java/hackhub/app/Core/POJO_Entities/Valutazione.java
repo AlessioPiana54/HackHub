@@ -9,21 +9,26 @@ import jakarta.persistence.*;
  * </p>
  */
 @Entity
-@Table(name = "valutazioni")
+@Table(name = "valutazioni", indexes = {
+    @Index(name = "idx_valutazioni_giudice", columnList = "giudice_id")
+})
 public class Valutazione {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @OneToOne
-    @JoinColumn(name = "sottomissione_id")
+    @JoinColumn(name = "sottomissione_id", nullable = false, unique = true)
     private Sottomissione sottomissione;
 
     @ManyToOne
-    @JoinColumn(name = "giudice_id")
+    @JoinColumn(name = "giudice_id", nullable = false)
     private User giudice;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String giudizio;
+
+    @Column(nullable = false, columnDefinition = "NUMERIC(4,2) CHECK (voto >= 0 AND voto <= 10)")
     private double voto;
 
     public Valutazione() {

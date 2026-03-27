@@ -27,7 +27,7 @@ public class HackathonValidator extends AbstractValidator {
         }
 
         // Validazione Numerica
-        if (request.getPremioInDenaro() < 0) {
+        if (request.getPremioInDenaro() == null || request.getPremioInDenaro().signum() < 0) {
             errors.add("Il premio in denaro non può essere negativo.");
         }
 

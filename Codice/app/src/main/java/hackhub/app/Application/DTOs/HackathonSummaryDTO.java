@@ -1,6 +1,7 @@
 package hackhub.app.Application.DTOs;
 
 import hackhub.app.Core.Enums.StatoHackathon;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -18,7 +19,7 @@ public class HackathonSummaryDTO {
   private LocalDateTime dataInizio;
   private LocalDateTime dataFine;
   private String luogo;
-  private double premioInDenaro;
+  private BigDecimal premioInDenaro;
   private StatoHackathon stato;
   private String organizzatoreNome;
 
@@ -33,7 +34,7 @@ public class HackathonSummaryDTO {
     LocalDateTime dataInizio,
     LocalDateTime dataFine,
     String luogo,
-    double premioInDenaro,
+    BigDecimal premioInDenaro,
     StatoHackathon stato,
     String organizzatoreNome
   ) {
@@ -93,7 +94,7 @@ public class HackathonSummaryDTO {
     return luogo;
   }
 
-  public double getPremioInDenaro() {
+  public BigDecimal getPremioInDenaro() {
     return premioInDenaro;
   }
 

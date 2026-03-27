@@ -18,14 +18,17 @@ public class Segnalazione {
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "partecipazione_id")
+    @JoinColumn(name = "partecipazione_id", nullable = false)
     private Partecipazione partecipazione;
 
     @ManyToOne
-    @JoinColumn(name = "mentore_id")
+    @JoinColumn(name = "mentore_id", nullable = false)
     private User mentore;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String descrizione;
+
+    @Column(nullable = false)
     private LocalDateTime dataSegnalazione;
 
     public Segnalazione() {

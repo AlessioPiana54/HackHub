@@ -10,7 +10,15 @@ import java.time.LocalDateTime;
  * </p>
  */
 @Entity
-@Table(name = "inviti")
+@Table(name = "inviti",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_invito_team_destinatario", columnNames = {"team_id", "destinatario_id"})
+    },
+    indexes = {
+        @Index(name = "idx_inviti_destinatario", columnList = "destinatario_id"),
+        @Index(name = "idx_inviti_team", columnList = "team_id")
+    }
+)
 public class Invito {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

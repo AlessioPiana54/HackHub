@@ -11,22 +11,34 @@ import java.time.LocalDateTime;
  * </p>
  */
 @Entity
-@Table(name = "sottomissioni")
+@Table(name = "sottomissioni",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_sottomissione_partecipazione", columnNames = {"partecipazione_id"})
+    },
+    indexes = {
+        @Index(name = "idx_sottomissioni_mittente", columnList = "mittente_id")
+    }
+)
 public class Sottomissione {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "partecipazione_id")
+    @JoinColumn(name = "partecipazione_id", nullable = false)
     private Partecipazione partecipazione;
 
     @ManyToOne
-    @JoinColumn(name = "mittente_id")
+    @JoinColumn(name = "mittente_id", nullable = false)
     private User mittente; // Membro o Leader
 
+    @Column(nullable = false)
     private String linkProgetto; // URL repository
+
+    @Column(columnDefinition = "TEXT")
     private String descrizione;
+
+    @Column(nullable = false)
     private LocalDateTime dataSottomissione;
 
     public Sottomissione() {

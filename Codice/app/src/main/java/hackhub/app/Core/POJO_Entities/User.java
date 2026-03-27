@@ -11,16 +11,25 @@ import jakarta.persistence.*;
  * </p>
  */
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+  @Index(name = "idx_users_email", columnList = "email")
+})
 public class User {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  @Column(nullable = false)
   private String nome;
+
+  @Column(nullable = false)
   private String cognome;
+
+  @Column(nullable = false, unique = true)
   private String email;
+
+  @Column(nullable = false)
   private String password;
 
   @Enumerated(EnumType.STRING)

@@ -10,5 +10,5 @@ public interface IPaymentManager {
      * @param userId L'ID dell'utente che effettua il pagamento.
      * @param amount L'importo da addebitare.
      */
-    void processPayment(String userId, double amount);
+    void processPayment(String userId, java.math.BigDecimal amount);
 }
