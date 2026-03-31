@@ -1,6 +1,6 @@
 <div class="app-container">
   <!-- Sidebar -->
-  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen">
+  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen" *ngIf="!isAuthRoute">
     <a routerLink="/dashboard" class="logo">
       <span>🚀</span>
       <span>HackHub</span>
@@ -63,10 +63,10 @@
   </aside>
 
   <!-- Mobile Overlay -->
-  <div class="mobile-overlay" [class.hidden]="!isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
+  <div class="mobile-overlay" [class.hidden]="!isMobileMenuOpen" (click)="toggleMobileMenu()" *ngIf="!isAuthRoute"></div>
 
   <!-- Main Content -->
-  <div class="main-content">
+  <div class="main-content" [class.no-sidebar]="isAuthRoute">
     <!-- Installation Banner -->
     <div class="install-banner" *ngIf="showInstallBanner">
       <span>📱 Installa HackHub sul tuo dispositivo</span>
@@ -77,7 +77,7 @@
     </div>
 
     <!-- Topbar -->
-    <header class="topbar">
+    <header class="topbar" *ngIf="!isAuthRoute">
       <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
         ☰
       </button>

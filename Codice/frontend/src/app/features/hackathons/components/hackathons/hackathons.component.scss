@@ -416,3 +416,24 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 480px) {
+  .welcome-section {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .filter-tab {
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}

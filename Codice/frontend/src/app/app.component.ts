@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
 import { UserDTO } from './core/models/user.model';
 import { HackathonService } from './core/services/hackathon.service';
@@ -15,6 +16,7 @@ export class AppComponent implements OnInit {
 
   title = 'HackHub';
   isMobileMenuOpen = false;
+  isAuthRoute = false;
   currentUser: UserDTO | null = null;
   myHackathons: HackathonSummaryDTO[] = [];
   judgeHackathons: HackathonSummaryDTO[] = [];
@@ -29,6 +31,11 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.isAuthRoute = this.router.url.startsWith('/auth');
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe((e) => {
+      this.isAuthRoute = (e as NavigationEnd).urlAfterRedirects.startsWith('/auth');
+    });
+
     this.pwaService.showInstallBanner$.subscribe(show => {
       this.showInstallBanner = show;
     });

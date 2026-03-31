@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { LoginRequest, LoginResponse, RegisterRequest, UpdateProfileRequest, UserDTO } from '../models/user.model';
-import { Router } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +13,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<UserDTO | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private http: HttpClient) {
     const token = localStorage.getItem('hackhub_token');
     if (token) {
       const payload = this.decodeToken(token);
@@ -80,12 +78,7 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.API_URL}/logout`, {}).pipe(
-      finalize(() => {
-        this.clearAuth();
-        this.router.navigate(['/auth/login']);
-      })
-    );
+    return this.http.post<void>(`${this.API_URL}/logout`, {});
   }
 
   // Metodo per logout completo (client-side)

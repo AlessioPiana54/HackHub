@@ -608,3 +608,24 @@
     gap: 0.75rem;
   }
 }
+
+@media (max-width: 480px) {
+  .page-header {
+    .page-title {
+      font-size: 1.5rem;
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+    }
+  }
+
+  .team-card,
+  .invitation-card {
+    padding: 1.25rem;
+  }
+
+  .create-team-card {
+    padding: 1.75rem;
+  }
+}

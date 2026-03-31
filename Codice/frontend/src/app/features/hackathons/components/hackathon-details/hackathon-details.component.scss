@@ -246,36 +246,60 @@
   .hackathon-details-container {
     padding: 1rem;
   }
-  
+
   .details-header {
     h1 {
       font-size: 2rem;
     }
   }
-  
+
   .card-header {
     padding: 1.5rem;
-    
+
     h2 {
       font-size: 1.5rem;
     }
   }
-  
+
   .card-body {
     padding: 1.5rem;
   }
-  
+
   .date-grid,
   .info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .card-actions {
     flex-direction: column;
-    
+
     button {
       width: 100%;
       justify-content: center;
     }
+  }
+}
+
+@media (max-width: 480px) {
+  .details-header {
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .card-header {
+    padding: 1.25rem;
+
+    h2 {
+      font-size: 1.25rem;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+    }
+  }
+
+  .card-body {
+    padding: 1.25rem;
   }
 }

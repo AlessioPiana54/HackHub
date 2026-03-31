@@ -91,6 +91,7 @@
 html, body {
   height: 100%;
   background: var(--bg-page);
+  overflow-x: hidden;
 }
 
 body {
@@ -206,6 +207,8 @@ a {
     font-size: var(--font-size-sm);
     transition: var(--transition-fast);
     margin: var(--spacing-xs) var(--spacing-sm);
+    min-height: 44px;
+    touch-action: manipulation;
     
     &:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -225,8 +228,12 @@ a {
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
-  
+
   @media (max-width: 1023px) {
+    margin-left: 0;
+  }
+
+  &.no-sidebar {
     margin-left: 0;
   }
 }
@@ -242,7 +249,12 @@ a {
   position: sticky;
   top: 0;
   z-index: 1020;
-  
+  min-height: 60px;
+
+  @media (max-width: 480px) {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
   .mobile-menu-toggle {
     display: none;
     background: none;
@@ -250,7 +262,10 @@ a {
     font-size: var(--font-size-lg);
     cursor: pointer;
     color: var(--text-primary);
-    
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+
     @media (max-width: 1023px) {
       display: block;
     }
@@ -304,6 +319,7 @@ a {
   transition: var(--transition-fast);
   border: none;
   min-height: 40px;
+  touch-action: manipulation;
   
   &:disabled {
     opacity: 0.6;

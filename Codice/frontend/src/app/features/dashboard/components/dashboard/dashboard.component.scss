@@ -279,3 +279,37 @@
     height: 2.5rem;
   }
 }
+
+@media (max-width: 480px) {
+  .welcome-section {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .welcome-stats {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mini-stat {
+    padding: 0.625rem 0.875rem;
+    min-width: 80px;
+  }
+
+  .mini-stat-number {
+    font-size: 1.25rem;
+  }
+
+  .mini-stat-label {
+    font-size: 0.75rem;
+  }
+}

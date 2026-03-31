@@ -31,7 +31,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -57,16 +61,12 @@ export class LoginComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          // Non chiamare getCurrentUser() automaticamente per evitare errore 500
-          // Vai direttamente alla dashboard
-          this.router.navigate(['/dashboard']);
+          this.isLoading = false;
+          this.router.navigate(['/dashboard'], { replaceUrl: true });
         },
         error: (error: { error?: { message?: string }; message?: string }) => {
           console.error('Login error:', error);
           this.errorMessage = error.error?.message || error.message || 'Login failed. Please try again.';
-          this.isLoading = false;
-        },
-        complete: () => {
           this.isLoading = false;
         }
       });
