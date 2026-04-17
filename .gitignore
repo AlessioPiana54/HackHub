@@ -4,7 +4,7 @@
 .env.*.local
 
 # Kubernetes secrets (contengono credenziali in chiaro)
-k8s/secrets.yaml
+k8s/02-secrets.yaml
 
 # Certificati TLS (non committare mai chiavi private)
 certs/

@@ -1,23 +1,23 @@
 # HackHub
 
-Portale per la gestione di hackathon (utenti, team, iscrizioni, sottomissioni, inviti, richieste di supporto).
+Platform for hackathon management (users, teams, registrations, submissions, invitations, support requests).
 
-## Funzionalità principali
+## Key Features
 
-- **Autenticazione**: Registrazione e login con JWT stateless. Ruoli distinti: Organizzatore, Giudice, Mentore, Utente senza team, Leader team, Membro team.
-- **Gestione Hackathon**: Creazione, avanzamento automatico degli stati (In Attesa → Iscrizioni → In Corso → Valutazione → Premiazione → Concluso) tramite scheduler.
-- **Gestione Team**: Creazione team, inviti via email, accettazione/rifiuto, trasferimento leadership, abbandono team.
-- **Iscrizioni**: I team possono iscriversi agli hackathon durante la fase di iscrizioni aperte.
-- **Sottomissioni**: I team iscritti possono sottomettere il link GitHub del progetto durante la fase In Corso.
-- **Valutazioni**: I giudici assegnati valutano le sottomissioni con voto (0-10) e giudizio testuale.
-- **Classifica**: Visualizzazione della classifica finale con i punteggi dei team.
-- **Richieste di supporto**: I team possono richiedere supporto ai mentori con proposta di call (Google Meet/Webex).
-- **Segnalazioni**: I team possono segnalare problemi all'organizzatore durante l'hackathon.
-- **PWA**: Installabile come app nativa, con supporto offline per i contenuti già visitati.
+- **Authentication**: Registration and login with stateless JWT. Distinct roles: Organizer, Judge, Mentor, Teamless User, Team Leader, Team Member.
+- **Hackathon Management**: Creation, automatic state progression (Pending → Open → In Progress → Evaluation → Award → Concluded) via scheduler.
+- **Team Management**: Team creation, email invitations, accept/reject, leadership transfer, leave team.
+- **Registrations**: Teams can register for hackathons during the open registration phase.
+- **Submissions**: Registered teams can submit their project GitHub link during the In Progress phase.
+- **Evaluations**: Assigned judges evaluate submissions with a score (0–10) and written feedback.
+- **Leaderboard**: Final standings displayed with team scores.
+- **Support Requests**: Teams can request mentorship with a proposed call (Google Meet/Webex).
+- **Reports**: Teams can report issues to the organizer during the hackathon.
+- **PWA**: Installable as a native app, with offline support for previously visited content.
 
 ---
 
-## Architettura del sistema
+## System Architecture
 
 ```
                 Browser
@@ -45,75 +45,75 @@ Portale per la gestione di hackathon (utenti, team, iscrizioni, sottomissioni, i
 
 ---
 
-## Ambienti di deploy
+## Deployment Environments
 
-| Ambiente | Requisiti | URL |
+| Environment | Requirements | URL |
 | :--- | :--- | :--- |
-| **Docker Compose** (sviluppo locale) | Docker Desktop | `http://localhost:4200` |
-| **Sviluppo senza Docker** | Java 21, Node 20, PostgreSQL | `http://localhost:4200` |
-| **Railway** (cloud) | Account Railway | `https://hackhub-frontend-production.up.railway.app` |
-| **Kubernetes / Minikube** (locale) | Docker Desktop, Minikube, kubectl | `minikube service frontend -n hackhub` |
+| **Docker Compose** (local development) | Docker Desktop | `http://localhost:4200` |
+| **Local without Docker** | Java 21, Node 20, PostgreSQL | `http://localhost:4200` |
+| **Railway** (cloud) | Railway account | `https://hackhub-frontend-production.up.railway.app` |
+| **Kubernetes / Minikube** (local) | Docker Desktop, Minikube, kubectl | `minikube service frontend -n hackhub` |
 
 ---
 
-## Avvio con Docker Compose
+## Running with Docker Compose
 
-Il modo più semplice per avviare l'intera stack in locale.
+The easiest way to start the full stack locally.
 
-### Prerequisiti
+### Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- File `.env` nella root (usa `.env.example.env` come template)
+- `.env` file in the root directory (use `.env.example.env` as a template)
 
-### Configurazione iniziale
+### Initial Setup
 
 ```bash
 cp .env.example.env .env
 ```
 
-Valori di default pronti per lo sviluppo locale:
+Default values ready for local development:
 
 ```env
-JWT_SECRET=cambia-questa-chiave-in-produzione-minimo-64-caratteri-obbligatori!!
+JWT_SECRET=change-this-key-in-production-minimum-64-characters-required!!
 JWT_EXPIRATION=86400000
 DB_URL=jdbc:postgresql://postgres:5432/hackhub
 DB_USERNAME=hackhub
 DB_PASSWORD=hackhub
 ```
 
-In produzione sostituire almeno `JWT_SECRET` con una stringa casuale sicura (minimo 64 caratteri).
+In production, replace at least `JWT_SECRET` with a secure random string (minimum 64 characters).
 
-> Il frontend è raggiungibile su `http://localhost:4200` (il compose mappa la porta host 4200 → porta container 8080 di nginx).
+> The frontend is available at `http://localhost:4200` (Compose maps host port 4200 → Nginx container port 8080).
 
 ### Start/Stop
 
 ```bash
-# Avvia l'intera stack (con build delle immagini)
+# Start the full stack (with image build)
 docker compose up --build -d
 
-# Stato dei container
+# Container status
 docker compose ps
 
-# Ferma e rimuovi i container
+# Stop and remove containers
 docker compose down
 ```
 
 ---
 
-## Sviluppo locale senza Docker
+## Local Development without Docker
 
-Per avviare i servizi separatamente durante lo sviluppo.
+Run services separately during development.
 
 ### Backend (Spring Boot)
 
-Richiede un'istanza PostgreSQL attiva (puoi usare `docker compose up postgres -d`).
+Requires an active PostgreSQL instance (you can use `docker compose up postgres -d`).
 
 ```bash
 cd Codice/app
 ./mvnw spring-boot:run
 ```
 
-Il backend sarà disponibile su `http://localhost:8080`.
+The backend will be available at `http://localhost:8080`.
 
 ### Frontend (Angular)
 
@@ -123,133 +123,134 @@ npm install
 npm start
 ```
 
-Il frontend sarà disponibile su `http://localhost:4200` con proxy automatico verso il backend (`proxy.conf.json`).
+The frontend will be available at `http://localhost:4200` with automatic proxy to the backend (`proxy.conf.json`).
 
 ---
 
-## Deploy su Railway (Cloud)
+## Deploy on Railway (Cloud)
 
-L'app è deployata su [Railway](https://railway.app) con tre servizi separati: PostgreSQL, Backend e Frontend.
+The app is deployed on [Railway](https://railway.app) with three separate services: PostgreSQL, Backend, and Frontend.
 
-### URL pubblici
+### Public URLs
 
 - **Frontend**: `https://hackhub-frontend-production.up.railway.app`
 - **Backend**: `https://hackhub-backend-production.up.railway.app`
 
-### Configurazione servizi
+### Service Configuration
 
-**Backend** — Root Directory: `Codice/app`, Dockerfile: `Codice/app/Dockerfile`, porta `8080`
+**Backend** — Root Directory: `Codice/app`, Dockerfile: `Codice/app/Dockerfile`, port `8080`
 
-| Variabile | Valore |
+| Variable | Value |
 | :--- | :--- |
 | `SPRING_PROFILES_ACTIVE` | `dev` |
 | `DB_URL` | `jdbc:postgresql://${{Postgres.PGHOST}}:5432/${{Postgres.PGDATABASE}}` |
 | `DB_USERNAME` | `${{Postgres.PGUSER}}` |
 | `DB_PASSWORD` | `${{Postgres.PGPASSWORD}}` |
-| `JWT_SECRET` | stringa random ≥ 64 caratteri |
+| `JWT_SECRET` | random string ≥ 64 characters |
 | `JWT_EXPIRATION` | `86400000` |
-| `ALLOWED_ORIGINS` | URL pubblico del frontend Railway |
+| `ALLOWED_ORIGINS` | Railway frontend public URL |
 
-**Frontend** — Root Directory: `Codice/frontend`, Dockerfile: `Codice/frontend/Dockerfile`, porta `8080`
+**Frontend** — Root Directory: `Codice/frontend`, Dockerfile: `Codice/frontend/Dockerfile`, port `8080`
 
-| Variabile | Valore |
+| Variable | Value |
 | :--- | :--- |
-| `BACKEND_URL` | `http://<nome-backend>.railway.internal:8080` |
+| `BACKEND_URL` | `http://<backend-name>.railway.internal:8080` |
 
-> L'hostname privato del backend si trova in Railway → HackHub-Backend → Settings → Networking → Private Networking.
+> The backend private hostname can be found in Railway → HackHub-Backend → Settings → Networking → Private Networking.
 
-### Note
-- Il frontend comunica col backend tramite la **rete privata interna** Railway, non l'URL pubblico.
-- `ALLOWED_ORIGINS` deve corrispondere esattamente all'URL del frontend (con `https://`, senza slash finale).
+### Notes
+- The frontend communicates with the backend via the Railway **internal private network**, not the public URL.
+- `ALLOWED_ORIGINS` must exactly match the frontend URL (with `https://`, no trailing slash).
 
 ---
 
-## Deploy su Kubernetes (Minikube)
+## Deploy on Kubernetes (Minikube)
 
-I manifest sono in [k8s/](k8s/) e permettono di eseguire l'app su Kubernetes locale.
+Manifests are in [k8s/](k8s/) and allow running the app on local Kubernetes.
 
-### Prerequisiti
+### Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/) — `winget install Kubernetes.minikube`
-- kubectl (incluso con Docker Desktop)
+- kubectl (included with Docker Desktop)
 
-### Avvio
+### Startup
 
 ```powershell
-# 1. Avvia il cluster
+# 1. Start the cluster
 minikube start --driver=docker
 
-# 2. Punta Docker sul registry di Minikube
+# 2. Point Docker at Minikube's registry
 minikube docker-env | Invoke-Expression
 
-# 3. Build delle immagini nel cluster
+# 3. Build images inside the cluster
 docker build -t hackhub-backend:latest ./Codice/app
 docker build -t hackhub-frontend:latest ./Codice/frontend
 
-# 4. Crea il file secrets (NON incluso nel repository)
-cp k8s/secrets.example.yaml k8s/secrets.yaml
-# Edita k8s/secrets.yaml e imposta DB_PASSWORD e JWT_SECRET
+# 4. Create the secrets file (NOT included in the repository)
+cp k8s/02-secrets.example.yaml k8s/02-secrets.yaml
+# Edit k8s/02-secrets.yaml and set DB_PASSWORD and JWT_SECRET
 
-# 5. Applica i manifest
+# 5. Apply manifests
 kubectl apply -f k8s/
-kubectl apply -f k8s/   # seconda volta per risolvere l'ordine alfabetico
 
-# 6. Apri l'app nel browser
+# 6. Open the app in the browser
 minikube service frontend -n hackhub
 ```
 
-### Struttura manifest
+### Manifest Structure
 
 ```
 k8s/
-├── namespace.yaml         # Namespace "hackhub"
-├── secrets.example.yaml   # Template credenziali (copiare in secrets.yaml e compilare)
-├── secrets.yaml           # Password DB e JWT secret — NON in git
-├── configmap.yaml         # Variabili di configurazione
-├── postgres.yaml          # StatefulSet PostgreSQL + PVC + Service
-├── backend.yaml           # Deployment backend + Service
-└── frontend.yaml          # Deployment frontend + NodePort Service
+├── 01-namespace.yaml         # "hackhub" namespace
+├── 02-secrets.example.yaml   # Credentials template (copy to 02-secrets.yaml and fill in)
+├── 02-secrets.yaml           # DB password and JWT secret — NOT in git
+├── 03-configmap.yaml         # Configuration variables
+├── 04-postgres.yaml          # PostgreSQL StatefulSet + PVC + Service
+├── 05-backend.yaml           # Backend Deployment + Service
+└── 06-frontend.yaml          # Frontend Deployment + NodePort Service
 ```
 
-### Comandi utili
+### Useful Commands
 
 ```powershell
-# Stato dei pod
+# Pod status
 kubectl get pods -n hackhub
 
-# Log di un pod
-kubectl logs -n hackhub <nome-pod>
+# Logs for a pod
+kubectl logs -n hackhub <pod-name>
 
-# Ferma il cluster
+# Stop the cluster
 minikube stop
 
-# Elimina tutto
+# Delete everything
 kubectl delete namespace hackhub
 ```
 
 ---
 
-## Esecuzione dei test
+## Running Tests
 
-### Test Backend
+### Backend Tests
 
-I test unitari coprono i service principali (AuthService, HackathonService, TeamService) con JUnit 5 + Mockito.
+Unit tests cover the main services (AuthService, HackathonService, TeamService) using JUnit 5 + Mockito.
 
 ```bash
 cd Codice/app
 ./mvnw test
 ```
 
-Per il report di coverage (JaCoCo):
+For the coverage report (JaCoCo):
 
 ```bash
 ./mvnw verify
 ```
 
-Report disponibile in `Codice/app/target/site/jacoco/index.html`.
+Report available at `Codice/app/target/site/jacoco/index.html`.
 
-### Test Frontend
+### Frontend Tests
+
+Unit tests cover core services, guards, interceptors, and directives using Karma + Jasmine.
 
 ```bash
 cd Codice/frontend
@@ -260,18 +261,18 @@ npm test
 
 ## Swagger / OpenAPI
 
-Il backend espone la documentazione interattiva delle API.
+The backend exposes interactive API documentation.
 
 - **Swagger UI**: `http://localhost:8080/swagger-ui/index.html`
 - **OpenAPI JSON**: `http://localhost:8080/v3/api-docs`
 
 ---
 
-## Credenziali di prova
+## Test Credentials
 
-Questi utenti vengono inseriti automaticamente dal `DataSeeder` all'avvio se il database è vuoto. La password per tutti gli account è **`Test1234!`**.
+These users are automatically seeded by `DataSeeder` on startup if the database is empty. The password for all accounts is **`Test1234!`**.
 
-| Nome | Email | Ruolo |
+| Name | Email | Role |
 | :--- | :--- | :--- |
 | Mario Rossi | `mario@hackhub.it` | ORGANIZZATORE |
 | Luigi Verdi | `luigi@hackhub.it` | ORGANIZZATORE |
@@ -282,7 +283,33 @@ Questi utenti vengono inseriti automaticamente dal `DataSeeder` all'avvio se il 
 
 ---
 
-## Endpoint REST principali
+## Roles & Permissions Matrix
+
+Roles are assigned automatically by the system based on user actions. `UTENTE_SENZA_TEAM` → `LEADER_TEAM` on team creation; → `MEMBRO_TEAM` on invitation acceptance; `LEADER_TEAM` → `MEMBRO_TEAM` on leadership transfer.
+
+| Action | ORGANIZZATORE | GIUDICE | MENTORE | LEADER_TEAM | MEMBRO_TEAM | UTENTE_SENZA_TEAM |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| Create a hackathon | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Advance hackathon state (manual) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Assign judges / mentors | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Declare winning team | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Evaluate a submission | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ | ❌ |
+| Create a team | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Invite members to the team | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Accept / reject an invitation | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Transfer leadership | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Leave the team | ❌ | ❌ | ❌ | ✅ (only if sole member) | ✅ | ❌ |
+| Register team for a hackathon | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Submit project (GitHub link) | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Request support from a mentor | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Respond to a support request | ❌ | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ |
+| Send a report | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| View the leaderboard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| View own hackathons / teams | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## Main REST Endpoints
 
 Base path: `/api`
 
@@ -294,7 +321,7 @@ Base path: `/api`
 ### Users
 - `GET /users/me`
 - `PUT /users/me`
-- `GET /users/by-role/{ruolo}` — `ruolo ∈ {ORGANIZZATORE, GIUDICE, MENTORE}`
+- `GET /users/by-role/{role}` — `role ∈ {ORGANIZZATORE, GIUDICE, MENTORE}`
 
 ### Hackathons
 - `GET /hackathons`
@@ -331,73 +358,73 @@ Base path: `/api`
 - `GET /submissions/my-submissions`
 - `GET /submissions/hackathon/{idHackathon}`
 
-### Support requests
+### Support Requests
 - `POST /support-requests`
 - `GET /support-requests?hackathonId=...`
 - `PATCH /support-requests/{id}/call`
 - `GET /support-requests/proposte-call?hackathonId=...&teamId=...`
 
-### Segnalazioni
+### Reports
 - `POST /segnalazioni`
 - `GET /segnalazioni?hackathonId=...`
 
 ---
 
-## Scelte progettuali e architetturali
+## Design & Architecture Decisions
 
-HackHub adotta una **Clean Architecture** suddivisa in 4 layer:
+HackHub adopts a **Clean Architecture** split into 4 layers:
 
-1. **Core**: Entità di business (POJO) e interfacce fondamentali. Non dipende da altri layer.
-2. **Application**: Logica di business, servizi e interfacce repository (IUnitOfWork).
-3. **Infrastructure**: Implementazioni tecnologiche (JPA, Security, Database).
-4. **Presentation**: Esposizione delle API REST tramite controller Spring Boot.
+1. **Core**: Business entities (POJOs) and fundamental interfaces. No dependencies on other layers.
+2. **Application**: Business logic, services, and repository interfaces (IUnitOfWork).
+3. **Infrastructure**: Technology implementations (JPA, Security, Database).
+4. **Presentation**: REST API exposure via Spring Boot controllers.
 
-### Pattern e tecnologie
+### Patterns & Technologies
 
-- **Unit of Work**: Coordina più repository in transazioni atomiche.
-- **Builder Pattern**: Usato per la creazione di `Hackathon` (entità con molti campi obbligatori).
-- **Strategy Pattern**: Validazione dei link esterni (GitHub, LinkedIn, ecc.) — aggiungibile senza modificare la logica esistente.
-- **JWT Stateless**: API stateless per scalabilità orizzontale ottimale.
-- **BCrypt**: Hashing password con salt integrato, resistente a brute-force e rainbow table.
-- **Angular PWA**: Service Worker per caching e supporto offline.
-- **PwaService (SRP)**: Logica di installazione "Add to Home Screen" incapsulata in un servizio dedicato.
-- **Angular Lazy Loading**: Caricamento dei moduli di feature on-demand per ottimizzare il bundle iniziale.
+- **Unit of Work**: Coordinates multiple repositories in atomic transactions.
+- **Builder Pattern**: Used for `Hackathon` entity creation (many required fields).
+- **Strategy Pattern**: External link validation (GitHub, LinkedIn, etc.) — extendable without modifying existing logic.
+- **JWT Stateless**: Stateless API for optimal horizontal scalability.
+- **BCrypt**: Password hashing with built-in salt, resistant to brute-force and rainbow table attacks.
+- **Angular PWA**: Service Worker for caching and offline support.
+- **PwaService (SRP)**: "Add to Home Screen" installation logic encapsulated in a dedicated service.
+- **Angular Lazy Loading**: Feature modules loaded on demand to optimise the initial bundle.
 
 ---
 
-## Aderenza alla 12-Factor App
+## 12-Factor App Compliance
 
-| Fattore | Stato | Spiegazione |
+| Factor | Status | Notes |
 | :--- | :---: | :--- |
-| I. Codebase | ✅ | Un unico repository GitHub per l'intero progetto. |
-| II. Dependencies | ✅ | Dichiarate esplicitamente in `pom.xml` e `package.json`. |
-| III. Config | ✅ | Configurazioni caricate da variabili d'ambiente (`.env`, Railway, K8s ConfigMap/Secret). |
-| IV. Backing services | ✅ | PostgreSQL trattato come risorsa esterna collegata tramite JDBC. |
-| V. Build, release, run | ✅ | Pipeline CI/CD che separa build (immagini Docker) da release e run. |
-| VI. Processes | ✅ | Backend stateless grazie ai token JWT. |
-| VII. Port binding | ✅ | I servizi espongono le porte 8080 (backend) e 8080 (frontend Nginx). |
-| VIII. Concurrency | ✅ | Scalabilità orizzontale tramite repliche Docker/K8s. |
-| IX. Disposability | ✅ | Avvio rapido e arresto pulito con immagini Alpine. |
-| X. Dev/prod parity | ✅ | Stesso stack Docker utilizzato in locale, Railway e Kubernetes. |
-| XI. Logs | ✅ | Log come flussi di eventi su stdout/stderr. |
-| XII. Admin processes | ✅ | DataSeeder eseguito nello stesso ambiente operativo. |
-| XIII. API First | ✅ | REST API documentate con Swagger/OpenAPI. |
-| XIV. Telemetry | ✅ | Spring Boot Actuator per health check e monitoraggio. |
-| XV. Security | ✅ | Autenticazione JWT e Spring Security su ogni endpoint. |
+| I. Codebase | ✅ | Single GitHub repository for the entire project. |
+| II. Dependencies | ✅ | Explicitly declared in `pom.xml` and `package.json`. |
+| III. Config | ✅ | Configuration loaded from environment variables (`.env`, Railway, K8s ConfigMap/Secret). |
+| IV. Backing services | ✅ | PostgreSQL treated as an external resource connected via JDBC. |
+| V. Build, release, run | ✅ | CI/CD pipeline separates build (Docker images) from release and run. |
+| VI. Processes | ✅ | Stateless backend thanks to JWT tokens. |
+| VII. Port binding | ✅ | Services expose port 8080 (backend) and port 8080 (frontend Nginx). |
+| VIII. Concurrency | ✅ | Horizontal scalability via Docker/K8s replicas. |
+| IX. Disposability | ✅ | Fast startup and graceful shutdown with Alpine images. |
+| X. Dev/prod parity | ✅ | Same Docker stack used locally, on Railway, and on Kubernetes. |
+| XI. Logs | ✅ | Logs as event streams on stdout/stderr. |
+| XII. Admin processes | ✅ | DataSeeder runs in the same operational environment. |
+| XIII. API First | ✅ | REST APIs documented with Swagger/OpenAPI. |
+| XIV. Telemetry | ✅ | Spring Boot Actuator for health checks and monitoring. |
+| XV. Security | ✅ | JWT authentication and Spring Security on every endpoint. |
 
 ---
 
 ## Progressive Web App (PWA)
 
-HackHub è installabile come app nativa su dispositivi mobile e desktop.
+HackHub is installable as a native app on mobile and desktop devices.
 
-- **Supporto Offline**: Le parti dell'app già visitate sono accessibili senza connessione.
-- **Banner di installazione**: Invito personalizzato all'installazione quando i criteri sono soddisfatti.
-- **Cache intelligente**: Strategia *Freshness* — tenta la rete, usa la cache come fallback.
+- **Offline Support**: Previously visited sections of the app are accessible without a connection.
+- **Install Banner**: Personalised installation prompt shown when criteria are met.
+- **Smart Cache**: *Freshness* strategy — attempts the network first, falls back to cache.
 
-### Come testare la PWA localmente
+### Testing the PWA Locally
 
-Il Service Worker non è attivo con `ng serve`. Per testarlo:
+The Service Worker is not active with `ng serve`. To test it:
 
 ```bash
 cd Codice/frontend
@@ -405,13 +432,13 @@ npm run build -- --configuration production
 npx http-server dist/frontend -p 4200
 ```
 
-Apri `http://localhost:4200` in Chrome e verifica in `DevTools → Application → Service Workers`.
+Open `http://localhost:4200` in Chrome and check `DevTools → Application → Service Workers`.
 
 ---
 
-## Diagrammi
+## Diagrams
 
-### Diagramma di Deploy — Docker Compose (locale)
+### Deployment Diagram — Docker Compose (local)
 
 ```mermaid
 graph TD
@@ -427,17 +454,17 @@ graph TD
     Backend -->|JDBC| DB
 ```
 
-### Diagramma di Deploy — Railway (cloud)
+### Deployment Diagram — Railway (cloud)
 
 ```mermaid
 graph TD
     User((Browser)) -->|HTTPS| Edge[Railway Edge / Fastly CDN]
     Edge --> Frontend[HackHub-Frontend Nginx :8080]
-    Frontend -->|rete privata interna| Backend[HackHub-Backend Spring :8080]
+    Frontend -->|internal private network| Backend[HackHub-Backend Spring :8080]
     Backend -->|JDBC| DB[(PostgreSQL Railway)]
 ```
 
-### Diagramma di Deploy — Kubernetes / Minikube
+### Deployment Diagram — Kubernetes / Minikube
 
 ```mermaid
 graph TD
@@ -452,7 +479,7 @@ graph TD
     end
 ```
 
-### Architettura backend
+### Backend Architecture
 
 ```mermaid
 graph LR
@@ -481,11 +508,11 @@ graph LR
 
 ---
 
-## Pipeline CI/CD
+## CI/CD Pipeline
 
-Il progetto integra una pipeline CI/CD tramite **GitHub Actions**:
+The project includes a CI/CD pipeline via **GitHub Actions**:
 
-- **Continuous Integration**: Su ogni push o PR verso `main`, vengono eseguiti i build Maven (backend) e npm (frontend).
-- **Continuous Deployment**: Al push su `main`, la pipeline crea le immagini Docker e le pubblica sul GitHub Container Registry (GHCR).
+- **Continuous Integration**: On every push or PR to `main`, Maven (backend) and npm (frontend) builds and tests are executed.
+- **Continuous Deployment**: On push to `main`, the pipeline builds Docker images and publishes them to the GitHub Container Registry (GHCR).
 
-Configurazione: [.github/workflows/ci.yml](.github/workflows/ci.yml)
+Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml)
