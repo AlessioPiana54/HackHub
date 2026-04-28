@@ -9,7 +9,7 @@ import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
 @Component({
   selector: 'app-hackathon-details',
   templateUrl: './hackathon-details.component.html',
-  styleUrls: ['./hackathon-details.component.css']
+  styleUrls: ['./hackathon-details.component.scss']
 })
 export class HackathonDetailsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

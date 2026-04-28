@@ -91,10 +91,7 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
 
   // --- Segnalazioni ---
   loadSegnalazioni(): void {
-    const token = localStorage.getItem('hackhub_token');
-    this.http.get<Report[]>(`/api/segnalazioni?hackathonId=${this.hackathonId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    }).subscribe({
+    this.http.get<Report[]>(`/api/segnalazioni?hackathonId=${this.hackathonId}`).subscribe({
       next: (s) => this.segnalazioni = s,
       error: () => this.segnalazioneError = 'Impossibile caricare le segnalazioni.'
     });
@@ -104,10 +101,7 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
 
   // --- Sottomissioni ---
   loadSottomissioni(): void {
-    const token = localStorage.getItem('hackhub_token');
-    this.http.get<Sottomissione[]>('/api/submissions/my-submissions', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    }).subscribe({
+    this.http.get<Sottomissione[]>('/api/submissions/my-submissions').subscribe({
       next: (s) => {
         // Filter only submissions for this hackathon
         this.sottomissioni = s.filter(sub =>
@@ -123,16 +117,13 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
     this.sottomissioneLoading = true;
     this.sottomissioneError = '';
     this.sottomissioneSuccess = '';
-    const token = localStorage.getItem('hackhub_token');
     const body = {
       idHackathon: this.hackathonId,
       idTeam: this.myTeam.id,
       linkProgetto: this.nuovaSottomissione.linkProgetto.trim(),
       descrizione: this.nuovaSottomissione.descrizione.trim()
     };
-    this.http.post<Sottomissione>('/api/submissions', body, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    }).subscribe({
+    this.http.post<Sottomissione>('/api/submissions', body).subscribe({
       next: (s) => {
         this.sottomissioni.unshift(s);
         this.nuovaSottomissione = { linkProgetto: '', descrizione: '' };
