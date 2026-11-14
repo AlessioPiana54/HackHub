@@ -226,6 +226,17 @@ public class Hackathon {
     return dataCreazione;
   }
 
+  /**
+   * Imposta la data di creazione al primo salvataggio, anche quando l'entità
+   * è costruita tramite {@link hackhub.app.Core.Builders.HackathonBuilder}.
+   */
+  @PrePersist
+  void onCreate() {
+    if (dataCreazione == null) {
+      dataCreazione = LocalDateTime.now();
+    }
+  }
+
   // @Version per il controllo di concorrenza
   @Version
   private Long version;

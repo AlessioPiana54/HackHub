@@ -1,15 +1,14 @@
 package hackhub.app.Application.Services;
 
-import hackhub.app.Application.Exceptions.BusinessRuleException;
-import hackhub.app.Application.Exceptions.EntityNotFoundException;
-import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
-import hackhub.app.Application.Services.Interfaces.IHackathonService;
-
 import hackhub.app.Application.DTOs.ClassificaTeamDTO;
 import hackhub.app.Application.DTOs.HackathonSummaryDTO;
 import hackhub.app.Application.DTOs.TeamDTO;
+import hackhub.app.Application.Exceptions.BusinessRuleException;
+import hackhub.app.Application.Exceptions.EntityNotFoundException;
+import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaHackathonRequest;
+import hackhub.app.Application.Services.Interfaces.IHackathonService;
 import hackhub.app.Application.Utils.IPaymentManager;
 import hackhub.app.Core.Builders.HackathonBuilder;
 import hackhub.app.Core.Enums.Ruolo;
@@ -39,15 +38,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class HackathonService extends AbstractService implements IHackathonService {
 
   private final IPaymentManager paymentService;
+  private final HackathonMapper hackathonMapper;
+  private final TeamMapper teamMapper;
 
   public HackathonService(
     IUnitOfWork unitOfWork,
     EntityFinder entityFinder,
     AuthorizationChecker authorizationChecker,
-    IPaymentManager paymentService
+    IPaymentManager paymentService,
+    HackathonMapper hackathonMapper,
+    TeamMapper teamMapper
   ) {
     super(unitOfWork, entityFinder, authorizationChecker);
     this.paymentService = paymentService;
+    this.hackathonMapper = hackathonMapper;
+    this.teamMapper = teamMapper;
   }
 
   /**
@@ -56,9 +61,8 @@ public class HackathonService extends AbstractService implements IHackathonServi
    * @param request         i dati per la creazione dell'hackathon
    * @param organizzatoreId l'ID dell'organizzatore che crea l'evento
    * @return l'Hackathon creato
-   * @throws IllegalArgumentException se gli utenti (organizzatore, giudice,
-   *                                  mentori) non vengono trovati o non hanno i
-   *                                  ruoli corretti
+   * @throws EntityNotFoundException         se organizzatore, giudice o mentori non esistono
+   * @throws UnauthorizedOperationException  se gli utenti non hanno i ruoli corretti
    */
   public HackathonSummaryDTO creaHackathon(
     CreaHackathonRequest request,
@@ -92,15 +96,11 @@ public class HackathonService extends AbstractService implements IHackathonServi
       );
     }
 
-    // Calcolo dello Stato iniziale dell'Hackathon
-    StatoHackathon statoIniziale;
-    if (!request.getInizioIscrizioni().isAfter(LocalDateTime.now())) {
-      statoIniziale = StatoHackathon.IN_ISCRIZIONE;
-    } else {
-      statoIniziale = StatoHackathon.IN_ATTESA;
-    }
+    // Stato iniziale: se le iscrizioni sono già aperte l'hackathon parte IN_ISCRIZIONE
+    StatoHackathon statoIniziale = request.getInizioIscrizioni().isAfter(LocalDateTime.now())
+      ? StatoHackathon.IN_ATTESA
+      : StatoHackathon.IN_ISCRIZIONE;
 
-    // Creazione dell'oggetto Hackathon usando il Builder pattern
     Hackathon nuovoHackathon = new HackathonBuilder()
       .setNome(request.getNome())
       .setRegolamento(request.getRegolamento())
@@ -118,10 +118,9 @@ public class HackathonService extends AbstractService implements IHackathonServi
       .setStato(statoIniziale)
       .build();
 
-    // Salva dell'hackathon nel database
     unitOfWork.hackathonRepository().save(nuovoHackathon);
 
-    return mapToHackathonSummaryDTO(nuovoHackathon);
+    return hackathonMapper.toSummaryDTO(nuovoHackathon);
   }
 
   /**
@@ -129,9 +128,9 @@ public class HackathonService extends AbstractService implements IHackathonServi
    *
    * @param hackathonId l'ID dell'Hackathon
    * @param giudiceId   l'ID del giudice che esegue l'operazione
-   * @throws IllegalStateException se l'hackathon non è in valutazione o se ci
-   *                               sono sottomissioni non valutate
-   * @throws SecurityException     se l'utente non è il giudice dell'hackathon
+   * @throws BusinessRuleException          se l'hackathon non è in valutazione o
+   *                                        ci sono sottomissioni non valutate
+   * @throws UnauthorizedOperationException se l'utente non è il giudice dell'hackathon
    */
   public void terminaFaseValutazione(String hackathonId, String giudiceId) {
     Hackathon hackathon = findHackathonOrThrow(hackathonId);
@@ -148,7 +147,6 @@ public class HackathonService extends AbstractService implements IHackathonServi
       );
     }
 
-    // Recupera gli ID di tutte le sottomissioni già valutate per questo hackathon
     Set<String> sottomissioniValutateIds = unitOfWork
       .valutazioneRepository()
       .findAllBySottomissione_Partecipazione_Hackathon_Id(hackathonId)
@@ -156,8 +154,6 @@ public class HackathonService extends AbstractService implements IHackathonServi
       .map(v -> v.getSottomissione().getId())
       .collect(Collectors.toSet());
 
-    // Verifica se esiste almeno una sottomissione non ancora valutata per questo
-    // hackathon
     if (
       unitOfWork
         .sottomissioneRepository()
@@ -180,9 +176,8 @@ public class HackathonService extends AbstractService implements IHackathonServi
    * @param hackathonId l'ID dell'Hackathon
    * @param requesterId l'ID dell'utente che richiede la classifica
    * @return la lista ordinata dei team con i relativi punteggi
-   * @throws IllegalStateException se l'hackathon non è in fase di premiazione o
-   *                               concluso
-   * @throws SecurityException     se il richiedente non ha i permessi necessari
+   * @throws BusinessRuleException          se l'hackathon non è in premiazione o concluso
+   * @throws UnauthorizedOperationException se il richiedente non ha i permessi necessari
    */
   public List<ClassificaTeamDTO> getClassifica(
     String hackathonId,
@@ -199,31 +194,26 @@ public class HackathonService extends AbstractService implements IHackathonServi
       );
     }
 
-    if (hackathon.getStato() == StatoHackathon.IN_PREMIAZIONE) {
-      if (
-        !hackathon.getOrganizzatore().getId().equals(requesterId) &&
-        !hackathon.getGiudice().getId().equals(requesterId)
-      ) {
-        throw new UnauthorizedOperationException(
-          "Solo l'organizzatore o il giudice dell'Hackathon possono visualizzare la classifica durante la fase di premiazione."
-        );
-      }
+    if (
+      hackathon.getStato() == StatoHackathon.IN_PREMIAZIONE &&
+      !hackathon.getOrganizzatore().getId().equals(requesterId) &&
+      !hackathon.getGiudice().getId().equals(requesterId)
+    ) {
+      throw new UnauthorizedOperationException(
+        "Solo l'organizzatore o il giudice dell'Hackathon possono visualizzare la classifica durante la fase di premiazione."
+      );
     }
 
-    // Recupera tutte le sottomissioni e le valutazioni per l'hackathon
     List<Sottomissione> sottomissioni = unitOfWork
       .sottomissioneRepository()
       .findByPartecipazioneHackathonId(hackathonId);
 
-    // Mappa le valutazioni per ID sottomissione per un accesso rapido
     Map<String, Valutazione> mappaValutazioni = unitOfWork
       .valutazioneRepository()
       .findAllBySottomissione_Partecipazione_Hackathon_Id(hackathonId)
       .stream()
       .collect(Collectors.toMap(v -> v.getSottomissione().getId(), v -> v));
 
-    // Costruisce la classifica abbinando sottomissioni e valutazioni, ordinando per
-    // punteggio decrescente
     return sottomissioni
       .stream()
       .map(s -> {
@@ -234,7 +224,11 @@ public class HackathonService extends AbstractService implements IHackathonServi
             s.getId()
           );
         }
-        return mapToClassificaTeamDTO(s, valutazione);
+        return new ClassificaTeamDTO(
+          s.getTeam().getId(),
+          s.getTeam().getNomeTeam(),
+          valutazione.getVoto()
+        );
       })
       .sorted((t1, t2) -> Double.compare(t2.getPunteggio(), t1.getPunteggio()))
       .collect(Collectors.toList());
@@ -242,14 +236,14 @@ public class HackathonService extends AbstractService implements IHackathonServi
 
   /**
    * Proclama un team vincitore dell'Hackathon ed effettua il pagamento del
-   * premio.
+   * premio al leader del team.
    *
    * @param hackathonId     l'ID dell'Hackathon
    * @param teamId          l'ID del Team vincitore
    * @param organizzatoreId l'ID dell'organizzatore
-   * @throws IllegalStateException se l'hackathon non è in premiazione o fallisce
-   *                               il pagamento
-   * @throws SecurityException     se il richiedente non è l'organizzatore
+   * @throws BusinessRuleException          se l'hackathon non è in premiazione,
+   *                                        il team non ha consegnato o il pagamento fallisce
+   * @throws UnauthorizedOperationException se il richiedente non è l'organizzatore
    */
   public void proclamaVincitore(
     String hackathonId,
@@ -285,6 +279,12 @@ public class HackathonService extends AbstractService implements IHackathonServi
       );
     }
 
+    if (team.getLeaderSquadra() == null) {
+      throw new BusinessRuleException(
+        "Il team selezionato non ha un leader a cui versare il premio."
+      );
+    }
+
     try {
       paymentService.processPayment(
         team.getLeaderSquadra().getId(),
@@ -305,22 +305,19 @@ public class HackathonService extends AbstractService implements IHackathonServi
    * Iscrive un team a un hackathon.
    *
    * @param hackathonId ID dell'hackathon
-   * @param teamId ID del team
-   * @param leaderId ID del leader del team
-   * @return La partecipazione creata
-   * @throws IllegalStateException se l'hackathon non è in fase di iscrizione
-   * @throws IllegalArgumentException se il team è già iscritto
-   * @throws SecurityException se l'utente non è il leader del team
+   * @param teamId      ID del team
+   * @param leaderId    ID del leader del team
+   * @throws BusinessRuleException          se l'hackathon non è in fase di iscrizione
+   *                                        o il team è già iscritto
+   * @throws UnauthorizedOperationException se l'utente non è il leader del team
    */
   public void iscriviTeamAHackathon(
     String hackathonId,
     String teamId,
     String leaderId
   ) {
-    // Trova l'hackathon
     Hackathon hackathon = findHackathonOrThrow(hackathonId);
 
-    // Verifica che l'hackathon sia in fase di iscrizione
     if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
       throw new BusinessRuleException(
         "L'hackathon non è aperto alle iscrizioni. Stato attuale: " +
@@ -328,17 +325,17 @@ public class HackathonService extends AbstractService implements IHackathonServi
       );
     }
 
-    // Trova il team
     Team team = findTeamOrThrow(teamId);
 
-    // Verifica che l'utente sia il leader del team
-    if (!team.getLeaderSquadra().getId().equals(leaderId)) {
+    if (
+      team.getLeaderSquadra() == null ||
+      !team.getLeaderSquadra().getId().equals(leaderId)
+    ) {
       throw new UnauthorizedOperationException(
         "Solo il leader del team può iscrivere il team all'hackathon"
       );
     }
 
-    // Verifica che il team non sia già iscritto
     Optional<Partecipazione> esistente = unitOfWork
       .partecipazioneRepository()
       .findByTeamIdAndHackathonId(teamId, hackathonId);
@@ -349,193 +346,85 @@ public class HackathonService extends AbstractService implements IHackathonServi
       );
     }
 
-    // Crea la partecipazione
-    Partecipazione partecipazione = new Partecipazione(team, hackathon);
-
-    // Salva la partecipazione
-    unitOfWork.partecipazioneRepository().save(partecipazione);
+    unitOfWork.partecipazioneRepository().save(new Partecipazione(team, hackathon));
   }
 
   /**
-   * Restituisce una lista di riepilogo di tutti gli Hackathon pubblici.
-   *
-   * @return la lista di HackathonSummaryDTO
+   * Restituisce una lista di riepilogo di tutti gli Hackathon.
    */
   public List<HackathonSummaryDTO> getPublicHackathons() {
-    // Recupera tutti gli hackathon dal DB e li trasforma in DTO sintetici per la
-    // visualizzazione pubblica
-    return unitOfWork
-      .hackathonRepository()
-      .findAll()
-      .stream()
-      .map(this::mapToHackathonSummaryDTO)
-      .collect(Collectors.toList());
+    return toSummaries(unitOfWork.hackathonRepository().findAll());
   }
 
   /**
    * Restituisce gli hackathon a cui è iscritto il team dell'utente.
+   * Un partecipante appartiene a un solo team alla volta.
    *
    * @param userId l'ID dell'utente
-   * @return lista di HackathonSummaryDTO degli hackathon del team
    */
   public List<HackathonSummaryDTO> getMyHackathons(String userId) {
-    List<hackhub.app.Core.POJO_Entities.Team> teams = unitOfWork
-      .teamRepository()
-      .findByMembriId(userId);
+    List<Team> teams = unitOfWork.teamRepository().findByMembriId(userId);
 
     if (teams == null || teams.isEmpty()) {
       return List.of();
     }
 
-    // Usa il primo team dell'utente (un utente è in un solo team)
     String teamId = teams.get(0).getId();
 
     return unitOfWork
       .partecipazioneRepository()
       .findByTeamId(teamId)
       .stream()
-      .map(p -> mapToHackathonSummaryDTO(p.getHackathon()))
+      .map(p -> hackathonMapper.toSummaryDTO(p.getHackathon()))
       .collect(Collectors.toList());
   }
 
   /**
    * Restituisce gli hackathon assegnati a un giudice.
-   *
-   * @param giudiceId l'ID del giudice
-   * @return lista di HackathonSummaryDTO
    */
   public List<HackathonSummaryDTO> getJudgeHackathons(String giudiceId) {
-    return unitOfWork
-      .hackathonRepository()
-      .findByGiudiceId(giudiceId)
-      .stream()
-      .map(this::mapToHackathonSummaryDTO)
-      .collect(Collectors.toList());
+    return toSummaries(unitOfWork.hackathonRepository().findByGiudiceId(giudiceId));
   }
 
   /**
    * Restituisce gli hackathon assegnati a un mentore.
-   *
-   * @param mentoreId l'ID del mentore
-   * @return lista di HackathonSummaryDTO
    */
   public List<HackathonSummaryDTO> getMentorHackathons(String mentoreId) {
-    return unitOfWork
-      .hackathonRepository()
-      .findByMentoriId(mentoreId)
-      .stream()
-      .map(this::mapToHackathonSummaryDTO)
-      .collect(Collectors.toList());
+    return toSummaries(unitOfWork.hackathonRepository().findByMentoriId(mentoreId));
+  }
+
+  /**
+   * Restituisce gli hackathon creati da un organizzatore.
+   */
+  public List<HackathonSummaryDTO> getOrganizerHackathons(String organizzatoreId) {
+    return toSummaries(
+      unitOfWork.hackathonRepository().findByOrganizzatoreId(organizzatoreId)
+    );
   }
 
   /**
    * Restituisce i team partecipanti a un hackathon.
-   *
-   * @param hackathonId l'ID dell'hackathon
-   * @return lista di Team
    */
   public List<TeamDTO> getParticipants(String hackathonId) {
     return unitOfWork
       .partecipazioneRepository()
       .findByHackathonId(hackathonId)
       .stream()
-      .map(p -> mapToTeamDTO(p.getTeam()))
+      .map(p -> teamMapper.toDTO(p.getTeam()))
       .collect(Collectors.toList());
-  }
-
-  private TeamDTO mapToTeamDTO(Team team) {
-    List<String> membriIds = team
-      .getMembri()
-      .stream()
-      .map(User::getId)
-      .collect(Collectors.toList());
-
-    List<String> membriNomi = team
-      .getMembri()
-      .stream()
-      .map(m -> m.getNome() + " " + m.getCognome())
-      .collect(Collectors.toList());
-
-    return new TeamDTO(
-      team.getId(),
-      team.getNomeTeam(),
-      team.getLeaderSquadra().getId(),
-      team.getLeaderSquadra().getNome() + " " + team.getLeaderSquadra().getCognome(),
-      membriIds,
-      membriNomi,
-      team.getDataCreazione()
-    );
   }
 
   /**
    * Recupera i dettagli di un hackathon specifico per ID.
-   *
-   * @param hackathonId L'ID dell'hackathon da recuperare.
-   * @return Il DTO con i dettagli dell'hackathon.
    */
   public HackathonSummaryDTO getHackathonById(String hackathonId) {
-    // Trova l'hackathon nel database usando il metodo nativo di JpaRepository
-    Hackathon hackathon = unitOfWork
-      .hackathonRepository()
-      .findById(hackathonId)
-      .orElseThrow(() -> new EntityNotFoundException("Hackathon non trovato"));
-
-    // Lo trasforma in DTO
-    return mapToHackathonSummaryDTO(hackathon);
+    return hackathonMapper.toSummaryDTO(findHackathonOrThrow(hackathonId));
   }
 
-  // --- Helper private methods ---
-
-  private ClassificaTeamDTO mapToClassificaTeamDTO(
-    Sottomissione s,
-    Valutazione v
-  ) {
-    return new ClassificaTeamDTO(
-      s.getTeam().getId(),
-      s.getTeam().getNomeTeam(),
-      v.getVoto()
-    );
-  }
-
-  private HackathonSummaryDTO mapToHackathonSummaryDTO(Hackathon h) {
-    return new HackathonSummaryDTO(
-      h.getId().toString(), // ID reale!
-      h.getNome(),
-      h.getRegolamento(),
-      h.getRegolamento(), // Descrizione = regolamento
-      h.getLogoUrl(),
-      h.getInizioIscrizioni(), // Date iscrizioni reali
-      h.getScadenzaIscrizioni(), // Date iscrizioni reali
-      h.getDataInizio(),
-      h.getDataFine(),
-      h.getLuogo(),
-      h.getPremioInDenaro(),
-      h.getStato(),
-      h.getOrganizzatore() != null ? h.getOrganizzatore().getNome() : "N/A"
-    );
-  }
-
-  /**
-   * Forza lo stato dell'hackathon denominato "Test" a IN_CORSO.
-   *
-   * @param organizerId ID dell'organizzatore.
-   */
-  public void forceStartTestHackathon(String organizerId) {
-    User user = findUserOrThrow(organizerId);
-    validateUserRole(
-      user,
-      Ruolo.ORGANIZZATORE,
-      "Solo un organizzatore può forzare lo stato."
-    );
-
-    Hackathon testHackathon = unitOfWork
-      .hackathonRepository()
-      .findByNome("Test")
-      .orElseThrow(() ->
-        new EntityNotFoundException("Hackathon 'Test' non trovato")
-      );
-
-    testHackathon.setStato(StatoHackathon.IN_CORSO);
-    unitOfWork.hackathonRepository().save(testHackathon);
+  private List<HackathonSummaryDTO> toSummaries(List<Hackathon> hackathons) {
+    return hackathons
+      .stream()
+      .map(hackathonMapper::toSummaryDTO)
+      .collect(Collectors.toList());
   }
 }

@@ -1,5 +1,6 @@
 package hackhub.app.Core.POJO_Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hackhub.app.Core.Enums.Ruolo;
 import jakarta.persistence.*;
 
@@ -29,6 +30,7 @@ public class User {
   @Column(nullable = false, unique = true)
   private String email;
 
+  @JsonIgnore
   @Column(nullable = false)
   private String password;
 
@@ -67,6 +69,7 @@ public class User {
     return email;
   }
 
+  @JsonIgnore
   public String getPassword() {
     return password;
   }

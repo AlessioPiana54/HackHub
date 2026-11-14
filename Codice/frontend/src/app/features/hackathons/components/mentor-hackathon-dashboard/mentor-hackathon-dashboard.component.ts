@@ -5,7 +5,8 @@ import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { SupportRequestService, SupportRequest } from '../../../../core/services/support-request.service';
 import { ReportService, Report } from '../../../../core/services/report.service';
-import { HackathonSummaryDTO, PartecipazioneDTO } from '../../../../core/models/hackathon.model';
+import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
+import { TeamDTO } from '../../../../core/models/team.model';
 
 @Component({
   selector: 'app-mentor-hackathon-dashboard',
@@ -19,7 +20,7 @@ export class MentorHackathonDashboardComponent implements OnInit, OnDestroy {
   hackathon: HackathonSummaryDTO | null = null;
   supportRequests: SupportRequest[] = [];
   reports: Report[] = [];
-  participants: PartecipazioneDTO[] = [];
+  participants: TeamDTO[] = [];
   activeTab: 'support' | 'reports' = 'support';
   isLoading = true;
 

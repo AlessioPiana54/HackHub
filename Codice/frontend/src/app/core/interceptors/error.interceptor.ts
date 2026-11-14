@@ -4,6 +4,11 @@ import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { ToastService } from '../services/toast.service';
 
+/** Richieste di login/registrazione: un 401 qui significa "credenziali errate". */
+export function isAuthRequest(url: string): boolean {
+  return url.includes('/api/auth/login') || url.includes('/api/auth/register');
+}
+
 /**
  * Functional Interceptor per la gestione centralizzata degli errori.
  * Utilizza ToastService per mostrare notifiche all'utente.
@@ -14,11 +19,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 403) {
-        // Mostra toast per errore 403 Forbidden
-        toastService.error('Non hai i permessi per eseguire questa azione');
+        // 403: mostra il motivo indicato dal backend, se presente
+        toastService.error(error.error?.message || 'Non hai i permessi per eseguire questa azione');
       } else if (error.status === 401) {
-        // Gestito da authInterceptor, ma aggiungiamo un messaggio se utile
-        toastService.error('Sessione scaduta o non valida');
+        // Login/registrazione: il 401 indica credenziali errate e il form mostra già
+        // il messaggio del backend. Altrove indica una sessione scaduta.
+        if (!isAuthRequest(req.url)) {
+          toastService.error('Sessione scaduta o non valida');
+        }
       } else if (error.status === 0) {
         toastService.error('Impossibile connettersi al server');
       } else {

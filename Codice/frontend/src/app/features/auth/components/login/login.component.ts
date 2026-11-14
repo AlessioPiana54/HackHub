@@ -65,7 +65,6 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.router.navigate(['/dashboard'], { replaceUrl: true });
         },
         error: (error: { error?: { message?: string }; message?: string }) => {
-          console.error('Login error:', error);
           this.errorMessage = error.error?.message || error.message || 'Login failed. Please try again.';
           this.isLoading = false;
         }

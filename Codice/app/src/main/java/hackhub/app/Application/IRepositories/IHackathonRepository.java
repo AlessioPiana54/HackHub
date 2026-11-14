@@ -64,10 +64,10 @@ public interface IHackathonRepository {
   List<Hackathon> findByMentoriId(String mentoreId);
 
   /**
-   * Trova un hackathon tramite nome.
+   * Trova gli hackathon creati da un organizzatore specifico.
    *
-   * @param nome Nome dell'hackathon.
-   * @return Optional contenente l'hackathon se trovato, altrimenti vuoto.
+   * @param organizzatoreId L'ID dell'organizzatore.
+   * @return Lista di Hackathon creati dall'organizzatore.
    */
-  Optional<Hackathon> findByNome(String nome);
+  List<Hackathon> findByOrganizzatoreId(String organizzatoreId);
 }

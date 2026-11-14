@@ -6,13 +6,13 @@ Platform for hackathon management (users, teams, registrations, submissions, inv
 
 - **Authentication**: Registration and login with stateless JWT. Distinct roles: Organizer, Judge, Mentor, Teamless User, Team Leader, Team Member.
 - **Hackathon Management**: Creation, automatic state progression (Pending → Open → In Progress → Evaluation → Award → Concluded) via scheduler.
-- **Team Management**: Team creation, email invitations, accept/reject, leadership transfer, leave team.
+- **Team Management**: Team creation, email invitations (any team member can invite), accept/reject/withdraw, leadership transfer, leave team.
 - **Registrations**: Teams can register for hackathons during the open registration phase.
 - **Submissions**: Registered teams can submit their project GitHub link during the In Progress phase.
-- **Evaluations**: Assigned judges evaluate submissions with a score (0–10) and written feedback.
-- **Leaderboard**: Final standings displayed with team scores.
+- **Evaluations**: The assigned judge evaluates each submission once with a score (0–10) and written feedback, then closes the evaluation phase.
+- **Leaderboard & Winner**: Standings by score; the organizer proclaims the winner, the prize is paid (mock) to the team leader and the hackathon is concluded.
 - **Support Requests**: Teams can request mentorship with a proposed call (Google Meet/Webex).
-- **Reports**: Teams can report issues to the organizer during the hackathon.
+- **Reports**: Mentors report teams to the organizer; team members see the reports about their own team.
 - **PWA**: Installable as a native app, with offline support for previously visited content.
 
 ---
@@ -50,8 +50,7 @@ Platform for hackathon management (users, teams, registrations, submissions, inv
 | Environment | Requirements | URL |
 | :--- | :--- | :--- |
 | **Docker Compose** (local development) | Docker Desktop | `http://localhost:4200` |
-| **Local without Docker** | Java 21, Node 20, PostgreSQL | `http://localhost:4200` |
-| **Railway** (cloud) | Railway account | `https://hackhub-frontend-production.up.railway.app` |
+| **Local without Docker** | Java 21, Node 22, PostgreSQL | `http://localhost:4200` |
 | **Kubernetes / Minikube** (local) | Docker Desktop, Minikube, kubectl | `minikube service frontend -n hackhub` |
 
 ---
@@ -84,6 +83,8 @@ DB_PASSWORD=hackhub
 In production, replace at least `JWT_SECRET` with a secure random string (minimum 64 characters).
 
 > The frontend is available at `http://localhost:4200` (Compose maps host port 4200 → Nginx container port 8080).
+
+> Hackathon dates are stored without a time zone: the backend container runs with `TZ=Europe/Rome`, so the scheduler compares them with Italian local time.
 
 ### Start/Stop
 
@@ -127,43 +128,6 @@ The frontend will be available at `http://localhost:4200` with automatic proxy t
 
 ---
 
-## Deploy on Railway (Cloud)
-
-The app is deployed on [Railway](https://railway.app) with three separate services: PostgreSQL, Backend, and Frontend.
-
-### Public URLs
-
-- **Frontend**: `https://hackhub-frontend-production.up.railway.app`
-- **Backend**: `https://hackhub-backend-production.up.railway.app`
-
-### Service Configuration
-
-**Backend** — Root Directory: `Codice/app`, Dockerfile: `Codice/app/Dockerfile`, port `8080`
-
-| Variable | Value |
-| :--- | :--- |
-| `SPRING_PROFILES_ACTIVE` | `dev` |
-| `DB_URL` | `jdbc:postgresql://${{Postgres.PGHOST}}:5432/${{Postgres.PGDATABASE}}` |
-| `DB_USERNAME` | `${{Postgres.PGUSER}}` |
-| `DB_PASSWORD` | `${{Postgres.PGPASSWORD}}` |
-| `JWT_SECRET` | random string ≥ 64 characters |
-| `JWT_EXPIRATION` | `86400000` |
-| `ALLOWED_ORIGINS` | Railway frontend public URL |
-
-**Frontend** — Root Directory: `Codice/frontend`, Dockerfile: `Codice/frontend/Dockerfile`, port `8080`
-
-| Variable | Value |
-| :--- | :--- |
-| `BACKEND_URL` | `http://<backend-name>.railway.internal:8080` |
-
-> The backend private hostname can be found in Railway → HackHub-Backend → Settings → Networking → Private Networking.
-
-### Notes
-- The frontend communicates with the backend via the Railway **internal private network**, not the public URL.
-- `ALLOWED_ORIGINS` must exactly match the frontend URL (with `https://`, no trailing slash).
-
----
-
 ## Deploy on Kubernetes (Minikube)
 
 Manifests are in [k8s/](k8s/) and allow running the app on local Kubernetes.
@@ -188,7 +152,7 @@ docker build -t hackhub-backend:latest ./Codice/app
 docker build -t hackhub-frontend:latest ./Codice/frontend
 
 # 4. Create the secrets file (NOT included in the repository)
-cp k8s/02-secrets.example.yaml k8s/02-secrets.yaml
+cp k8s/02-secrets.yaml.example k8s/02-secrets.yaml
 # Edit k8s/02-secrets.yaml and set DB_PASSWORD and JWT_SECRET
 
 # 5. Apply manifests
@@ -203,10 +167,10 @@ minikube service frontend -n hackhub
 ```
 k8s/
 ├── 01-namespace.yaml         # "hackhub" namespace
-├── 02-secrets.example.yaml   # Credentials template (copy to 02-secrets.yaml and fill in)
+├── 02-secrets.yaml.example   # Credentials template (copy to 02-secrets.yaml and fill in; not applied by kubectl)
 ├── 02-secrets.yaml           # DB password and JWT secret — NOT in git
 ├── 03-configmap.yaml         # Configuration variables
-├── 04-postgres.yaml          # PostgreSQL StatefulSet + PVC + Service
+├── 04-postgres.yaml          # PostgreSQL Deployment + PVC + Service
 ├── 05-backend.yaml           # Backend Deployment + Service
 └── 06-frontend.yaml          # Frontend Deployment + NodePort Service
 ```
@@ -233,7 +197,7 @@ kubectl delete namespace hackhub
 
 ### Backend Tests
 
-Unit tests cover the main services (AuthService, HackathonService, TeamService) using JUnit 5 + Mockito.
+Unit tests (JUnit 5 + Mockito) cover the application services (Auth, Hackathon, Team, Invito, Sottomissione, RichiestaSupporto, Segnalazione, User), the `HackathonScheduler` state transitions and the link validation strategies.
 
 ```bash
 cd Codice/app
@@ -290,12 +254,13 @@ Roles are assigned automatically by the system based on user actions. `UTENTE_SE
 | Action | ORGANIZZATORE | GIUDICE | MENTORE | LEADER_TEAM | MEMBRO_TEAM | UTENTE_SENZA_TEAM |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Create a hackathon | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Advance hackathon state (manual) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Close the evaluation phase | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ | ❌ |
 | Assign judges / mentors | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Declare winning team | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Declare winning team | ✅ (own hackathon) | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Evaluate a submission | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ | ❌ |
 | Create a team | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Invite members to the team | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Invite members to the team | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Withdraw a sent invitation | ❌ | ❌ | ❌ | ✅ | ✅ (own only) | ❌ |
 | Accept / reject an invitation | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Transfer leadership | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Leave the team | ❌ | ❌ | ❌ | ✅ (only if sole member) | ✅ | ❌ |
@@ -303,9 +268,11 @@ Roles are assigned automatically by the system based on user actions. `UTENTE_SE
 | Submit project (GitHub link) | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
 | Request support from a mentor | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
 | Respond to a support request | ❌ | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ |
-| Send a report | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
-| View the leaderboard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Send a report about a team | ❌ | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ |
+| View the leaderboard | ✅ | ✅ | ✅* | ✅* | ✅* | ✅* |
 | View own hackathons / teams | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+\* During the award phase the leaderboard is visible only to the organizer and the judge; once the hackathon is concluded it is public.
 
 ---
 
@@ -321,7 +288,7 @@ Base path: `/api`
 ### Users
 - `GET /users/me`
 - `PUT /users/me`
-- `GET /users/by-role/{role}` — `role ∈ {ORGANIZZATORE, GIUDICE, MENTORE}`
+- `GET /users/by-role/{role}` — organizers only, `role ∈ {GIUDICE, MENTORE}`
 
 ### Hackathons
 - `GET /hackathons`
@@ -330,6 +297,7 @@ Base path: `/api`
 - `GET /hackathons/my`
 - `GET /hackathons/judge/my`
 - `GET /hackathons/mentor/my`
+- `GET /hackathons/organizer/my`
 - `PATCH /hackathons/{hackathonId}/status`
 - `GET /hackathons/{hackathonId}/classifica`
 - `GET /hackathons/{hackathonId}/participants`
@@ -348,6 +316,7 @@ Base path: `/api`
 ### Invitations
 - `POST /invitations`
 - `PATCH /invitations/{id}`
+- `DELETE /invitations/{id}`
 - `GET /invitations/received`
 - `GET /invitations/sent`
 
@@ -356,7 +325,7 @@ Base path: `/api`
 - `PATCH /submissions/{id}`
 - `PATCH /submissions/{id}/evaluation`
 - `GET /submissions/my-submissions`
-- `GET /submissions/hackathon/{idHackathon}`
+- `GET /submissions/hackathon/{idHackathon}` — organizer, judge and mentors of the hackathon
 
 ### Support Requests
 - `POST /support-requests`
@@ -383,7 +352,7 @@ HackHub adopts a **Clean Architecture** split into 4 layers:
 
 - **Unit of Work**: Coordinates multiple repositories in atomic transactions.
 - **Builder Pattern**: Used for `Hackathon` entity creation (many required fields).
-- **Strategy Pattern**: External link validation (GitHub, LinkedIn, etc.) — extendable without modifying existing logic.
+- **Strategy Pattern**: External link validation by host (GitHub for submissions, Google Meet/Webex for mentoring calls) — extendable without modifying existing logic.
 - **JWT Stateless**: Stateless API for optimal horizontal scalability.
 - **BCrypt**: Password hashing with built-in salt, resistant to brute-force and rainbow table attacks.
 - **Angular PWA**: Service Worker for caching and offline support.
@@ -398,14 +367,14 @@ HackHub adopts a **Clean Architecture** split into 4 layers:
 | :--- | :---: | :--- |
 | I. Codebase | ✅ | Single GitHub repository for the entire project. |
 | II. Dependencies | ✅ | Explicitly declared in `pom.xml` and `package.json`. |
-| III. Config | ✅ | Configuration loaded from environment variables (`.env`, Railway, K8s ConfigMap/Secret). |
+| III. Config | ✅ | Configuration loaded from environment variables (`.env`, K8s ConfigMap/Secret). |
 | IV. Backing services | ✅ | PostgreSQL treated as an external resource connected via JDBC. |
 | V. Build, release, run | ✅ | CI/CD pipeline separates build (Docker images) from release and run. |
 | VI. Processes | ✅ | Stateless backend thanks to JWT tokens. |
 | VII. Port binding | ✅ | Services expose port 8080 (backend) and port 8080 (frontend Nginx). |
 | VIII. Concurrency | ✅ | Horizontal scalability via Docker/K8s replicas. |
 | IX. Disposability | ✅ | Fast startup and graceful shutdown with Alpine images. |
-| X. Dev/prod parity | ✅ | Same Docker stack used locally, on Railway, and on Kubernetes. |
+| X. Dev/prod parity | ✅ | Same Docker images used with Docker Compose and on Kubernetes. |
 | XI. Logs | ✅ | Logs as event streams on stdout/stderr. |
 | XII. Admin processes | ✅ | DataSeeder runs in the same operational environment. |
 | XIII. API First | ✅ | REST APIs documented with Swagger/OpenAPI. |
@@ -452,16 +421,6 @@ graph TD
 
     Frontend -->|/api/* proxy_pass| Backend
     Backend -->|JDBC| DB
-```
-
-### Deployment Diagram — Railway (cloud)
-
-```mermaid
-graph TD
-    User((Browser)) -->|HTTPS| Edge[Railway Edge / Fastly CDN]
-    Edge --> Frontend[HackHub-Frontend Nginx :8080]
-    Frontend -->|internal private network| Backend[HackHub-Backend Spring :8080]
-    Backend -->|JDBC| DB[(PostgreSQL Railway)]
 ```
 
 ### Deployment Diagram — Kubernetes / Minikube
@@ -513,6 +472,6 @@ graph LR
 The project includes a CI/CD pipeline via **GitHub Actions**:
 
 - **Continuous Integration**: On every push or PR to `main`, Maven (backend) and npm (frontend) builds and tests are executed.
-- **Continuous Deployment**: On push to `main`, the pipeline builds Docker images and publishes them to the GitHub Container Registry (GHCR).
+- **Continuous Deployment**: On push to `main`, the pipeline builds Docker images and publishes them to the GitHub Container Registry (GHCR), tagged `latest` and with the commit SHA.
 
 Configuration: [.github/workflows/ci.yml](.github/workflows/ci.yml)

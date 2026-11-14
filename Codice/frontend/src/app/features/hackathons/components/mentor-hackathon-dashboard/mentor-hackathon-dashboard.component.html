@@ -28,7 +28,7 @@
       <div class="card-grid" *ngIf="supportRequests.length > 0; else noRequests">
         <div class="submission-card" *ngFor="let req of supportRequests">
           <div class="card-header">
-            <h3>{{ req.nomeTeam }}</h3>
+            <h3>{{ req.teamNome }}</h3>
             <span class="date">{{ req.dataRichiesta | date:'short' }}</span>
           </div>
           <p class="desc">{{ req.descrizione }}</p>
@@ -56,11 +56,11 @@
         <div class="ranking-item" *ngFor="let r of reports">
           <div class="report-content">
             <div class="report-header">
-              <span class="team-name">🚩 Team: {{ r.nomeTeam }}</span>
+              <span class="team-name">🚩 Team: {{ r.teamNome }}</span>
               <span class="date">{{ r.dataSegnalazione | date:'short' }}</span>
             </div>
             <p class="desc">{{ r.descrizione }}</p>
-            <small class="mentor">Mentore: {{ r.nomeMentore }}</small>
+            <small class="mentor">Mentore: {{ r.mentoreNome }}</small>
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@
           <select id="teamSelect" [(ngModel)]="reportForm.teamId" class="form-control">
             <option value="" disabled selected>Seleziona un team...</option>
             <option *ngFor="let team of participants" [value]="team.id">
-              {{ team.nomeTeam }}
+              {{ team.nome }}
             </option>
           </select>
         </div>

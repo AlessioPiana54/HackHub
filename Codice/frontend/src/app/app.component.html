@@ -48,6 +48,18 @@
         </a>
       </div>
 
+      <!-- Organizer Hackathons Section -->
+      <div class="nav-section" *ngIf="organizerHackathons.length > 0">
+        <div class="nav-section-title">Hackathon Organizzati</div>
+        <a *ngFor="let h of organizerHackathons"
+           [routerLink]="['/hackathons/organizer', h.id]"
+           class="nav-item"
+           routerLinkActive="active">
+          <span>🎯</span>
+          <span>{{ h.nome }}</span>
+        </a>
+      </div>
+
       <!-- Mentor Hackathons Section -->
       <div class="nav-section" *ngIf="mentorHackathons.length > 0">
         <div class="nav-section-title">Hackathon da Mentore</div>

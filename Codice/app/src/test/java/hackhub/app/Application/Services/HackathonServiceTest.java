@@ -32,7 +32,7 @@ class HackathonServiceTest {
 
     @BeforeEach
     void setUp() {
-        hackathonService = new HackathonService(unitOfWork, entityFinder, authorizationChecker, paymentService);
+        hackathonService = new HackathonService(unitOfWork, entityFinder, authorizationChecker, paymentService, new HackathonMapper(), new TeamMapper());
     }
 
     @Test

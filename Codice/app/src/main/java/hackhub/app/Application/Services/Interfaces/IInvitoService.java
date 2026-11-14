@@ -11,4 +11,5 @@ public interface IInvitoService {
     void gestisciRisposta(RispostaInvitoRequest request, String userId, String invitoId);
     List<InvitoDTO> getReceivedInvitations(String userId);
     List<InvitoDTO> getSentInvitations(String userId);
+    void ritiraInvito(String invitoId, String userId);
 }

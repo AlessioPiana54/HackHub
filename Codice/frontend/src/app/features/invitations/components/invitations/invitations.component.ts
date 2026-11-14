@@ -78,7 +78,7 @@ export class InvitationsComponent implements OnInit, OnDestroy {
   }
 
   acceptInvitation(invitationId: string): void {
-    this.invitationsService.respondToInvitation(invitationId, { invitoId: invitationId, accettato: true })
+    this.invitationsService.respondToInvitation(invitationId, { accettato: true })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -92,7 +92,7 @@ export class InvitationsComponent implements OnInit, OnDestroy {
   }
 
   rejectInvitation(invitationId: string): void {
-    this.invitationsService.respondToInvitation(invitationId, { invitoId: invitationId, accettato: false })
+    this.invitationsService.respondToInvitation(invitationId, { accettato: false })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -106,7 +106,16 @@ export class InvitationsComponent implements OnInit, OnDestroy {
   }
 
   withdrawInvitation(invitationId: string): void {
-    // TODO: Implementare endpoint per ritirare invito quando disponibile nel backend
-    console.log('Withdraw invitation:', invitationId);
+    if (!confirm('Withdraw this invitation?')) return;
+    this.invitationsService.withdrawInvitation(invitationId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.sentInvitations = this.sentInvitations.filter(i => i.id !== invitationId);
+        },
+        error: () => {
+          this.errorMessage = 'Failed to withdraw invitation. Please try again.';
+        }
+      });
   }
 }

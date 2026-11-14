@@ -9,7 +9,9 @@ import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.Enums.Ruolo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -68,21 +70,24 @@ public class UserController extends AbstractController {
   /**
    * Recupera gli utenti in base al ruolo specificato.
    * 
-   * @param ruolo Il ruolo degli utenti (es. GIUDICE, MENTORE)
+   * Serve all'organizzatore per scegliere giudice e mentori di un nuovo hackathon:
+   * è consentito solo agli ORGANIZZATORI e solo per i ruoli GIUDICE e MENTORE.
+   *
+   * @param ruolo Il ruolo degli utenti (GIUDICE o MENTORE)
    * @return Lista di utenti con quel ruolo
    */
   @GetMapping("/by-role/{ruolo}")
   public ResponseEntity<List<UserDTO>> getUsersByRole(
+    @RequestHeader("Authorization") String token,
     @PathVariable Ruolo ruolo
   ) {
-    logger.info("Request to fetch users by role: {}", ruolo);
-    try {
-      List<UserDTO> users = userService.getUsersByRuolo(ruolo);
-      logger.info("Found {} users with role {}", users.size(), ruolo);
-      return ResponseEntity.ok(users);
-    } catch (Exception e) {
-      logger.error("Error fetching users by role: {}", ruolo, e);
-      throw e;
+    User user = getAuthenticatedUser(token);
+    validateUserRole(user, Ruolo.ORGANIZZATORE, "Solo gli organizzatori possono consultare l'elenco di giudici e mentori.");
+    if (ruolo != Ruolo.GIUDICE && ruolo != Ruolo.MENTORE) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Errore Validazione: sono consultabili solo i ruoli GIUDICE e MENTORE.");
     }
+    List<UserDTO> users = userService.getUsersByRuolo(ruolo);
+    logger.debug("Trovati {} utenti con ruolo {}", users.size(), ruolo);
+    return ResponseEntity.ok(users);
   }
 }

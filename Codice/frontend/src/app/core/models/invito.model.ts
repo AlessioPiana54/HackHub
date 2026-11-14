@@ -7,8 +7,6 @@ export interface InvitoDTO {
   teamId: string;
   teamNome: string;
   dataInvio: string;
-  messaggio?: string;
-  stato?: string;
 }
 
 export interface CreaInvitoRequest {
@@ -18,25 +16,4 @@ export interface CreaInvitoRequest {
 
 export interface RispostaInvitoRequest {
   accettato: boolean;
-}
-
-export interface Invito {
-  id: string;
-  team: {
-    id: string;
-    nomeTeam: string;
-  };
-  destinatario: {
-    id: string;
-    nome: string;
-    cognome: string;
-    email: string;
-  };
-  mittente: {
-    id: string;
-    nome: string;
-    cognome: string;
-    email: string;
-  };
-  dataInvito: string;
 }

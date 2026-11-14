@@ -18,6 +18,6 @@ public interface IHackathonService {
     List<HackathonSummaryDTO> getJudgeHackathons(String giudiceId);
     List<HackathonSummaryDTO> getMentorHackathons(String mentoreId);
     List<TeamDTO> getParticipants(String hackathonId);
+    List<HackathonSummaryDTO> getOrganizerHackathons(String organizzatoreId);
     HackathonSummaryDTO getHackathonById(String hackathonId);
-    void forceStartTestHackathon(String organizerId);
 }

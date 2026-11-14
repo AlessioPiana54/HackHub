@@ -1,10 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone, ApplicationRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { InvitationsService } from '../../../../core/services/invitations.service';
 import { TeamUpdateService } from '../../../../core/services/team-update.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { TeamDTO } from '../../../../core/models/team.model';
 import { UserDTO } from '../../../../core/models/user.model';
 import { InvitoDTO } from '../../../../core/models/invito.model';
@@ -26,44 +28,23 @@ export class TeamsComponent implements OnInit, OnDestroy {
   constructor(
     private teamService: TeamService,
     private authService: AuthService,
+    private invitationsService: InvitationsService,
     private router: Router,
     private teamUpdateService: TeamUpdateService,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone,
-    private appRef: ApplicationRef
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
-    console.log('TeamsComponent - Initializing...');
-
-    // Ascolta gli aggiornamenti dei team
     this.teamUpdateService.teamUpdate$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        console.log('TeamsComponent - Team update received, refreshing all data...');
-        this.loadContent();
-      });
+      .subscribe(() => this.loadContent());
 
-    // Forza il caricamento immediato
-    this.loadContent();
-
-    // Ascolta i cambiamenti dell'utente
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         this.currentUser = user;
-        console.log('TeamsComponent - User updated:', user);
-        console.log('TeamsComponent - Current user after update:', this.currentUser);
-
-        // Ricarica i dati quando cambia l'utente
-        if (user) {
-          this.loadContent();
-        }
+        this.loadContent();
       });
-
-    // Debug: check if there's a token
-    console.log('TeamsComponent - Has token:', this.authService.hasToken());
-    console.log('TeamsComponent - Token:', this.authService.getToken());
   }
 
   ngOnDestroy(): void {
@@ -72,105 +53,83 @@ export class TeamsComponent implements OnInit, OnDestroy {
   }
 
   loadContent(): void {
-    console.log('TeamsComponent - loadContent called');
-    
-    // Mostra sempre l'opzione di creare team
     this.isLoading = false;
     this.receivedInvitations = [];
-    
-    // Tenta di caricare i dati se l'utente è disponibile
-    if (this.currentUser) {
-      console.log('TeamsComponent - Loading data for user:', this.currentUser.ruolo);
-      
-      // Carica sempre i team dell'utente
-      this.loadTeams();
-      
-      // Carica gli inviti se l'utente non ha ancora un team
-      if (this.currentUser.ruolo === 'UTENTE_SENZA_TEAM') {
-        this.loadInvitations();
-      }
-    } else {
-      console.log('TeamsComponent - No user, showing create team option');
+
+    if (!this.currentUser) return;
+
+    this.loadTeams();
+    if (this.currentUser.ruolo === 'UTENTE_SENZA_TEAM') {
+      this.loadInvitations();
     }
   }
 
   loadTeams(): void {
-    console.log('TeamsComponent - Loading user teams...');
-    this.teamService.getMyTeams().subscribe({
-      next: (teams) => {
-        console.log('TeamsComponent - User teams loaded:', teams);
-        this.teams = teams;
-        console.log('TeamsComponent - Teams count:', this.teams.length);
+    this.teamService.getMyTeams()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (teams) => this.teams = teams,
+        error: () => {
+          this.errorMessage = 'Failed to load teams. Please try again.';
+          this.isLoading = false;
+        }
+      });
+  }
+
+  loadInvitations(): void {
+    this.invitationsService.getReceivedInvitations()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (invitations) => this.receivedInvitations = invitations,
+        error: () => this.receivedInvitations = []
+      });
+  }
+
+  abandonTeam(teamId: string): void {
+    if (!confirm('Are you sure you want to abandon this team?')) return;
+
+    this.teamService.abbandonaTeam(teamId).subscribe({
+      next: () => {
+        this.setLocalRole('UTENTE_SENZA_TEAM');
+        this.teams = [];
+        this.teamUpdateService.notifyTeamUpdate();
       },
-      error: (error) => {
-        console.error('TeamsComponent - Error loading teams:', error);
-        this.errorMessage = 'Failed to load teams. Please try again.';
-        this.isLoading = false;
+      error: (error: { error?: { message?: string } }) => {
+        this.errorMessage = error.error?.message || 'Failed to abandon team. Please try again.';
       }
     });
   }
 
-  loadInvitations(): void {
-    console.log('TeamsComponent - Loading received invitations...');
-    // Disabilitato temporaneamente - il servizio invitations non è disponibile
-    this.receivedInvitations = [];
-    this.isLoading = false;
-  }
-
-  loadAllTeams(): void {
-    console.log('TeamsComponent - Loading all public teams...');
-    // TODO: Implementare quando disponibile l'endpoint per tutti i team pubblici
-    this.teams = [];
-    this.isLoading = false;
-  }
-
-  abandonTeam(teamId: string): void {
-    if (confirm('Are you sure you want to abandon this team?')) {
-      console.log('TeamsComponent - Abandoning team:', teamId);
-      this.teamService.abbandonaTeam(teamId).subscribe({
-        next: () => {
-          console.log('TeamsComponent - Team abandoned successfully');
-          
-          // Aggiorna manualmente i dati utente nell'AuthService per aggiornare la headbar
-          const currentUser = this.authService.currentUser;
-          if (currentUser) {
-            currentUser.ruolo = 'UTENTE_SENZA_TEAM';
-            // Forza aggiornamento del BehaviorSubject
-            this.authService.updateCurrentUserLocally(currentUser);
-          }
-          
-          // Ricarica i dati dei team
-          this.loadTeams();
-        },
-        error: (error: { error?: { message?: string } }) => {
-          console.error('TeamsComponent - Error abandoning team:', error);
-          this.errorMessage = error.error?.message || 'Failed to abandon team. Please try again.';
-        }
-      });
-    }
-  }
-
   clearError(): void {
     this.errorMessage = '';
-    // Ricarichiamo i contenuti per ripristinare la view corretta
     this.loadContent();
   }
 
-  // Metodi per inviti - disabilitati temporaneamente
-  // TODO: Reimplementare quando il servizio invitations sarà disponibile
-  
   acceptInvitation(invitationId: string): void {
-    console.log('TeamsComponent - Accept invitation temporarily disabled');
-    // TODO: Implementare quando il servizio invitations sarà disponibile
+    this.invitationsService.respondToInvitation(invitationId, { accettato: true })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Invito accettato: ora fai parte del team!');
+          // Il ruolo cambia sul server: lo allineo anche lato client
+          this.setLocalRole('MEMBRO_TEAM');
+          this.teamUpdateService.notifyTeamUpdate();
+        }
+      });
   }
-  
+
   rejectInvitation(invitationId: string): void {
-    console.log('TeamsComponent - Reject invitation temporarily disabled');
-    // TODO: Implementare quando il servizio invitations sarà disponibile
+    this.invitationsService.respondToInvitation(invitationId, { accettato: false })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.receivedInvitations = this.receivedInvitations.filter(i => i.id !== invitationId);
+          this.toastService.info('Invito rifiutato.');
+        }
+      });
   }
 
   navigateToCreateTeam(): void {
-    console.log('TeamsComponent - Navigate to create team');
     this.router.navigate(['/teams/create']);
   }
 
@@ -190,61 +149,38 @@ export class TeamsComponent implements OnInit, OnDestroy {
     return this.currentUser?.ruolo === 'MEMBRO_TEAM' || this.currentUser?.ruolo === 'LEADER_TEAM';
   }
 
-  // Helper methods for team display
   isCurrentUserLeader(team: TeamDTO): boolean {
-    if (!this.currentUser || !team) return false;
-
-    if (team.leaderId) {
-      return team.leaderId === this.currentUser.id;
-    }
-
-    return false;
+    return !!this.currentUser && !!team?.leaderId && team.leaderId === this.currentUser.id;
   }
 
   getTeamMemberCount(team: TeamDTO): number {
-    if (!team) return 0;
-
-    if (team.membriIds && Array.isArray(team.membriIds)) {
-      return team.membriIds.length;
-    }
-
-    return 0;
+    return team?.membriIds?.length ?? 0;
   }
 
   getTeamMembers(team: TeamDTO): Array<{ id: string; nome: string; cognome: string }> {
-    if (!team) return [];
-
-    // If we only have member names/IDs, create placeholder objects
-    if (team.membriNomi && Array.isArray(team.membriNomi)) {
-      return team.membriNomi.map((nome: string, index: number) => ({
-        nome: nome.split(' ')[0] || nome,
-        cognome: nome.split(' ')[1] || '',
-        id: team.membriIds?.[index] || ''
-      }));
-    }
-
-    return [];
+    if (!team?.membriNomi) return [];
+    return team.membriNomi.map((nomeCompleto: string, index: number) => {
+      const [nome, ...cognome] = nomeCompleto.split(' ');
+      return { nome, cognome: cognome.join(' '), id: team.membriIds?.[index] || '' };
+    });
   }
 
   isTeamLeader(member: { id: string }, team: TeamDTO): boolean {
-    if (!member || !team) return false;
-
-    if (team.leaderId) {
-      return member.id === team.leaderId;
-    }
-
-    return false;
+    return !!member && !!team?.leaderId && member.id === team.leaderId;
   }
 
   viewTeamDetails(teamId: string): void {
-    console.log('TeamsComponent - Viewing team details:', teamId);
-    // Navigate to team details page
     this.router.navigate(['/teams', teamId]);
   }
 
   manageTeam(teamId: string): void {
-    console.log('TeamsComponent - Managing team:', teamId);
-    // Navigate to team management page
     this.router.navigate(['/teams', teamId, 'manage']);
+  }
+
+  private setLocalRole(ruolo: string): void {
+    const user = this.authService.currentUser;
+    if (user) {
+      this.authService.updateCurrentUserLocally({ ...user, ruolo });
+    }
   }
 }

@@ -36,7 +36,10 @@
         🚨 Segnalazioni
       </button>
       <button class="tab" [class.active]="activeTab === 'sottomissioni'" (click)="setTab('sottomissioni')">
-        🚀 Sottomissioni
+        🚀 Sottomissione
+      </button>
+      <button class="tab" [class.active]="activeTab === 'supporto'" (click)="setTab('supporto')">
+        📞 Supporto
       </button>
     </div>
 
@@ -102,7 +105,7 @@
         </div>
         <div class="item-card" *ngFor="let s of segnalazioni">
           <div class="item-header">
-            <span class="item-team">👥 {{ s.nomeTeam || 'Team' }}</span>
+            <span class="item-team">👥 {{ s.teamNome || 'Team' }}</span>
             <span class="item-date">{{ s.dataSegnalazione | date:'dd MMM yyyy' }}</span>
           </div>
           <p class="item-body">{{ s.descrizione }}</p>
@@ -112,47 +115,91 @@
 
     <!-- TAB: Sottomissioni -->
     <div class="tab-content" *ngIf="activeTab === 'sottomissioni'">
-      <!-- Submit form -->
-      <div class="form-card" *ngIf="myTeam">
-        <h3>Invia una Sottomissione</h3>
-        <div class="alert alert-success" *ngIf="sottomissioneSuccess">{{ sottomissioneSuccess }}</div>
-        <div class="alert alert-error" *ngIf="sottomissioneError">{{ sottomissioneError }}</div>
+      <div class="alert alert-success" *ngIf="sottomissioneSuccess">{{ sottomissioneSuccess }}</div>
+      <div class="alert alert-error" *ngIf="sottomissioneError">{{ sottomissioneError }}</div>
+
+      <!-- Progetto consegnato -->
+      <div class="item-card" *ngIf="sottomissione && !isEditingSottomissione">
+        <div class="item-header">
+          <span class="item-team">🚀 Progetto consegnato da {{ sottomissione.mittenteNome }}</span>
+          <span class="item-date">{{ sottomissione.dataSottomissione | date:'dd MMM yyyy, HH:mm' }}</span>
+        </div>
+        <a [href]="sottomissione.linkProgetto" target="_blank" rel="noopener" class="project-link">🔗 {{ sottomissione.linkProgetto }}</a>
+        <p class="item-body" *ngIf="sottomissione.descrizione">{{ sottomissione.descrizione }}</p>
+        <p class="item-body" *ngIf="sottomissione.voto !== null">
+          ⭐ Voto del giudice: <strong>{{ sottomissione.voto }}/10</strong> — {{ sottomissione.giudizio }}
+        </p>
+        <button class="btn-primary" *ngIf="isInCorso" (click)="startEdit()">✏️ Modifica</button>
+      </div>
+
+      <!-- Form di invio / modifica -->
+      <div class="form-card" *ngIf="myTeam && isInCorso && (!sottomissione || isEditingSottomissione)">
+        <h3>{{ isEditingSottomissione ? 'Modifica la sottomissione' : 'Invia il progetto' }}</h3>
         <div class="form-group">
-          <label class="form-label">Link Progetto *</label>
+          <label class="form-label">Link al repository GitHub *</label>
           <input
             class="form-input"
             type="url"
             placeholder="https://github.com/..."
-            [(ngModel)]="nuovaSottomissione.linkProgetto">
+            [(ngModel)]="formSottomissione.linkProgetto">
         </div>
         <div class="form-group">
           <label class="form-label">Descrizione</label>
           <textarea
             class="form-textarea"
             placeholder="Descrivi brevemente il tuo progetto..."
-            [(ngModel)]="nuovaSottomissione.descrizione"
+            [(ngModel)]="formSottomissione.descrizione"
             rows="3">
           </textarea>
         </div>
-        <button class="btn-primary" (click)="inviaSottomissione()" [disabled]="sottomissioneLoading || !nuovaSottomissione.linkProgetto.trim()">
-          <span *ngIf="!sottomissioneLoading">🚀 Invia Sottomissione</span>
+        <button class="btn-primary" (click)="salvaSottomissione()" [disabled]="sottomissioneLoading || !formSottomissione.linkProgetto.trim()">
+          <span *ngIf="!sottomissioneLoading">{{ isEditingSottomissione ? '💾 Salva modifiche' : '🚀 Invia Sottomissione' }}</span>
           <span *ngIf="sottomissioneLoading">Invio...</span>
         </button>
+        <button class="btn-secondary" *ngIf="isEditingSottomissione" (click)="cancelEdit()">Annulla</button>
       </div>
 
-      <!-- List -->
-      <div class="list-section">
-        <h3>Le tue Sottomissioni ({{ sottomissioni.length }})</h3>
-        <div class="empty-hint" *ngIf="sottomissioni.length === 0">
-          Nessuna sottomissione ancora. Invia il tuo progetto!
+      <div class="empty-hint" *ngIf="!sottomissione && !isInCorso">
+        Le sottomissioni sono aperte solo mentre l'hackathon è in corso.
+      </div>
+    </div>
+
+    <!-- TAB: Supporto -->
+    <div class="tab-content" *ngIf="activeTab === 'supporto'">
+      <div class="form-card" *ngIf="myTeam && isInCorso">
+        <h3>Chiedi aiuto a un mentore</h3>
+        <div class="alert alert-success" *ngIf="supportoSuccess">{{ supportoSuccess }}</div>
+        <div class="alert alert-error" *ngIf="supportoError">{{ supportoError }}</div>
+        <div class="form-group">
+          <label class="form-label">Descrivi il problema *</label>
+          <textarea
+            class="form-textarea"
+            placeholder="Su cosa vi serve supporto?"
+            [(ngModel)]="nuovaRichiesta"
+            rows="3">
+          </textarea>
         </div>
-        <div class="item-card" *ngFor="let s of sottomissioni">
+        <button class="btn-primary" (click)="inviaRichiestaSupporto()" [disabled]="supportoLoading || !nuovaRichiesta.trim()">
+          <span *ngIf="!supportoLoading">📨 Invia richiesta</span>
+          <span *ngIf="supportoLoading">Invio...</span>
+        </button>
+      </div>
+      <div class="empty-hint" *ngIf="!isInCorso">
+        Le richieste di supporto si possono inviare solo mentre l'hackathon è in corso.
+      </div>
+
+      <div class="list-section">
+        <h3>Call proposte dai mentori ({{ callProposte.length }})</h3>
+        <div class="empty-hint" *ngIf="callProposte.length === 0">
+          Nessuna call ancora proposta.
+        </div>
+        <div class="item-card" *ngFor="let c of callProposte">
           <div class="item-header">
-            <span class="item-team">🚀 Sottomissione</span>
-            <span class="item-date">{{ s.dataInvio | date:'dd MMM yyyy, HH:mm' }}</span>
+            <span class="item-team">📞 {{ c.dataCall | date:'dd MMM yyyy, HH:mm' }}</span>
+            <span class="item-date">Richiesta del {{ c.dataRichiesta | date:'dd MMM' }}</span>
           </div>
-          <a [href]="s.linkProgetto" target="_blank" class="project-link">🔗 {{ s.linkProgetto }}</a>
-          <p class="item-body" *ngIf="s.descrizione">{{ s.descrizione }}</p>
+          <p class="item-body">{{ c.descrizione }}</p>
+          <a *ngIf="c.linkCall" [href]="c.linkCall" target="_blank" rel="noopener" class="project-link">🔗 {{ c.linkCall }}</a>
         </div>
       </div>
     </div>

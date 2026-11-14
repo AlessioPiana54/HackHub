@@ -1,0 +1,110 @@
+<div class="dashboard-container" *ngIf="!isLoading; else loading">
+  <header class="dashboard-header" *ngIf="hackathon">
+    <div class="header-content">
+      <div class="status-chip">{{ hackathon.stato }}</div>
+      <h1 class="hackathon-title">🎯 Organizzazione: {{ hackathon.nome }}</h1>
+      <p class="hackathon-sub">{{ hackathon.luogo }} · {{ hackathon.premioInDenaro | currency:'EUR' }}</p>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'participants'" (click)="activeTab = 'participants'">
+      👥 Team iscritti ({{ participants.length }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'submissions'" (click)="activeTab = 'submissions'">
+      📦 Progetti ({{ submissions.length }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'reports'" (click)="activeTab = 'reports'">
+      🚩 Segnalazioni ({{ reports.length }})
+    </button>
+    <button class="tab" [class.active]="activeTab === 'ranking'" (click)="activeTab = 'ranking'">
+      🏆 Classifica
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <!-- Team iscritti -->
+    <div *ngIf="activeTab === 'participants'">
+      <div class="card-grid" *ngIf="participants.length > 0; else noParticipants">
+        <div class="submission-card" *ngFor="let t of participants">
+          <div class="card-header">
+            <h3>{{ t.nome }}</h3>
+          </div>
+          <p class="desc">Leader: {{ t.leaderNome || '—' }}</p>
+          <p class="desc">Membri: {{ t.membriNomi.join(', ') || '—' }}</p>
+        </div>
+      </div>
+      <ng-template #noParticipants>
+        <div class="empty-state">Nessun team iscritto.</div>
+      </ng-template>
+    </div>
+
+    <!-- Progetti -->
+    <div *ngIf="activeTab === 'submissions'">
+      <div class="card-grid" *ngIf="submissions.length > 0; else noSubmissions">
+        <div class="submission-card" *ngFor="let s of submissions">
+          <div class="card-header">
+            <h3>{{ s.teamNome }}</h3>
+          </div>
+          <p class="desc">{{ s.descrizione }}</p>
+          <div class="links">
+            <a [href]="s.linkProgetto" target="_blank" rel="noopener" class="github-link">🔗 Repository GitHub</a>
+          </div>
+          <span class="evaluated" *ngIf="s.voto !== null">✅ Voto: {{ s.voto }}/10</span>
+        </div>
+      </div>
+      <ng-template #noSubmissions>
+        <div class="empty-state">Nessun progetto consegnato.</div>
+      </ng-template>
+    </div>
+
+    <!-- Segnalazioni -->
+    <div *ngIf="activeTab === 'reports'">
+      <div class="ranking-list" *ngIf="reports.length > 0; else noReports">
+        <div class="ranking-item" *ngFor="let r of reports">
+          <div class="report-content">
+            <div class="report-header">
+              <span class="team-name">🚩 Team: {{ r.teamNome }}</span>
+              <span class="date">{{ r.dataSegnalazione | date:'short' }}</span>
+            </div>
+            <p class="desc">{{ r.descrizione }}</p>
+            <small class="mentor">Mentore: {{ r.mentoreNome }}</small>
+          </div>
+        </div>
+      </div>
+      <ng-template #noReports>
+        <div class="empty-state">Nessuna segnalazione ricevuta.</div>
+      </ng-template>
+    </div>
+
+    <!-- Classifica e vincitore -->
+    <div *ngIf="activeTab === 'ranking'">
+      <div class="ranking-list" *ngIf="ranking.length > 0; else noRanking">
+        <div class="ranking-item" *ngFor="let r of ranking; let i = index">
+          <span class="rank">{{ i + 1 }}°</span>
+          <span class="team-name">{{ r.nomeTeam }}</span>
+          <span class="points">{{ r.punteggio }} pt</span>
+          <button class="btn-primary" *ngIf="canProclaim" [disabled]="isProclaiming" (click)="proclaimWinner(r)">
+            🏆 Proclama vincitore
+          </button>
+        </div>
+      </div>
+      <ng-template #noRanking>
+        <div class="empty-state" *ngIf="!isRankingAvailable">
+          La classifica sarà disponibile quando il giudice chiuderà la fase di valutazione.
+        </div>
+        <div class="empty-state" *ngIf="isRankingAvailable">Nessun progetto in classifica.</div>
+      </ng-template>
+      <div class="empty-state" *ngIf="hackathon?.stato === 'CONCLUSO'">
+        🏆 Hackathon concluso. Vincitore: <strong>{{ hackathon?.vincitoreNome }}</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Caricamento dashboard organizzatore...</p>
+  </div>
+</ng-template>

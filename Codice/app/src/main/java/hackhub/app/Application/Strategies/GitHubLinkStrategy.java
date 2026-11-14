@@ -4,30 +4,18 @@ import org.springframework.stereotype.Component;
 
 /**
  * Strategia di validazione per i link di GitHub.
- * Verifica se l'URL appartiene al dominio github.com.
+ * Accetta solo URL http/https il cui host è github.com o un suo sottodominio.
  */
 @Component
 public class GitHubLinkStrategy implements LinkStrategy {
-    /**
-     * Verifica la validità di un URL GitHub.
-     *
-     * @param url l'indirizzo URL da controllare
-     * @return true se l'URL contiene "github.com", false altrimenti o se è
-     *         nullo/vuoto
-     */
+
+    private static final String DOMAIN = "github.com";
+
     @Override
     public boolean isValid(String url) {
-        if (url == null || url.isBlank()) {
-            return false;
-        }
-        return url.toLowerCase().contains("github.com");
+        return LinkStrategy.hostMatches(url, DOMAIN);
     }
 
-    /**
-     * Restituisce il nome della piattaforma.
-     *
-     * @return "GitHub"
-     */
     @Override
     public String getPlatformName() {
         return "GitHub";

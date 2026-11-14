@@ -12,7 +12,7 @@
 	<artifactId>app</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>app</name>
-	<description>Demo project for Spring Boot</description>
+	<description>HackHub - backend REST per la gestione di hackathon (team, iscrizioni, sottomissioni, valutazioni, supporto)</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -91,10 +91,11 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Flyway: gestione versionate delle migrazioni DB -->
+		<!-- Flyway: migrazioni DB versionate. Con Spring Boot 4 l'autoconfigurazione
+		     è nel modulo spring-boot-flyway: senza lo starter le migrazioni non partono. -->
 		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -107,6 +108,28 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Coverage dei test: report in target/site/jacoco/index.html con ./mvnw verify -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.13</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -10,7 +10,11 @@ RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Run
 FROM eclipse-temurin:21-jre-alpine
+# Le date degli hackathon sono LocalDateTime senza fuso: lo scheduler le confronta
+# con l'ora italiana, la stessa con cui vengono inserite dal frontend.
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Rome
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:TieredStopAtLevel=1", "-Duser.timezone=Europe/Rome", "-jar", "app.jar"]

@@ -18,8 +18,20 @@ public class JwtService implements IJwtService {
     private final SecretKey key;
     private final long expirationMs;
 
+    /** HMAC-SHA richiede una chiave di almeno 256 bit (RFC 7518, sez. 3.2). */
+    private static final int MIN_SECRET_BYTES = 32;
+
     public JwtService(JwtProperties properties) {
-        this.key = Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8));
+        String secret = properties.getSecret();
+        if (secret == null || secret.isBlank() || secret.contains("${")) {
+            throw new IllegalStateException(
+                "JWT_SECRET non configurato: imposta la variabile d'ambiente JWT_SECRET (almeno 32 byte, consigliati 64 caratteri casuali).");
+        }
+        if (secret.getBytes(StandardCharsets.UTF_8).length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                "JWT_SECRET troppo corto: servono almeno " + MIN_SECRET_BYTES + " byte (consigliati 64 caratteri casuali).");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = properties.getExpiration();
     }
 

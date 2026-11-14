@@ -78,19 +78,33 @@ export class JudgeHackathonDashboardComponent implements OnInit, OnDestroy {
         this.submissions = data;
         this.isLoading = false;
       },
-      error: (err: Error) => {
-        console.error('Error loading submissions', err);
+      error: () => {
         this.isLoading = false;
       }
     });
   }
 
+  /** La classifica esiste solo in premiazione o a hackathon concluso. */
+  get isRankingAvailable(): boolean {
+    return this.hackathon?.stato === 'IN_PREMIAZIONE' || this.hackathon?.stato === 'CONCLUSO';
+  }
+
   loadRanking(): void {
-    if (!this.hackathonId) return;
+    if (!this.hackathonId || !this.isRankingAvailable) {
+      this.ranking = [];
+      return;
+    }
     this.hackathonService.getClassifica(this.hackathonId).subscribe({
-      next: (data: ClassificaTeamDTO[]) => this.ranking = data,
-      error: (err: Error) => console.error('Error loading ranking', err)
+      next: (data: ClassificaTeamDTO[]) => this.ranking = data
     });
+  }
+
+  isEvaluated(submission: Sottomissione): boolean {
+    return submission.voto !== null && submission.voto !== undefined;
+  }
+
+  get canEvaluate(): boolean {
+    return this.hackathon?.stato === 'IN_VALUTAZIONE';
   }
 
   switchTab(tab: 'submissions' | 'ranking'): void {
@@ -98,12 +112,10 @@ export class JudgeHackathonDashboardComponent implements OnInit, OnDestroy {
   }
 
   openEvaluationModal(submission: Sottomissione): void {
+    // Ogni sottomissione si valuta una sola volta
+    if (this.isEvaluated(submission) || !this.canEvaluate) return;
     this.selectedSubmission = submission;
-    const firstValutazione = submission.valutazioni?.[0];
-    this.evaluationForm = {
-      voto: firstValutazione?.voto || 0,
-      giudizio: firstValutazione?.giudizio || ''
-    };
+    this.evaluationForm = { voto: 0, giudizio: '' };
     this.showEvaluationModal = true;
   }
 
@@ -119,6 +131,10 @@ export class JudgeHackathonDashboardComponent implements OnInit, OnDestroy {
       alert('Voto non valido. Inserisci un numero tra 0 e 10.');
       return;
     }
+    if (!this.evaluationForm.giudizio.trim()) {
+      alert('Il giudizio è obbligatorio.');
+      return;
+    }
 
     const request = {
       voto: this.evaluationForm.voto,
@@ -132,8 +148,7 @@ export class JudgeHackathonDashboardComponent implements OnInit, OnDestroy {
         this.loadSubmissions();
         this.loadRanking();
       },
-      error: (err: { error?: { message?: string }; message?: string }) =>
-        alert('Errore durante il salvataggio: ' + (err.error?.message || err.message))
+      error: () => { /* messaggio mostrato dal toast dell'errorInterceptor */ }
     });
   }
 
@@ -146,8 +161,8 @@ export class JudgeHackathonDashboardComponent implements OnInit, OnDestroy {
         this.loadData();
         this.isClosing = false;
       },
-      error: (err: { error?: string }) => {
-        alert('Errore nella chiusura della valutazione: ' + err.error);
+      error: () => {
+        // Il messaggio del backend è già mostrato dal toast dell'errorInterceptor
         this.isClosing = false;
       }
     });

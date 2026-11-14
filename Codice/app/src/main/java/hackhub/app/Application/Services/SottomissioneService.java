@@ -1,12 +1,14 @@
 package hackhub.app.Application.Services;
 
 import hackhub.app.Application.DTOs.SottomissioneDTO;
+import hackhub.app.Application.DTOs.ValutazioneDTO;
 import hackhub.app.Application.Exceptions.BusinessRuleException;
 import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
 import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
+import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 import hackhub.app.Application.Strategies.LinkStrategyContext;
 import hackhub.app.Core.Enums.StatoHackathon;
 import hackhub.app.Core.POJO_Entities.Hackathon;
@@ -16,11 +18,11 @@ import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
 import hackhub.app.Core.POJO_Entities.Valutazione;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 
 /**
  * Servizio per la gestione delle sottomissioni dei progetti.
@@ -29,6 +31,10 @@ import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 @Service
 @Transactional
 public class SottomissioneService extends AbstractService implements ISottomissioneService {
+
+  private static final List<String> PIATTAFORME_REPOSITORY = List.of("GitHub");
+  private static final String ERRORE_LINK =
+    "Il link del progetto deve essere un repository GitHub (https://github.com/...).";
 
   private final LinkStrategyContext linkStrategyContext;
 
@@ -45,46 +51,37 @@ public class SottomissioneService extends AbstractService implements ISottomissi
   /**
    * Invia una nuova sottomissione per un Hackathon.
    *
-   * @param request i dati della sottomissione (codice, descrizione, video, ecc.)
+   * @param request i dati della sottomissione (team, hackathon, link, descrizione)
    * @param userId  l'ID dell'utente che invia (deve essere membro o leader)
-   * @param token   il token di autenticazione per verifica ownership
    * @return la Sottomissione creata
-   * @throws IllegalArgumentException se hackathon, team non trovati o link github
-   *                                  non valido
-   * @throws IllegalStateException    se l'hackathon non è in corso o il team ha
-   *                                  già sottomesso
-   * @throws SecurityException        se l'utente non fa parte del team
+   * @throws UnauthorizedOperationException se l'utente non fa parte del team
+   * @throws BusinessRuleException          se l'hackathon non è in corso, il team ha
+   *                                        già consegnato o il link non è GitHub
    */
   public SottomissioneDTO inviaSottomissione(
     InviaSottomissioneRequest request,
     String userId
   ) {
-    // Verify ownership: userId is already validated by controller that extracted it from token
-
     Team team = findTeamOrThrow(request.getIdTeam());
     Hackathon hackathon = findHackathonOrThrow(request.getIdHackathon());
 
-    // Validate that user is part of the team
     validateUserInTeam(
       team,
       userId,
       "Solo i membri del team possono inviare sottomissioni."
     );
 
-    // Check if hackathon is in correct state for submissions
     if (hackathon.getStato() != StatoHackathon.IN_CORSO) {
       throw new BusinessRuleException(
         "Le sottomissioni sono accettate solo durante l'hackathon."
       );
     }
 
-    // Check if team is registered for this hackathon
     Partecipazione partecipazione = findPartecipazioneOrThrow(
       request.getIdTeam(),
       request.getIdHackathon()
     );
 
-    // Check if team has already submitted
     boolean esistente = unitOfWork
       .sottomissioneRepository()
       .existsByPartecipazione_Hackathon_IdAndPartecipazione_Team_Id(
@@ -97,43 +94,36 @@ public class SottomissioneService extends AbstractService implements ISottomissi
       );
     }
 
-    // Create new submission
+    validaLinkRepository(request.getLinkProgetto());
+
     User mittente = findUserOrThrow(userId);
     Sottomissione sottomissione = new Sottomissione(
       partecipazione,
       mittente,
-      request.getLinkProgetto(),
+      request.getLinkProgetto().trim(),
       request.getDescrizione()
     );
 
-    // Validate and store the link using the strategy pattern
-    linkStrategyContext.validate(
-      request.getLinkProgetto(),
-      java.util.List.of("GitHub")
-    );
-
     Sottomissione saved = unitOfWork.sottomissioneRepository().save(sottomissione);
-    return convertToDTO(saved);
+    return convertToDTO(saved, null);
   }
 
   /**
-   * Permette a un giudice di valutare una sottomissione.
+   * Permette al giudice dell'hackathon di valutare una sottomissione (una sola volta).
    *
-   * @param request   i dati della valutazione (voto, commento)
-   * @param giudiceId l'ID del giudice
-   * @param token     il token di autenticazione per verifica ownership
-   * @return la Valutazione creata
-   * @throws IllegalArgumentException se sottomissione o giudice non trovati
-   * @throws SecurityException        se l'utente non è il giudice dell'hackathon
-   * @throws IllegalStateException    se l'hackathon non è in fase di valutazione
+   * @param request         i dati della valutazione (voto, giudizio)
+   * @param giudiceId       l'ID del giudice
+   * @param sottomissioneId l'ID della sottomissione
+   * @return la valutazione creata
+   * @throws BusinessRuleException          se l'hackathon non è in valutazione o la
+   *                                        sottomissione è già stata valutata
+   * @throws UnauthorizedOperationException se l'utente non è il giudice dell'hackathon
    */
-  public Valutazione valutaSottomissione(
+  public ValutazioneDTO valutaSottomissione(
     CreaValutazioneRequest request,
     String giudiceId,
     String sottomissioneId
   ) {
-    // Verify ownership: giudiceId is already validated by controller that extracted it from token
-
     Sottomissione sottomissione = findSottomissioneOrThrow(sottomissioneId);
     Hackathon hackathon = sottomissione.getPartecipazione().getHackathon();
 
@@ -169,40 +159,21 @@ public class SottomissioneService extends AbstractService implements ISottomissi
     valutazione.setSottomissione(sottomissione);
 
     unitOfWork.valutazioneRepository().save(valutazione);
-    return valutazione;
+    return toValutazioneDTO(valutazione);
   }
 
   /**
-   * Permette di modificare una sottomissione esistente (se l'hackathon è ancora
-   * in corso).
+   * Modifica una sottomissione esistente finché l'hackathon è in corso.
    *
-   * @param request        i nuovi dati della sottomissione
-   * @param userId         l'ID dell'utente che richiede la modifica
-   * @param token          il token di autenticazione per verifica ownership
-   * @param sottomissioneId l'ID della sottomissione da modificare
-   * @return la Sottomissione modificata
-   * @throws IllegalArgumentException se sottomissione non trovata o link github
-   *                                  non valido
-   * @throws IllegalStateException    se l'hackathon non è in corso
-   * @throws SecurityException        se l'utente non fa parte del team
+   * @throws BusinessRuleException          se il link non è GitHub o l'hackathon non è in corso
+   * @throws UnauthorizedOperationException se l'utente non fa parte del team
    */
   public SottomissioneDTO modificaSottomissione(
     ModificaSottomissioneRequest request,
     String userId,
     String sottomissioneId
   ) {
-    // Verify ownership: userId is already validated by controller that extracted it from token
-
-    if (
-      !linkStrategyContext.validate(
-        request.getLinkProgetto(),
-        java.util.List.of("GitHub")
-      )
-    ) {
-      throw new BusinessRuleException(
-        "Link repository non valido o non supportato."
-      );
-    }
+    validaLinkRepository(request.getLinkProgetto());
 
     Sottomissione sottomissione = findSottomissioneOrThrow(sottomissioneId);
     Team team = sottomissione.getPartecipazione().getTeam();
@@ -218,53 +189,101 @@ public class SottomissioneService extends AbstractService implements ISottomissi
       "L'utente non ha i permessi per modificare questa sottomissione."
     );
 
-    sottomissione.setLinkProgetto(request.getLinkProgetto());
+    sottomissione.setLinkProgetto(request.getLinkProgetto().trim());
     sottomissione.setDescrizione(request.getDescrizione());
 
     Sottomissione saved = unitOfWork.sottomissioneRepository().save(sottomissione);
-    return convertToDTO(saved);
+    return convertToDTO(saved, null);
   }
 
   /**
-   * Recupera le sottomissioni del team dell'utente.
-   *
-   * @param userId L'ID dell'utente.
-   * @return Lista di sottomissioni del team.
+   * Recupera le sottomissioni dei team di cui l'utente fa parte, con l'eventuale
+   * valutazione ricevuta.
    */
   public List<SottomissioneDTO> getTeamSubmissions(String userId) {
     return unitOfWork
       .sottomissioneRepository()
       .findByPartecipazione_Team_Membri_Id(userId)
       .stream()
-      .map(this::convertToDTO)
+      .map(s -> convertToDTO(
+        s,
+        unitOfWork.valutazioneRepository().findBySottomissioneId(s.getId()).orElse(null)
+      ))
       .collect(Collectors.toList());
   }
 
   /**
-   * Recupera tutte le sottomissioni per un specifico Hackathon.
+   * Recupera tutte le sottomissioni di un Hackathon, con le relative valutazioni.
+   * Consentito solo a organizzatore, giudice e mentori dell'hackathon.
+   *
+   * @throws UnauthorizedOperationException se il richiedente non è dello staff dell'hackathon
    */
-  public List<SottomissioneDTO> getSubmissionsByHackathon(String hackathonId) {
+  public List<SottomissioneDTO> getSubmissionsByHackathon(String hackathonId, String requesterId) {
+    Hackathon hackathon = findHackathonOrThrow(hackathonId);
+
+    boolean isOrganizzatore = hackathon.getOrganizzatore() != null
+      && hackathon.getOrganizzatore().getId().equals(requesterId);
+    boolean isGiudice = hackathon.getGiudice() != null
+      && hackathon.getGiudice().getId().equals(requesterId);
+    boolean isMentore = hackathon.getMentori() != null
+      && hackathon.getMentori().stream().anyMatch(m -> m.getId().equals(requesterId));
+
+    if (!isOrganizzatore && !isGiudice && !isMentore) {
+      throw new UnauthorizedOperationException(
+        "Solo organizzatore, giudice e mentori dell'hackathon possono vedere tutte le sottomissioni."
+      );
+    }
+
+    Map<String, Valutazione> valutazioni = unitOfWork
+      .valutazioneRepository()
+      .findAllBySottomissione_Partecipazione_Hackathon_Id(hackathonId)
+      .stream()
+      .collect(Collectors.toMap(v -> v.getSottomissione().getId(), Function.identity()));
+
     return unitOfWork
       .sottomissioneRepository()
       .findByPartecipazioneHackathonId(hackathonId)
       .stream()
-      .map(this::convertToDTO)
+      .map(s -> convertToDTO(s, valutazioni.get(s.getId())))
       .collect(Collectors.toList());
   }
 
   // --- Private Helper Methods ---
 
-  private SottomissioneDTO convertToDTO(Sottomissione s) {
+  private void validaLinkRepository(String link) {
+    if (!linkStrategyContext.validate(link, PIATTAFORME_REPOSITORY)) {
+      throw new BusinessRuleException(ERRORE_LINK);
+    }
+  }
+
+  private SottomissioneDTO convertToDTO(Sottomissione s, Valutazione v) {
     return new SottomissioneDTO(
       s.getId(),
       s.getHackathon().getId(),
+      s.getHackathon().getNome(),
       s.getTeam().getId(),
       s.getTeam().getNomeTeam(),
       s.getMittente().getId(),
       s.getMittente().getNome() + " " + s.getMittente().getCognome(),
       s.getLinkProgetto(),
       s.getDescrizione(),
-      s.getDataSottomissione()
+      s.getDataSottomissione(),
+      v != null ? v.getVoto() : null,
+      v != null ? v.getGiudizio() : null
+    );
+  }
+
+  private ValutazioneDTO toValutazioneDTO(Valutazione v) {
+    Sottomissione s = v.getSottomissione();
+    return new ValutazioneDTO(
+      v.getId(),
+      s.getId(),
+      s.getTeam().getId(),
+      s.getTeam().getNomeTeam(),
+      v.getGiudice().getId(),
+      v.getGiudice().getNome() + " " + v.getGiudice().getCognome(),
+      v.getVoto(),
+      v.getGiudizio()
     );
   }
 }

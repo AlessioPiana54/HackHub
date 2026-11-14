@@ -80,6 +80,14 @@ public class HackathonController extends AbstractController {
    *
    * @return Una lista di Hackathon.
    */
+  @GetMapping("/organizer/my")
+  public ResponseEntity<List<HackathonSummaryDTO>> getOrganizerHackathons(
+    @RequestHeader("Authorization") String token
+  ) {
+    User user = getAuthenticatedUser(token);
+    return ResponseEntity.ok(hackathonService.getOrganizerHackathons(user.getId()));
+  }
+
   @GetMapping("")
   public ResponseEntity<List<HackathonSummaryDTO>> getHackathons() {
     return ResponseEntity.ok(hackathonService.getPublicHackathons());

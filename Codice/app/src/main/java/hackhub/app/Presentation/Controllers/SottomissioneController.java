@@ -1,6 +1,7 @@
 package hackhub.app.Presentation.Controllers;
 
 import hackhub.app.Application.DTOs.SottomissioneDTO;
+import hackhub.app.Application.DTOs.ValutazioneDTO;
 import hackhub.app.Application.Requests.CreaValutazioneRequest;
 import hackhub.app.Application.Requests.InviaSottomissioneRequest;
 import hackhub.app.Application.Requests.ModificaSottomissioneRequest;
@@ -8,7 +9,6 @@ import hackhub.app.Application.Services.Interfaces.ISottomissioneService;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Utils.IJwtService;
 import hackhub.app.Core.POJO_Entities.User;
-import hackhub.app.Core.POJO_Entities.Valutazione;
 import hackhub.app.Presentation.Validators.SottomissioneValidator;
 import hackhub.app.Presentation.Validators.ValutazioneValidator;
 import java.util.List;
@@ -93,14 +93,15 @@ public class SottomissioneController extends AbstractController {
    * @return La valutazione creata o un errore di validazione.
    */
   @PatchMapping("/{id}/evaluation")
-  public ResponseEntity<Valutazione> valutaSottomissione(
+  public ResponseEntity<ValutazioneDTO> valutaSottomissione(
     @RequestHeader("Authorization") String token,
     @PathVariable String id,
     @RequestBody CreaValutazioneRequest request
   ) {
     User user = getAuthenticatedUser(token);
+    validateIds(id);
     validateRequest(valutazioneValidator.validateCreation(request));
-    Valutazione valutazione = sottomissioneService.valutaSottomissione(
+    ValutazioneDTO valutazione = sottomissioneService.valutaSottomissione(
       request,
       user.getId(),
       id
@@ -127,6 +128,7 @@ public class SottomissioneController extends AbstractController {
 
   /**
    * Recupera tutte le sottomissioni per un specifico Hackathon.
+   * Consentito solo a organizzatore, giudice e mentori di quell'hackathon.
    *
    * @param idHackathon L'ID dell'Hackathon.
    * @return Lista di sottomissioni.
@@ -136,9 +138,11 @@ public class SottomissioneController extends AbstractController {
     @PathVariable String idHackathon,
     @RequestHeader("Authorization") String token
   ) {
-    // Audit log or security check could be added here to ensure only Judge/Organizer access
+    User user = getAuthenticatedUser(token);
+    validateIds(idHackathon);
     List<SottomissioneDTO> submissions = sottomissioneService.getSubmissionsByHackathon(
-      idHackathon
+      idHackathon,
+      user.getId()
     );
     return ResponseEntity.ok(submissions);
   }

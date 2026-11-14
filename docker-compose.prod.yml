@@ -10,7 +10,7 @@
 #   - DB porta NON esposta all'host (accessibile solo interno alla rete)
 #   - JWT_SECRET obbligatorio (nessun default insicuro)
 #   - Resource limits su tutti i container
-#   - Nginx con header HSTS + proxy X-Forwarded-Proto per TLS termination
+#   - Nginx invia HSTS quando il proxy TLS a monte imposta X-Forwarded-Proto: https
 # =============================================================================
 
 services:

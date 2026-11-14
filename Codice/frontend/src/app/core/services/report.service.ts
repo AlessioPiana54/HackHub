@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+/** Segnalazione restituita dal backend (SegnalazioneDTO). */
 export interface Report {
   id: string;
-  idHackathon: string;
-  nomeHackathon: string;
-  idTeam: string;
-  nomeTeam: string;
-  idMentore: string;
-  nomeMentore: string;
+  hackathonId: string;
+  hackathonNome: string;
+  teamId: string;
+  teamNome: string;
+  mentoreId: string;
+  mentoreNome: string;
   descrizione: string;
   dataSegnalazione: string;
 }
@@ -23,10 +24,12 @@ export class ReportService {
   constructor(private http: HttpClient) { }
 
   getReportsByHackathon(hackathonId: string): Observable<Report[]> {
-    return this.http.get<Report[]>(`${this.API_URL}?hackathonId=${hackathonId}`);
+    const params = new HttpParams().set('hackathonId', hackathonId);
+    return this.http.get<Report[]>(this.API_URL, { params });
   }
 
+  /** Riservato ai mentori dell'hackathon. */
   createReport(report: { idHackathon: string, idTeam: string, descrizione: string }): Observable<Report> {
-    return this.http.post<Report>(`${this.API_URL}`, report);
+    return this.http.post<Report>(this.API_URL, report);
   }
 }

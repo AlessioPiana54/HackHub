@@ -3,9 +3,11 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 
 import { OfflineComponent } from './features/offline/offline.component';
+import { UnauthorizedComponent } from './features/unauthorized/unauthorized.component';
 
 const routes: Routes = [
   { path: 'offline', component: OfflineComponent },
+  { path: 'unauthorized', component: UnauthorizedComponent, canActivate: [AuthGuard] },
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)

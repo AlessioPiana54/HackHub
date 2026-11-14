@@ -1,18 +1,20 @@
 package hackhub.app.Application.Services;
 
+import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.Exceptions.BusinessRuleException;
 import hackhub.app.Application.Exceptions.UnauthorizedOperationException;
-import hackhub.app.Application.Services.Interfaces.ITeamService;
-import hackhub.app.Application.DTOs.TeamDTO;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.CreaTeamRequest;
+import hackhub.app.Application.Requests.UpdateTeamRequest;
+import hackhub.app.Application.Services.Interfaces.ITeamService;
 import hackhub.app.Core.Enums.Ruolo;
 import hackhub.app.Core.Enums.StatoHackathon;
-import hackhub.app.Core.POJO_Entities.Hackathon;
 import hackhub.app.Core.POJO_Entities.Partecipazione;
 import hackhub.app.Core.POJO_Entities.Team;
 import hackhub.app.Core.POJO_Entities.User;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,16 +28,46 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class TeamService extends AbstractService implements ITeamService {
 
-  private static final Logger logger = LoggerFactory.getLogger(
-    TeamService.class
+  private static final Logger logger = LoggerFactory.getLogger(TeamService.class);
+
+  /** Stati in cui un team iscritto è considerato impegnato in un hackathon. */
+  private static final Set<StatoHackathon> STATI_ATTIVI = EnumSet.of(
+    StatoHackathon.IN_CORSO,
+    StatoHackathon.IN_VALUTAZIONE,
+    StatoHackathon.IN_PREMIAZIONE
   );
+
+  private final TeamMapper teamMapper;
 
   public TeamService(
     IUnitOfWork unitOfWork,
     EntityFinder entityFinder,
-    AuthorizationChecker authorizationChecker
+    AuthorizationChecker authorizationChecker,
+    TeamMapper teamMapper
   ) {
     super(unitOfWork, entityFinder, authorizationChecker);
+    this.teamMapper = teamMapper;
+  }
+
+  /**
+   * Elimina i team "orfani": team il cui leader risulta UTENTE_SENZA_TEAM
+   * (stato incoerente lasciato da operazioni interrotte).
+   */
+  public void cleanupOrphanedTeams() {
+    List<User> inconsistentUsers = unitOfWork
+      .userRepository()
+      .findAll()
+      .stream()
+      .filter(user -> user.getRuolo() == Ruolo.UTENTE_SENZA_TEAM)
+      .filter(user -> unitOfWork.teamRepository().existsByLeaderId(user.getId()))
+      .collect(Collectors.toList());
+
+    for (User user : inconsistentUsers) {
+      logger.warn("Utente {} risulta leader di un team orfano: pulizia in corso", user.getId());
+      unitOfWork.teamRepository().deleteByLeaderId(user.getId());
+    }
+
+    logger.info("Pulizia team orfani completata: {} incoerenze corrette.", inconsistentUsers.size());
   }
 
   /**
@@ -44,38 +76,10 @@ public class TeamService extends AbstractService implements ITeamService {
    * @param request  i dati per la creazione del team (nome team)
    * @param leaderId l'ID dell'utente che crea il team
    * @return il Team creato
-   * @throws IllegalArgumentException se l'utente non viene trovato o il nome del
-   *                                  team esiste già
-   * @throws SecurityException        se l'utente non ha il ruolo appropriato
+   * @throws BusinessRuleException          se il nome del team esiste già
+   * @throws UnauthorizedOperationException se l'utente fa già parte di un team
+   *                                        o ha un ruolo di staff
    */
-  // **PREVENZIONE: Metodo per pulire team orfani**
-  public void cleanupOrphanedTeams() {
-    logger.info("TeamService.cleanupOrphanedTeams() - Starting cleanup...");
-
-    // Trova tutti gli utenti che sono leader ma hanno ruolo UTENTE_SENZA_TEAM
-    List<User> inconsistentUsers = unitOfWork
-      .userRepository()
-      .findAll()
-      .stream()
-      .filter(user -> user.getRuolo() == Ruolo.UTENTE_SENZA_TEAM)
-      .filter(user -> unitOfWork.teamRepository().existsByLeaderId(user.getId())
-      )
-      .collect(java.util.stream.Collectors.toList());
-
-    for (User user : inconsistentUsers) {
-      logger.warn(
-        "Found inconsistent user {} - cleaning up orphaned team...",
-        user.getId()
-      );
-      unitOfWork.teamRepository().deleteByLeaderId(user.getId());
-    }
-
-    logger.info(
-      "TeamService.cleanupOrphanedTeams() - Cleanup completed. Fixed {} inconsistencies.",
-      inconsistentUsers.size()
-    );
-  }
-
   public TeamDTO creaTeam(CreaTeamRequest request, String leaderId) {
     User newLeader = findUserOrThrow(leaderId);
 
@@ -89,13 +93,9 @@ public class TeamService extends AbstractService implements ITeamService {
       );
     }
 
-    // **PREVENZIONE: Verifica che l'utente non sia già leader di un team orfano**
+    // Un utente senza team non può risultare leader: se succede, il team è orfano
     if (unitOfWork.teamRepository().existsByLeaderId(leaderId)) {
-      logger.warn(
-        "User {} is already a leader. Cleaning up orphaned team...",
-        leaderId
-      );
-      // Rimuovi il team orfano prima di crearne uno nuovo
+      logger.warn("L'utente {} risulta già leader di un team orfano: lo elimino", leaderId);
       unitOfWork.teamRepository().deleteByLeaderId(leaderId);
     }
 
@@ -105,280 +105,146 @@ public class TeamService extends AbstractService implements ITeamService {
     Team nuovoTeam = new Team(request.getNomeTeam(), newLeader);
     unitOfWork.teamRepository().save(nuovoTeam);
 
-    return convertToTeamDTO(nuovoTeam);
+    return teamMapper.toDTO(nuovoTeam);
   }
 
   /**
-   * Aggiorna i dati di un team esistente.
-   *
-   * @param teamId   l'ID del team da aggiornare
-   * @param request  i nuovi dati del team
-   * @param leaderId l'ID dell'utente che richiede la modifica (deve essere il leader)
-   * @return il Team aggiornato
+   * Aggiorna il nome di un team esistente (solo il leader).
    */
-  public TeamDTO updateTeam(
-    String teamId,
-    hackhub.app.Application.Requests.UpdateTeamRequest request,
-    String leaderId
-  ) {
+  public TeamDTO updateTeam(String teamId, UpdateTeamRequest request, String leaderId) {
     Team team = findTeamOrThrow(teamId);
 
-    // Verifica che l'utente che fa la richiesta sia il leader del team
-    if (
-      team.getLeaderSquadra() == null ||
-      !team.getLeaderSquadra().getId().equals(leaderId)
-    ) {
+    if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(leaderId)) {
       throw new UnauthorizedOperationException(
         "Solo il Leader del Team può modificare i dettagli del team."
       );
     }
 
-    // Se il nome è stato modificato, verifica che non esista già
-    if (
-      request.getNomeTeam() != null &&
-      !request.getNomeTeam().trim().isEmpty() &&
-      !team.getNomeTeam().equals(request.getNomeTeam())
-    ) {
-      if (unitOfWork.teamRepository().existsByNomeTeam(request.getNomeTeam())) {
-        throw new BusinessRuleException(
-          "Esiste già un Team con questo nome."
-        );
+    String nuovoNome = request.getNomeTeam() != null ? request.getNomeTeam().trim() : "";
+    if (!nuovoNome.isEmpty() && !team.getNomeTeam().equals(nuovoNome)) {
+      if (nuovoNome.length() < 3 || nuovoNome.length() > 50) {
+        throw new BusinessRuleException("Il nome del team deve avere tra i 3 e i 50 caratteri.");
       }
-      team.setNomeTeam(request.getNomeTeam().trim()); // Assuming setNomeTeam is added manually since we didn't add it in the previous step
+      if (unitOfWork.teamRepository().existsByNomeTeam(nuovoNome)) {
+        throw new BusinessRuleException("Esiste già un Team con questo nome.");
+      }
+      team.setNomeTeam(nuovoNome);
     }
 
     unitOfWork.teamRepository().save(team);
-    return convertToTeamDTO(team);
+    return teamMapper.toDTO(team);
   }
 
   /**
-   * Iscrive un Team ad un Hackathon.
-   *
-   * @param teamId        l'ID del Team da iscrivere
-   * @param hackathonId   l'ID dell'Hackathon a cui iscriversi
-   * @param richiedenteId l'ID dell'utente che richiede l'iscrizione (deve essere
-   *                      il leader)
-   * @param token         il token di autenticazione per verifica ownership
-   * @return l'oggetto Partecipazione creato
-   * @throws IllegalArgumentException se team o hackathon non trovati, iscrizioni
-   *                                  chiuse o team già iscritto
-   * @throws SecurityException        se il richiedente non è il leader del team
-   */
-  public Partecipazione iscriviTeam(
-    String teamId,
-    String hackathonId,
-    String richiedenteId
-  ) {
-    // Verify ownership: the richiedenteId is already validated by the controller
-    // that extracted it from the token
-
-    Team team = findTeamOrThrow(teamId);
-    Hackathon hackathon = findHackathonOrThrow(hackathonId);
-
-    // Validate that requester is team leader
-    validateUserInTeam(
-      team,
-      richiedenteId,
-      "Solo il leader del team può iscrivere il team all'hackathon."
-    );
-
-    // Check if hackathon is in registration phase
-    if (hackathon.getStato() != StatoHackathon.IN_ISCRIZIONE) {
-      throw new BusinessRuleException(
-        "Le iscrizioni per questo hackathon sono chiuse."
-      );
-    }
-
-    // Check if team is already registered
-    if (
-      unitOfWork
-        .partecipazioneRepository()
-        .findByTeamIdAndHackathonId(teamId, hackathonId)
-        .isPresent()
-    ) {
-      throw new BusinessRuleException(
-        "Il team è già iscritto a questo hackathon."
-      );
-    }
-
-    // Create participation
-    Partecipazione partecipazione = new Partecipazione(team, hackathon);
-    unitOfWork.partecipazioneRepository().save(partecipazione);
-
-    logger.info(
-      "Team {} iscritto all'hackathon {} da {}",
-      teamId,
-      hackathonId,
-      richiedenteId
-    );
-
-    return partecipazione;
-  }
-
-  /**
-   * Permette ad un membro di abbandonare il Team.
-   *
-   * @param teamId   l'ID del Team da abbandonare
-   * @param memberId l'ID del membro che vuole lasciare il team
-   * @throws IllegalArgumentException se team o utente non trovati, o se l'utente
-   *                                  non fa parte del team
+   * Permette a un membro di abbandonare il Team.
+   * <ul>
+   *   <li>un membro viene rimosso e torna UTENTE_SENZA_TEAM;</li>
+   *   <li>il leader può uscire solo se è l'unico membro: se il team non ha mai
+   *   partecipato a un hackathon viene eliminato, altrimenti viene sciolto
+   *   (resta senza membri per conservare sottomissioni, classifiche e vincitori);</li>
+   *   <li>il leader unico non può sciogliere il team durante un hackathon attivo.</li>
+   * </ul>
    */
   public void abbandonaTeam(String teamId, String memberId) {
-    logger.debug(
-      "TeamService.abbandonaTeam() called for teamId: {}, memberId: {}",
-      teamId,
-      memberId
-    );
-
     Team team = findTeamOrThrow(teamId);
     User member = findUserOrThrow(memberId);
 
-    logger.debug("Team found: {}", team.getNomeTeam());
-    logger.debug("Team leader ID: {}", team.getLeaderSquadra().getId());
-
-    // Check if the user is part of the team (throws SecurityException if not)
     validateUserInTeam(team, memberId, "L'utente non fa parte di questo Team.");
 
-    // Check if the user is the leader
-    if (team.getLeaderSquadra().getId().equals(memberId)) {
-      logger.debug("User is team leader, checking if can abandon...");
+    boolean isLeader = team.getLeaderSquadra() != null
+      && team.getLeaderSquadra().getId().equals(memberId);
 
-      // Leader can abandon only if they are the only member
+    if (isLeader) {
       if (team.getMembri().size() > 1) {
-        logger.error("Leader cannot abandon team with multiple members!");
         throw new BusinessRuleException(
           "Il Leader può abbandonare il team solo se è l'unico membro. Deve prima cedere il ruolo a un altro membro."
         );
       }
-
-      logger.debug("Leader is the only member, can abandon team...");
-    }
-
-    logger.debug("User is not leader, proceeding with abandonment...");
-
-    // If user is the leader and is the only member, delete the entire team
-    if (
-      team.getLeaderSquadra().getId().equals(memberId) &&
-      team.getMembri().size() == 1
-    ) {
-      logger.info("Leader is the only member, deleting entire team...");
-      // Delete the team completely to avoid constraint violations
-      unitOfWork.teamRepository().deleteById(teamId);
+      chiudiTeam(team);
     } else {
-      // Remove member from team
       team.getMembri().removeIf(m -> m.getId().equals(memberId));
       unitOfWork.teamRepository().save(team);
     }
 
-    // Update user role
     member.setRuolo(Ruolo.UTENTE_SENZA_TEAM);
     unitOfWork.userRepository().save(member);
   }
 
   /**
-   * Trasferisce il ruolo di Leader a un altro membro del team.
-   *
-   * @param teamId          L'ID del Team.
-   * @param newLeaderId     L'ID dell'utente a cui cedere la leadership.
-   * @param currentLeaderId L'ID dell'attuale leader.
+   * Chiude il team del leader unico: eliminazione fisica se non ha storico,
+   * scioglimento se ha partecipato ad almeno un hackathon.
    */
-  public TeamDTO trasferisciLeadership(
-    String teamId,
-    String newLeaderId,
-    String currentLeaderId
-  ) {
+  private void chiudiTeam(Team team) {
+    List<Partecipazione> partecipazioni = unitOfWork
+      .partecipazioneRepository()
+      .findByTeamId(team.getId());
+
+    boolean impegnato = partecipazioni
+      .stream()
+      .anyMatch(p -> STATI_ATTIVI.contains(p.getHackathon().getStato()));
+    if (impegnato) {
+      throw new BusinessRuleException(
+        "Impossibile abbandonare il team: è iscritto a un Hackathon in corso, in valutazione o in premiazione."
+      );
+    }
+
+    // Gli inviti pendenti del team non hanno più senso in entrambi i casi
+    unitOfWork.invitoRepository().findByTeam(team)
+      .forEach(invito -> unitOfWork.invitoRepository().delete(invito));
+
+    if (partecipazioni.isEmpty()) {
+      unitOfWork.teamRepository().deleteById(team.getId());
+    } else {
+      team.getMembri().clear();
+      team.setLeaderSquadra(null);
+      unitOfWork.teamRepository().save(team);
+    }
+  }
+
+  /**
+   * Trasferisce il ruolo di Leader a un altro membro del team.
+   */
+  public TeamDTO trasferisciLeadership(String teamId, String newLeaderId, String currentLeaderId) {
     Team team = findTeamOrThrow(teamId);
 
-    // Verifica che chi fa la richiesta sia l'attuale leader
-    if (
-      team.getLeaderSquadra() == null ||
-      !team.getLeaderSquadra().getId().equals(currentLeaderId)
-    ) {
+    if (team.getLeaderSquadra() == null || !team.getLeaderSquadra().getId().equals(currentLeaderId)) {
       throw new UnauthorizedOperationException(
         "Solo l'attuale Leader può trasferire la leadership."
       );
     }
 
-    // Verifica che il nuovo leader faccia parte del team
     User newLeader = findUserOrThrow(newLeaderId);
-    validateUserInTeam(
-      team,
-      newLeaderId,
-      "L'utente designato non fa parte di questo Team."
-    );
+    validateUserInTeam(team, newLeaderId, "L'utente designato non fa parte di questo Team.");
 
-    // Aggiorna il ruolo del vecchio leader a MEMBRO_TEAM
     User currentLeader = team.getLeaderSquadra();
     currentLeader.setRuolo(Ruolo.MEMBRO_TEAM);
     unitOfWork.userRepository().save(currentLeader);
 
-    // Aggiorna il ruolo del nuovo leader a LEADER_TEAM
     newLeader.setRuolo(Ruolo.LEADER_TEAM);
     unitOfWork.userRepository().save(newLeader);
 
-    // Aggiorna il team
     team.setLeaderSquadra(newLeader);
     unitOfWork.teamRepository().save(team);
 
-    return convertToTeamDTO(team);
+    return teamMapper.toDTO(team);
   }
 
   /**
    * Recupera i team di cui l'utente è membro.
-   *
-   * @param userId L'ID dell'utente.
-   * @return Lista di TeamDTO.
    */
   public List<TeamDTO> getUserTeams(String userId) {
-    // Usa l'apposito metodo repository per far eseguire il JOIN al database
-    List<Team> teams = unitOfWork.teamRepository().findByMembriId(userId);
-
-    return teams
+    return unitOfWork
+      .teamRepository()
+      .findByMembriId(userId)
       .stream()
-      .map(this::convertToTeamDTO)
+      .map(teamMapper::toDTO)
       .collect(Collectors.toList());
   }
 
   /**
    * Recupera i dettagli di un team specifico.
-   *
-   * @param teamId L'ID del team.
-   * @return TeamDTO con dettagli completi.
    */
   public TeamDTO getTeamDetails(String teamId) {
-    Team team = findTeamOrThrow(teamId);
-    return convertToTeamDTO(team);
-  }
-
-  /**
-   * Converte un'entità Team in TeamDTO.
-   *
-   * @param team L'entità Team.
-   * @return TeamDTO.
-   */
-  private TeamDTO convertToTeamDTO(Team team) {
-    List<String> membriIds = team
-      .getMembri()
-      .stream()
-      .map(User::getId)
-      .collect(Collectors.toList());
-
-    List<String> membriNomi = team
-      .getMembri()
-      .stream()
-      .map(m -> m.getNome() + " " + m.getCognome())
-      .collect(Collectors.toList());
-
-    return new TeamDTO(
-      team.getId(),
-      team.getNomeTeam(),
-      team.getLeaderSquadra().getId(),
-      team.getLeaderSquadra().getNome() +
-      " " +
-      team.getLeaderSquadra().getCognome(),
-      membriIds,
-      membriNomi,
-      team.getDataCreazione()
-    );
+    return teamMapper.toDTO(findTeamOrThrow(teamId));
   }
 }

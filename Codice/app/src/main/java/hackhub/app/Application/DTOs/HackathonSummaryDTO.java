@@ -22,6 +22,8 @@ public class HackathonSummaryDTO {
   private BigDecimal premioInDenaro;
   private StatoHackathon stato;
   private String organizzatoreNome;
+  private String vincitoreId;
+  private String vincitoreNome;
 
   public HackathonSummaryDTO(
     String id,
@@ -36,7 +38,9 @@ public class HackathonSummaryDTO {
     String luogo,
     BigDecimal premioInDenaro,
     StatoHackathon stato,
-    String organizzatoreNome
+    String organizzatoreNome,
+    String vincitoreId,
+    String vincitoreNome
   ) {
     this.id = id;
     this.nome = nome;
@@ -51,6 +55,8 @@ public class HackathonSummaryDTO {
     this.premioInDenaro = premioInDenaro;
     this.stato = stato;
     this.organizzatoreNome = organizzatoreNome;
+    this.vincitoreId = vincitoreId;
+    this.vincitoreNome = vincitoreNome;
   }
 
   // Getters
@@ -104,5 +110,15 @@ public class HackathonSummaryDTO {
 
   public String getOrganizzatoreNome() {
     return organizzatoreNome;
+  }
+
+  /** ID del team vincitore, valorizzato solo a hackathon CONCLUSO. */
+  public String getVincitoreId() {
+    return vincitoreId;
+  }
+
+  /** Nome del team vincitore, valorizzato solo a hackathon CONCLUSO. */
+  public String getVincitoreNome() {
+    return vincitoreNome;
   }
 }

@@ -43,10 +43,30 @@ describe('AuthService', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({ imports: [HttpClientTestingModule], providers: [AuthService] });
       const svc = TestBed.inject(AuthService);
+      const httpCtrl = TestBed.inject(HttpTestingController);
 
       expect(svc.currentUser).toBeTruthy();
       expect(svc.currentUser?.nome).toBe('Mario');
       expect(svc.currentUser?.ruolo).toBe('ORGANIZZATORE');
+
+      httpCtrl.expectOne('/api/users/me').flush(MOCK_USER);
+      httpCtrl.verify();
+    });
+
+    it('deve riallineare il ruolo con il server se nel token è cambiato', () => {
+      const payload = { sub: '1', ruolo: 'UTENTE_SENZA_TEAM', nome: 'Mario', cognome: 'Rossi', email: 'mario@test.it' };
+      localStorage.setItem('hackhub_token', buildFakeToken(payload));
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [HttpClientTestingModule], providers: [AuthService] });
+      const svc = TestBed.inject(AuthService);
+      const httpCtrl = TestBed.inject(HttpTestingController);
+
+      expect(svc.currentUser?.ruolo).toBe('UTENTE_SENZA_TEAM');
+      httpCtrl.expectOne('/api/users/me').flush({ ...MOCK_USER, ruolo: 'LEADER_TEAM' });
+      httpCtrl.verify();
+
+      expect(svc.currentUser?.ruolo).toBe('LEADER_TEAM');
     });
 
     it('deve richiamare getCurrentUser se il token non ha tutti i campi', () => {
@@ -114,6 +134,20 @@ describe('AuthService', () => {
 
       expect(localStorage.getItem('hackhub_token')).toBeNull();
       expect(service.currentUser).toBeNull();
+    });
+
+    it('deve svuotare solo le cache dati del service worker', async () => {
+      const deleted: string[] = [];
+      spyOn(caches, 'keys').and.resolveTo(['ngsw:/:1:data:dynamic:api-cache:cache', 'ngsw:/:1:assets:app-shell:cache', 'altra-cache']);
+      spyOn(caches, 'delete').and.callFake((key: string) => {
+        deleted.push(key);
+        return Promise.resolve(true);
+      });
+
+      service.clearAuth();
+      await new Promise(resolve => setTimeout(resolve));
+
+      expect(deleted).toEqual(['ngsw:/:1:data:dynamic:api-cache:cache']);
     });
   });
 

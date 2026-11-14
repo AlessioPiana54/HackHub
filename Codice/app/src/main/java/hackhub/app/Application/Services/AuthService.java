@@ -1,7 +1,7 @@
 package hackhub.app.Application.Services;
 
 import hackhub.app.Application.Exceptions.BusinessRuleException;
-import hackhub.app.Application.Exceptions.EntityNotFoundException;
+import hackhub.app.Application.Exceptions.AuthenticationFailedException;
 import hackhub.app.Application.IUnitOfWork.IUnitOfWork;
 import hackhub.app.Application.Requests.LoginRequest;
 import hackhub.app.Application.Requests.RegisterRequest;
@@ -67,17 +67,15 @@ public class AuthService extends AbstractService implements IAuthService {
    *
    * @param request i dati per il login (email, password)
    * @return il token di sessione generato
-   * @throws IllegalArgumentException se l'utente non viene trovato o la password
-   *                                  è errata
+   * @throws AuthenticationFailedException se l'email non esiste o la password è
+   *                                        errata (stesso messaggio in entrambi i
+   *                                        casi, per non rivelare quali email sono
+   *                                        registrate)
    */
   public String login(LoginRequest request) {
     User user = unitOfWork.userRepository().findByEmail(request.getEmail());
-    if (user == null) {
-      throw new EntityNotFoundException("Credenziali non valide.");
-    }
-
-    if (!passwordHasher.verify(request.getPassword(), user.getPassword())) {
-      throw new BusinessRuleException("Credenziali non valide.");
+    if (user == null || !passwordHasher.verify(request.getPassword(), user.getPassword())) {
+      throw new AuthenticationFailedException("Credenziali non valide.");
     }
 
     return jwtService.generateToken(user);

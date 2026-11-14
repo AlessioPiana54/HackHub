@@ -24,13 +24,13 @@ public class HackathonMapper {
 
         String organizzatoreNome = hackathon.getOrganizzatore() != null ?
                 hackathon.getOrganizzatore().getNome() + " " + hackathon.getOrganizzatore().getCognome() :
-                null;
+                "N/A";
 
         return new HackathonSummaryDTO(
                 hackathon.getId(),
                 hackathon.getNome(),
                 hackathon.getRegolamento(),
-                null, // description field doesn't exist in Hackathon entity
+                hackathon.getRegolamento(), // la descrizione coincide con il regolamento
                 hackathon.getLogoUrl(),
                 hackathon.getInizioIscrizioni(),
                 hackathon.getScadenzaIscrizioni(),
@@ -39,7 +39,9 @@ public class HackathonMapper {
                 hackathon.getLuogo(),
                 hackathon.getPremioInDenaro(),
                 hackathon.getStato(),
-                organizzatoreNome
+                organizzatoreNome,
+                hackathon.getVincitore() != null ? hackathon.getVincitore().getId() : null,
+                hackathon.getVincitore() != null ? hackathon.getVincitore().getNomeTeam() : null
         );
     }
 }

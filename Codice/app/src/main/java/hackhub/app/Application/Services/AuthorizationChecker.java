@@ -46,7 +46,8 @@ public class AuthorizationChecker {
         String userId,
         String errorMessage
     ) {
-        boolean isLeader = team.getLeaderSquadra().getId().equals(userId);
+        boolean isLeader = team.getLeaderSquadra() != null
+            && team.getLeaderSquadra().getId().equals(userId);
         boolean isMembro = team
             .getMembri()
             .stream()

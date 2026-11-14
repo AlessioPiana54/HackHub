@@ -4,12 +4,19 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { HackathonService } from '../../../../core/services/hackathon.service';
 import { TeamService } from '../../../../core/services/team.service';
+import { SottomissioneService } from '../../../../core/services/sottomissione.service';
+import { SupportRequestService, SupportRequest } from '../../../../core/services/support-request.service';
+import { ReportService, Report } from '../../../../core/services/report.service';
 import { HackathonSummaryDTO } from '../../../../core/models/hackathon.model';
 import { TeamDTO } from '../../../../core/models/team.model';
 import { Sottomissione } from '../../../../core/models/sottomissione.model';
-import { Report } from '../../../../core/services/report.service';
-import { HttpClient } from '@angular/common/http';
 
+type Tab = 'details' | 'segnalazioni' | 'sottomissioni' | 'supporto';
+
+/**
+ * Vista del partecipante su un hackathon a cui il suo team è iscritto:
+ * dettagli, segnalazioni sul team, consegna del progetto e richieste di supporto.
+ */
 @Component({
   selector: 'app-my-hackathon',
   templateUrl: './my-hackathon.component.html',
@@ -20,18 +27,26 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
 
   hackathon: HackathonSummaryDTO | null = null;
   myTeam: TeamDTO | null = null;
-  activeTab: 'details' | 'segnalazioni' | 'sottomissioni' = 'details';
+  activeTab: Tab = 'details';
 
   // Segnalazioni
   segnalazioni: Report[] = [];
   segnalazioneError = '';
 
-  // Sottomissioni
-  sottomissioni: Sottomissione[] = [];
-  nuovaSottomissione = { linkProgetto: '', descrizione: '' };
+  // Sottomissione (una per team)
+  sottomissione: Sottomissione | null = null;
+  formSottomissione = { linkProgetto: '', descrizione: '' };
+  isEditingSottomissione = false;
   sottomissioneLoading = false;
   sottomissioneError = '';
   sottomissioneSuccess = '';
+
+  // Supporto
+  callProposte: SupportRequest[] = [];
+  nuovaRichiesta = '';
+  supportoLoading = false;
+  supportoSuccess = '';
+  supportoError = '';
 
   isLoading = true;
   errorMessage = '';
@@ -42,7 +57,9 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private hackathonService: HackathonService,
     private teamService: TeamService,
-    private http: HttpClient
+    private sottomissioneService: SottomissioneService,
+    private supportService: SupportRequestService,
+    private reportService: ReportService
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +72,7 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           return;
         }
+        this.resetState();
         this.loadData();
       });
   }
@@ -64,8 +82,11 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get isInCorso(): boolean {
+    return this.hackathon?.stato === 'IN_CORSO';
+  }
+
   loadData(): void {
-    // Load hackathon details
     this.hackathonService.getHackathonById(this.hackathonId).subscribe({
       next: (h) => {
         this.hackathon = h;
@@ -77,62 +98,116 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Load user's team
     this.teamService.getMyTeams().subscribe({
       next: (teams) => { if (teams.length > 0) this.myTeam = teams[0]; }
     });
   }
 
-  setTab(tab: 'details' | 'segnalazioni' | 'sottomissioni'): void {
+  setTab(tab: Tab): void {
     this.activeTab = tab;
-    if (tab === 'segnalazioni' && this.segnalazioni.length === 0) this.loadSegnalazioni();
-    if (tab === 'sottomissioni' && this.sottomissioni.length === 0) this.loadSottomissioni();
+    if (tab === 'segnalazioni') this.loadSegnalazioni();
+    if (tab === 'sottomissioni') this.loadSottomissione();
+    if (tab === 'supporto') this.loadCallProposte();
   }
 
   // --- Segnalazioni ---
   loadSegnalazioni(): void {
-    this.http.get<Report[]>(`/api/segnalazioni?hackathonId=${this.hackathonId}`).subscribe({
+    this.reportService.getReportsByHackathon(this.hackathonId).subscribe({
       next: (s) => this.segnalazioni = s,
       error: () => this.segnalazioneError = 'Impossibile caricare le segnalazioni.'
     });
   }
 
-
-
-  // --- Sottomissioni ---
-  loadSottomissioni(): void {
-    this.http.get<Sottomissione[]>('/api/submissions/my-submissions').subscribe({
-      next: (s) => {
-        // Filter only submissions for this hackathon
-        this.sottomissioni = s.filter(sub =>
-          sub.partecipazione?.hackathon?.id === this.hackathonId
-        );
+  // --- Sottomissione ---
+  loadSottomissione(): void {
+    this.sottomissioneService.getMySubmissions().subscribe({
+      next: (list) => {
+        this.sottomissione = list.find(s => s.hackathonId === this.hackathonId) || null;
       },
-      error: () => this.sottomissioneError = 'Impossibile caricare le sottomissioni.'
+      error: () => this.sottomissioneError = 'Impossibile caricare la sottomissione.'
     });
   }
 
-  inviaSottomissione(): void {
-    if (!this.nuovaSottomissione.linkProgetto.trim() || !this.myTeam) return;
+  startEdit(): void {
+    if (!this.sottomissione) return;
+    this.formSottomissione = {
+      linkProgetto: this.sottomissione.linkProgetto,
+      descrizione: this.sottomissione.descrizione || ''
+    };
+    this.isEditingSottomissione = true;
+    this.sottomissioneSuccess = '';
+    this.sottomissioneError = '';
+  }
+
+  cancelEdit(): void {
+    this.isEditingSottomissione = false;
+    this.formSottomissione = { linkProgetto: '', descrizione: '' };
+  }
+
+  salvaSottomissione(): void {
+    const linkProgetto = this.formSottomissione.linkProgetto.trim();
+    if (!linkProgetto || !this.myTeam) return;
+
     this.sottomissioneLoading = true;
     this.sottomissioneError = '';
     this.sottomissioneSuccess = '';
-    const body = {
-      idHackathon: this.hackathonId,
-      idTeam: this.myTeam.id,
-      linkProgetto: this.nuovaSottomissione.linkProgetto.trim(),
-      descrizione: this.nuovaSottomissione.descrizione.trim()
-    };
-    this.http.post<Sottomissione>('/api/submissions', body).subscribe({
+
+    const descrizione = this.formSottomissione.descrizione.trim();
+    const request$ = this.sottomissione && this.isEditingSottomissione
+      ? this.sottomissioneService.modificaSottomissione(this.sottomissione.id, { linkProgetto, descrizione })
+      : this.sottomissioneService.inviaSottomissione({
+          idHackathon: this.hackathonId,
+          idTeam: this.myTeam.id,
+          linkProgetto,
+          descrizione
+        });
+
+    request$.subscribe({
       next: (s) => {
-        this.sottomissioni.unshift(s);
-        this.nuovaSottomissione = { linkProgetto: '', descrizione: '' };
-        this.sottomissioneSuccess = 'Sottomissione inviata con successo!';
+        this.sottomissione = s;
+        this.sottomissioneSuccess = this.isEditingSottomissione
+          ? 'Sottomissione aggiornata.'
+          : 'Sottomissione inviata con successo!';
+        this.cancelEdit();
         this.sottomissioneLoading = false;
       },
       error: (err: { error?: { message?: string } }) => {
         this.sottomissioneError = err.error?.message || 'Errore nell\'invio della sottomissione.';
         this.sottomissioneLoading = false;
+      }
+    });
+  }
+
+  // --- Supporto ---
+  loadCallProposte(): void {
+    if (!this.myTeam) return;
+    this.supportService.getProposedCalls(this.hackathonId, this.myTeam.id).subscribe({
+      next: (calls) => this.callProposte = calls,
+      error: () => this.callProposte = []
+    });
+  }
+
+  inviaRichiestaSupporto(): void {
+    const descrizione = this.nuovaRichiesta.trim();
+    if (!descrizione || !this.myTeam) return;
+
+    this.supportoLoading = true;
+    this.supportoError = '';
+    this.supportoSuccess = '';
+
+    this.supportService.create({
+      hackathonId: this.hackathonId,
+      teamId: this.myTeam.id,
+      descrizione
+    }).subscribe({
+      next: () => {
+        this.nuovaRichiesta = '';
+        this.supportoSuccess = 'Richiesta inviata: un mentore ti proporrà una call.';
+        this.supportoLoading = false;
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.supportoError = err.error?.message || 'Errore nell\'invio della richiesta.';
+        this.supportoLoading = false;
       }
     });
   }
@@ -147,5 +222,13 @@ export class MyHackathonComponent implements OnInit, OnDestroy {
       'CONCLUSO': 'Concluso'
     };
     return map[stato] || stato;
+  }
+
+  private resetState(): void {
+    this.activeTab = 'details';
+    this.segnalazioni = [];
+    this.sottomissione = null;
+    this.callProposte = [];
+    this.cancelEdit();
   }
 }

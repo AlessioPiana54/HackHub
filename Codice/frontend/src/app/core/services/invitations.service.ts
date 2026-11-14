@@ -23,7 +23,12 @@ export class InvitationsService {
     return this.http.post<InvitoDTO>(`${this.API_URL}`, request);
   }
 
-  respondToInvitation(invitationId: string, response: { invitoId: string, accettato: boolean }): Observable<string> {
+  /** Ritira un invito inviato (mittente o leader del team). */
+  withdrawInvitation(invitationId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.API_URL}/${invitationId}`);
+  }
+
+  respondToInvitation(invitationId: string, response: { accettato: boolean }): Observable<string> {
     return this.http.patch<string>(`${this.API_URL}/${invitationId}`, response, {
       responseType: 'text' as 'json'
     });

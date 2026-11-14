@@ -69,6 +69,15 @@ public class InvitoService extends AbstractService implements IInvitoService {
       "L'utente ha già un team o un ruolo incompatibile."
     );
 
+    boolean giaInvitato = unitOfWork
+      .invitoRepository()
+      .findByTeam(team)
+      .stream()
+      .anyMatch(i -> i.getDestinatario().getId().equals(destinatario.getId()));
+    if (giaInvitato) {
+      throw new BusinessRuleException("Questo utente ha già un invito in sospeso per il team.");
+    }
+
     Invito invito = new Invito(team, destinatario, mittente);
     unitOfWork.invitoRepository().save(invito);
     return convertToDTO(invito);
@@ -136,20 +145,44 @@ public class InvitoService extends AbstractService implements IInvitoService {
   }
 
   /**
+   * Ritira un invito non ancora accettato.
+   * Può farlo chi ha inviato l'invito oppure il leader del team.
+   *
+   * @param invitoId l'ID dell'invito
+   * @param userId   l'ID dell'utente che ritira l'invito
+   * @throws EntityNotFoundException         se l'invito non esiste
+   * @throws UnauthorizedOperationException  se l'utente non è il mittente né il leader
+   */
+  public void ritiraInvito(String invitoId, String userId) {
+    Invito invito = unitOfWork
+      .invitoRepository()
+      .findById(invitoId)
+      .orElseThrow(() -> new EntityNotFoundException("Invito non trovato"));
+
+    boolean isMittente = invito.getMittente().getId().equals(userId);
+    User leader = invito.getTeam().getLeaderSquadra();
+    boolean isLeader = leader != null && leader.getId().equals(userId);
+
+    if (!isMittente && !isLeader) {
+      throw new UnauthorizedOperationException(
+        "Solo chi ha inviato l'invito o il leader del team può ritirarlo."
+      );
+    }
+
+    unitOfWork.invitoRepository().delete(invito);
+  }
+
+  /**
    * Recupera gli inviti ricevuti dall'utente.
    *
    * @param userId L'ID dell'utente.
    * @return Lista di InvitoDTO ricevuti.
    */
   public List<InvitoDTO> getReceivedInvitations(String userId) {
-    List<Invito> invitations = unitOfWork
+    User destinatario = findUserOrThrow(userId);
+    return unitOfWork
       .invitoRepository()
-      .findAll()
-      .stream()
-      .filter(invito -> invito.getDestinatario().getId().equals(userId))
-      .toList();
-
-    return invitations
+      .findByDestinatario(destinatario)
       .stream()
       .map(this::convertToDTO)
       .collect(Collectors.toList());
@@ -162,14 +195,10 @@ public class InvitoService extends AbstractService implements IInvitoService {
    * @return Lista di InvitoDTO inviati.
    */
   public List<InvitoDTO> getSentInvitations(String userId) {
-    List<Invito> invitations = unitOfWork
+    User mittente = findUserOrThrow(userId);
+    return unitOfWork
       .invitoRepository()
-      .findAll()
-      .stream()
-      .filter(invito -> invito.getMittente().getId().equals(userId))
-      .toList();
-
-    return invitations
+      .findByMittente(mittente)
       .stream()
       .map(this::convertToDTO)
       .collect(Collectors.toList());

@@ -5,19 +5,28 @@ import { MyTeamsComponent } from './my-teams/my-teams.component';
 import { CreateTeamComponent } from './components/create-team/create-team.component';
 import { TeamDetailsComponent } from './components/team-details/team-details.component';
 import { TeamManageComponent } from './components/team-manage/team-manage.component';
+import { roleGuard } from '../../core/guards/role.guard';
+
+const PARTECIPANTI = ['UTENTE_SENZA_TEAM', 'MEMBRO_TEAM', 'LEADER_TEAM'];
 
 const routes: Routes = [
   {
     path: '',
-    component: TeamsComponent
+    component: TeamsComponent,
+    canActivate: [roleGuard],
+    data: { roles: PARTECIPANTI }
   },
   {
     path: 'my-teams',
-    component: MyTeamsComponent
+    component: MyTeamsComponent,
+    canActivate: [roleGuard],
+    data: { roles: PARTECIPANTI }
   },
   {
     path: 'create',
-    component: CreateTeamComponent
+    component: CreateTeamComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['UTENTE_SENZA_TEAM'] }
   },
   {
     path: ':teamId',
@@ -25,7 +34,9 @@ const routes: Routes = [
   },
   {
     path: ':teamId/manage',
-    component: TeamManageComponent
+    component: TeamManageComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['LEADER_TEAM'] }
   }
 ];
 

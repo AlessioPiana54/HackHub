@@ -73,9 +73,25 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("missing@hackhub.it", "Test1234!");
         when(userRepository.findByEmail(request.getEmail())).thenReturn(null);
 
-        hackhub.app.Application.Exceptions.EntityNotFoundException ex = assertThrows(hackhub.app.Application.Exceptions.EntityNotFoundException.class, () -> authService.login(request));
+        hackhub.app.Application.Exceptions.AuthenticationFailedException ex = assertThrows(hackhub.app.Application.Exceptions.AuthenticationFailedException.class, () -> authService.login(request));
         assertEquals("Credenziali non valide.", ex.getMessage());
         verify(passwordHasher, never()).verify(anyString(), anyString());
+        verify(jwtService, never()).generateToken(any());
+    }
+
+    @Test
+    void login_shouldThrowSameError_whenPasswordIsWrong() {
+        LoginRequest request = new LoginRequest("mario@hackhub.it", "sbagliata");
+        User user = new User("Mario", "Rossi", "mario@hackhub.it", "stored-hash", Ruolo.UTENTE_SENZA_TEAM);
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(user);
+        when(passwordHasher.verify("sbagliata", "stored-hash")).thenReturn(false);
+
+        hackhub.app.Application.Exceptions.AuthenticationFailedException ex = assertThrows(
+            hackhub.app.Application.Exceptions.AuthenticationFailedException.class,
+            () -> authService.login(request)
+        );
+        // Stesso messaggio del caso "email inesistente": non rivela quali email sono registrate
+        assertEquals("Credenziali non valide.", ex.getMessage());
         verify(jwtService, never()).generateToken(any());
     }
 

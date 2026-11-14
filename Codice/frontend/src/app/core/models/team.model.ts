@@ -15,18 +15,3 @@ export interface CreaTeamRequest {
 export interface UpdateTeamRequest {
   nomeTeam?: string;
 }
-
-export interface Team {
-  id: string;
-  nomeTeam: string;
-  leaderSquadra: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
-  membri: Array<{
-    id: string;
-    nome: string;
-    cognome: string;
-  }>;
-}

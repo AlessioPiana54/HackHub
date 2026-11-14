@@ -1,6 +1,7 @@
 package hackhub.app.Presentation.Handlers;
 
 import hackhub.app.Application.DTOs.MessageResponse;
+import hackhub.app.Application.Exceptions.AuthenticationFailedException;
 import hackhub.app.Application.Exceptions.BusinessRuleException;
 import hackhub.app.Application.Exceptions.DomainException;
 import hackhub.app.Application.Exceptions.EntityNotFoundException;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Gestore globale delle eccezioni per l'applicazione.
@@ -30,6 +32,29 @@ public class GlobalExceptionHandler {
     return ResponseEntity
       .status(HttpStatus.NOT_FOUND)
       .body(new MessageResponse(e.getMessage()));
+  }
+
+  /**
+   * Credenziali errate al login: HTTP 401 (Unauthorized).
+   */
+  @ExceptionHandler(AuthenticationFailedException.class)
+  public ResponseEntity<MessageResponse> handleAuthenticationFailed(AuthenticationFailedException e) {
+    return ResponseEntity
+      .status(HttpStatus.UNAUTHORIZED)
+      .body(new MessageResponse(e.getMessage()));
+  }
+
+  /**
+   * Errori lanciati dai controller con uno stato HTTP esplicito (validazione 400,
+   * token non valido 401, ruolo errato 403): mantiene lo stato e il messaggio
+   * originali invece di trasformarli in 500.
+   */
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<MessageResponse> handleResponseStatus(ResponseStatusException e) {
+    String message = e.getReason() != null ? e.getReason() : e.getStatusCode().toString();
+    return ResponseEntity
+      .status(e.getStatusCode())
+      .body(new MessageResponse(message));
   }
 
   @ExceptionHandler(UnauthorizedOperationException.class)

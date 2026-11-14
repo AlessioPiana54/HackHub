@@ -32,10 +32,25 @@ describe('errorInterceptor', () => {
     expect(toastService.error).toHaveBeenCalledWith('Non hai i permessi per eseguire questa azione');
   });
 
+  it('deve mostrare il motivo del backend su 403 se presente', () => {
+    http.get('/api/test').subscribe({ error: () => {} });
+    httpCtrl.expectOne('/api/test').flush(
+      { message: 'Solo il leader del team può iscrivere il team all\'hackathon' },
+      { status: 403, statusText: 'Forbidden' }
+    );
+    expect(toastService.error).toHaveBeenCalledWith('Solo il leader del team può iscrivere il team all\'hackathon');
+  });
+
   it('deve mostrare toast di sessione scaduta su 401', () => {
     http.get('/api/test').subscribe({ error: () => {} });
     httpCtrl.expectOne('/api/test').flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
     expect(toastService.error).toHaveBeenCalledWith('Sessione scaduta o non valida');
+  });
+
+  it('non deve mostrare "sessione scaduta" sul 401 del login', () => {
+    http.post('/api/auth/login', {}).subscribe({ error: () => {} });
+    httpCtrl.expectOne('/api/auth/login').flush({ message: 'Credenziali non valide.' }, { status: 401, statusText: 'Unauthorized' });
+    expect(toastService.error).not.toHaveBeenCalled();
   });
 
   it('deve mostrare toast di connessione su errore status 0', () => {

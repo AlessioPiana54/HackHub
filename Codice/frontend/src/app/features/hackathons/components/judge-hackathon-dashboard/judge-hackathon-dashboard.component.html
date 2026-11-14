@@ -29,15 +29,16 @@
       <div class="card-grid" *ngIf="submissions.length > 0; else noSubmissions">
         <div class="submission-card" *ngFor="let s of submissions">
           <div class="card-header">
-            <h3>{{ s.partecipazione.team.nomeTeam }}</h3>
+            <h3>{{ s.teamNome }}</h3>
           </div>
           <p class="desc">{{ s.descrizione }}</p>
           <div class="links">
             <a [href]="s.linkProgetto" target="_blank" class="github-link">🔗 Repository GitHub</a>
           </div>
           <div class="actions">
-            <button class="btn-eval" (click)="openEvaluationModal(s)">
-              {{ s.valutazioni.length ? '✅ Modifica Voto' : '📝 Valuta Roma' }}
+            <span class="evaluated" *ngIf="isEvaluated(s)">✅ Valutato: {{ s.voto }}/10</span>
+            <button class="btn-eval" *ngIf="!isEvaluated(s) && canEvaluate" (click)="openEvaluationModal(s)">
+              📝 Valuta progetto
             </button>
           </div>
         </div>
@@ -57,7 +58,7 @@
         </div>
       </div>
       <ng-template #noRanking>
-        <div class="empty-state">La classifica sarà visibile dopo le prime valutazioni.</div>
+        <div class="empty-state">La classifica sarà disponibile quando chiuderai la fase di valutazione.</div>
       </ng-template>
     </div>
   </div>
@@ -66,7 +67,7 @@
   <div class="modal-overlay" *ngIf="showEvaluationModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>⭐ Valuta Progetto: {{ selectedSubmission?.partecipazione?.team?.nomeTeam }}</h2>
+        <h2>⭐ Valuta Progetto: {{ selectedSubmission?.teamNome }}</h2>
         <button class="close-btn" (click)="closeEvaluationModal()">×</button>
       </div>
       

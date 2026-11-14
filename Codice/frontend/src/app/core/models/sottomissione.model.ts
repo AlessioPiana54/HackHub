@@ -1,39 +1,32 @@
+/**
+ * Sottomissione restituita dal backend (SottomissioneDTO).
+ * voto e giudizio sono null finché il giudice non la valuta.
+ */
 export interface Sottomissione {
   id: string;
+  hackathonId: string;
+  hackathonNome: string;
+  teamId: string;
+  teamNome: string;
+  mittenteId: string;
+  mittenteNome: string;
   linkProgetto: string;
   descrizione: string;
-  dataInvio: string;
-  partecipazione: {
-    id: string;
-    team: {
-      id: string;
-      nomeTeam: string;
-    };
-    hackathon: {
-      id: string;
-      nome: string;
-    };
-  };
-  mittente: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
-  valutazioni: Array<Valutazione>;
+  dataSottomissione: string;
+  voto: number | null;
+  giudizio: string | null;
 }
 
+/** Valutazione restituita dal backend (ValutazioneDTO). */
 export interface Valutazione {
   id: string;
-  giudizio: string;
+  sottomissioneId: string;
+  teamId: string;
+  teamNome: string;
+  giudiceId: string;
+  giudiceNome: string;
   voto: number;
-  giudice: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
-  sottomissione: {
-    id: string;
-  };
+  giudizio: string;
 }
 
 export interface InviaSottomissioneRequest {
@@ -51,31 +44,4 @@ export interface ModificaSottomissioneRequest {
 export interface CreaValutazioneRequest {
   giudizio: string;
   voto: number;
-}
-
-export interface SottomissioneDTO {
-  id: string;
-  linkProgetto: string;
-  descrizione: string;
-  dataInvio: string;
-  partecipazioneId: string;
-  nomeTeam: string;
-  nomeHackathon: string;
-  mittente: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
-  valutazioni: ValutazioneDTO[];
-}
-
-export interface ValutazioneDTO {
-  id: string;
-  giudizio: string;
-  voto: number;
-  giudice: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
 }

@@ -5,6 +5,8 @@ import { throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
+import { isAuthRequest } from './error.interceptor';
+
 /**
  * Functional Interceptor per la gestione dell'autenticazione.
  * Aggiunge il token Bearer all'header Authorization delle richieste.
@@ -23,8 +25,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        // Token scaduto o non valido
+      if (error.status === 401 && !isAuthRequest(req.url)) {
+        // Token scaduto o non valido (sul login il 401 indica solo credenziali errate)
         authService.clearAuth();
         router.navigate(['/auth/login']);
       }

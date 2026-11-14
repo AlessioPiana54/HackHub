@@ -63,6 +63,14 @@ describe('authInterceptor', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
 
+  it('non deve chiudere la sessione su 401 del login (credenziali errate)', () => {
+    http.post('/api/auth/login', {}).subscribe({ error: () => {} });
+    httpCtrl.expectOne('/api/auth/login').flush({ message: 'Credenziali non valide.' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.clearAuth).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
   it('non deve interferire con errori non 401', () => {
     http.get('/api/hackathons').subscribe({ error: () => {} });
     const req = httpCtrl.expectOne('/api/hackathons');

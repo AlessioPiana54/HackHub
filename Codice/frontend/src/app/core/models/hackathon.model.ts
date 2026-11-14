@@ -21,6 +21,9 @@ export interface HackathonSummaryDTO {
   premioInDenaro: number;
   stato: StatoHackathon;
   organizzatoreNome: string;
+  /** Valorizzati solo quando l'hackathon è CONCLUSO. */
+  vincitoreId?: string | null;
+  vincitoreNome?: string | null;
 }
 
 export interface CreaHackathonRequest {
@@ -37,43 +40,8 @@ export interface CreaHackathonRequest {
   idMentori: string[];
 }
 
-export interface Hackathon {
-  id: string;
-  nome: string;
-  regolamento: string;
-  dataInizio: string;
-  dataFine: string;
-  luogo: string;
-  premioInDenaro: number;
-  stato: StatoHackathon;
-  organizzatore: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
-  mentori: Array<{
-    id: string;
-    nome: string;
-    cognome: string;
-  }>;
-  giudice: {
-    id: string;
-    nome: string;
-    cognome: string;
-  };
-}
-
 export interface ClassificaTeamDTO {
   teamId: string;
   nomeTeam: string;
   punteggio: number;
-}
-
-export interface PartecipazioneDTO {
-  id: string;
-  teamId: string;
-  nomeTeam: string;
-  hackathonId: string;
-  nomeHackathon: string;
-  dataIscrizione: string;
 }

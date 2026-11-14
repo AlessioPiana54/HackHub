@@ -113,6 +113,85 @@ class SottomissioneServiceTest {
         assertEquals("Solo i membri del team possono inviare sottomissioni.", ex.getMessage());
     }
 
+    @Test
+    void inviaSottomissione_shouldThrow_whenLinkIsNotGitHub() {
+        hackathon.setStato(StatoHackathon.IN_CORSO);
+        when(entityFinder.findTeamOrThrow("team-1")).thenReturn(team);
+        when(entityFinder.findHackathonOrThrow("hack-1")).thenReturn(hackathon);
+        when(entityFinder.findPartecipazioneOrThrow("team-1", "hack-1")).thenReturn(partecipazione);
+        when(unitOfWork.sottomissioneRepository()).thenReturn(sottomissioneRepository);
+        when(sottomissioneRepository.existsByPartecipazione_Hackathon_IdAndPartecipazione_Team_Id("hack-1", "team-1"))
+            .thenReturn(false);
+        when(linkStrategyContext.validate(eq("https://evil.example/?github.com"), anyList())).thenReturn(false);
+
+        InviaSottomissioneRequest request = new InviaSottomissioneRequest(
+            "hack-1", "team-1", "https://evil.example/?github.com", "Progetto test"
+        );
+
+        BusinessRuleException ex = assertThrows(
+            BusinessRuleException.class,
+            () -> sottomissioneService.inviaSottomissione(request, "leader-1")
+        );
+        assertTrue(ex.getMessage().contains("GitHub"));
+        verify(sottomissioneRepository, never()).save(any());
+    }
+
+    @Test
+    void inviaSottomissione_shouldSave_whenLinkIsValid() {
+        hackathon.setStato(StatoHackathon.IN_CORSO);
+        when(entityFinder.findTeamOrThrow("team-1")).thenReturn(team);
+        when(entityFinder.findHackathonOrThrow("hack-1")).thenReturn(hackathon);
+        when(entityFinder.findPartecipazioneOrThrow("team-1", "hack-1")).thenReturn(partecipazione);
+        when(entityFinder.findUserOrThrow("leader-1")).thenReturn(leader);
+        when(unitOfWork.sottomissioneRepository()).thenReturn(sottomissioneRepository);
+        when(sottomissioneRepository.existsByPartecipazione_Hackathon_IdAndPartecipazione_Team_Id("hack-1", "team-1"))
+            .thenReturn(false);
+        when(linkStrategyContext.validate(eq("https://github.com/test/repo"), anyList())).thenReturn(true);
+        when(sottomissioneRepository.save(any(Sottomissione.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var dto = sottomissioneService.inviaSottomissione(
+            new InviaSottomissioneRequest("hack-1", "team-1", "https://github.com/test/repo", "Progetto test"),
+            "leader-1"
+        );
+
+        assertEquals("https://github.com/test/repo", dto.getLinkProgetto());
+        assertNull(dto.getVoto());
+    }
+
+    // --- getSubmissionsByHackathon ---
+
+    @Test
+    void getSubmissionsByHackathon_shouldThrow_whenRequesterIsNotStaff() {
+        User organizzatore = new User("Org", "Uno", "org@hackhub.it", "h", Ruolo.ORGANIZZATORE);
+        organizzatore.setId("org-1");
+        hackathon.setOrganizzatore(organizzatore);
+        hackathon.setMentori(java.util.List.of());
+        when(entityFinder.findHackathonOrThrow("hack-1")).thenReturn(hackathon);
+
+        assertThrows(
+            UnauthorizedOperationException.class,
+            () -> sottomissioneService.getSubmissionsByHackathon("hack-1", "partecipante-1")
+        );
+        verify(unitOfWork, never()).sottomissioneRepository();
+    }
+
+    @Test
+    void getSubmissionsByHackathon_shouldReturnList_whenRequesterIsJudge() {
+        User organizzatore = new User("Org", "Uno", "org@hackhub.it", "h", Ruolo.ORGANIZZATORE);
+        organizzatore.setId("org-1");
+        hackathon.setOrganizzatore(organizzatore);
+        hackathon.setMentori(java.util.List.of());
+        when(entityFinder.findHackathonOrThrow("hack-1")).thenReturn(hackathon);
+        when(unitOfWork.valutazioneRepository()).thenReturn(valutazioneRepository);
+        when(unitOfWork.sottomissioneRepository()).thenReturn(sottomissioneRepository);
+        when(valutazioneRepository.findAllBySottomissione_Partecipazione_Hackathon_Id("hack-1"))
+            .thenReturn(java.util.List.of());
+        when(sottomissioneRepository.findByPartecipazioneHackathonId("hack-1")).thenReturn(java.util.List.of());
+
+        // "leader-1" è il giudice dell'hackathon nel setUp
+        assertTrue(sottomissioneService.getSubmissionsByHackathon("hack-1", "leader-1").isEmpty());
+    }
+
     // --- valutaSottomissione ---
 
     @Test
@@ -177,7 +256,7 @@ class SottomissioneServiceTest {
         when(valutazioneRepository.existsBySottomissioneId(isNull())).thenReturn(false);
         when(valutazioneRepository.save(any(Valutazione.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Valutazione result = sottomissioneService.valutaSottomissione(
+        hackhub.app.Application.DTOs.ValutazioneDTO result = sottomissioneService.valutaSottomissione(
             new CreaValutazioneRequest(9.0, "Ottimo lavoro"), "leader-1", "sub-1"
         );
 

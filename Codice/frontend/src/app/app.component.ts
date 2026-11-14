@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
   myHackathons: HackathonSummaryDTO[] = [];
   judgeHackathons: HackathonSummaryDTO[] = [];
   mentorHackathons: HackathonSummaryDTO[] = [];
+  organizerHackathons: HackathonSummaryDTO[] = [];
   showInstallBanner = false;
 
   constructor(
@@ -42,18 +43,24 @@ export class AppComponent implements OnInit {
 
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
-      if (user) {
-        this.loadMyHackathons();
-        if (user.ruolo === 'GIUDICE') {
+      this.myHackathons = [];
+      this.judgeHackathons = [];
+      this.mentorHackathons = [];
+      this.organizerHackathons = [];
+      if (!user) return;
+
+      switch (user.ruolo) {
+        case 'GIUDICE':
           this.loadJudgeHackathons();
-        }
-        if (user.ruolo === 'MENTORE') {
+          break;
+        case 'MENTORE':
           this.loadMentorHackathons();
-        }
-      } else {
-        this.myHackathons = [];
-        this.judgeHackathons = [];
-        this.mentorHackathons = [];
+          break;
+        case 'ORGANIZZATORE':
+          this.loadOrganizerHackathons();
+          break;
+        default:
+          this.loadMyHackathons();
       }
     });
   }
@@ -63,10 +70,7 @@ export class AppComponent implements OnInit {
       next: (hackathons) => {
         this.myHackathons = hackathons;
       },
-      error: (error) => {
-        console.error('Error loading my hackathons:', error);
-        this.myHackathons = [];
-      }
+      error: () => this.myHackathons = []
     });
   }
 
@@ -75,10 +79,7 @@ export class AppComponent implements OnInit {
       next: (hackathons) => {
         this.judgeHackathons = hackathons;
       },
-      error: (error) => {
-        console.error('Error loading judge hackathons:', error);
-        this.judgeHackathons = [];
-      }
+      error: () => this.judgeHackathons = []
     });
   }
 
@@ -87,10 +88,14 @@ export class AppComponent implements OnInit {
       next: (hackathons) => {
         this.mentorHackathons = hackathons;
       },
-      error: (error) => {
-        console.error('Error loading mentor hackathons:', error);
-        this.mentorHackathons = [];
-      }
+      error: () => this.mentorHackathons = []
+    });
+  }
+
+  loadOrganizerHackathons(): void {
+    this.hackathonService.getOrganizerHackathons().subscribe({
+      next: (hackathons) => this.organizerHackathons = hackathons,
+      error: () => this.organizerHackathons = []
     });
   }
 
@@ -114,16 +119,11 @@ export class AppComponent implements OnInit {
         this.router.navigate(['/auth/login']);
         this.isMobileMenuOpen = false;
       },
-      error: (error) => {
-        // Errore backend (500, 403, etc.) - comunque pulisci i dati locali
-        console.warn('Backend logout failed, clearing local auth:', error);
+      error: () => {
+        // Anche se il backend non risponde, la sessione locale va chiusa
         this.authService.clearAuth();
         this.router.navigate(['/auth/login']);
         this.isMobileMenuOpen = false;
-      },
-      complete: () => {
-        // Questo viene chiamato solo in caso di successo
-        console.log('Logout completed successfully');
       }
     });
   }

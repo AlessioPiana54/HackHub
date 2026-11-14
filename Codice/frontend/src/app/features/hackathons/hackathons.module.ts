@@ -9,6 +9,7 @@ import { HackathonDetailsComponent } from './components/hackathon-details/hackat
 import { MyHackathonComponent } from './components/my-hackathon/my-hackathon.component';
 import { JudgeHackathonDashboardComponent } from './components/judge-hackathon-dashboard/judge-hackathon-dashboard.component';
 import { MentorHackathonDashboardComponent } from './components/mentor-hackathon-dashboard/mentor-hackathon-dashboard.component';
+import { OrganizerHackathonDashboardComponent } from './components/organizer-hackathon-dashboard/organizer-hackathon-dashboard.component';
 import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
@@ -18,7 +19,8 @@ import { SharedModule } from '../../shared/shared.module';
     HackathonDetailsComponent,
     MyHackathonComponent,
     JudgeHackathonDashboardComponent,
-    MentorHackathonDashboardComponent
+    MentorHackathonDashboardComponent,
+    OrganizerHackathonDashboardComponent
   ],
   imports: [
     CommonModule,

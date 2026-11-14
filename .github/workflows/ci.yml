@@ -97,7 +97,9 @@ jobs:
           context: ./Codice/app
           file: ./Codice/app/Dockerfile
           push: true
-          tags: ghcr.io/${{ env.OWNER_LC }}/hackhub-backend:latest
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/hackhub-backend:latest
+            ghcr.io/${{ env.OWNER_LC }}/hackhub-backend:${{ github.sha }}
 
       - name: Build e Push immagine Frontend
         uses: docker/build-push-action@v6
@@ -105,4 +107,6 @@ jobs:
           context: ./Codice/frontend
           file: ./Codice/frontend/Dockerfile
           push: true
-          tags: ghcr.io/${{ env.OWNER_LC }}/hackhub-frontend:latest
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/hackhub-frontend:latest
+            ghcr.io/${{ env.OWNER_LC }}/hackhub-frontend:${{ github.sha }}

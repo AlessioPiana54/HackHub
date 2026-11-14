@@ -77,6 +77,17 @@ public class InvitoController extends AbstractController {
    * @param token Il token di autorizzazione dell'utente.
    * @return Lista di InvitoDTO ricevuti.
    */
+  @DeleteMapping("/{id}")
+  public ResponseEntity<MessageResponse> ritiraInvito(
+    @RequestHeader("Authorization") String token,
+    @PathVariable String id
+  ) {
+    User user = getAuthenticatedUser(token);
+    validateIds(id);
+    invitoService.ritiraInvito(id, user.getId());
+    return ResponseEntity.ok(new MessageResponse("Invito ritirato con successo."));
+  }
+
   @GetMapping("/received")
   public ResponseEntity<List<InvitoDTO>> getReceivedInvitations(
     @RequestHeader("Authorization") String token

@@ -19,17 +19,18 @@ export class AuthService {
       const payload = this.decodeToken(token);
       const userFromToken = this.buildUserFromTokenPayload(payload);
       if (userFromToken) {
+        // Mostra subito l'utente letto dal token...
         this.currentUserSubject.next(userFromToken);
-      } else {
-        // Fallback: Carica l'utente se non abbiamo abbastanza dati nel token
-        this.getCurrentUser().subscribe({
-          error: (err) => {
-            if (err.status === 401 || err.status === 403) {
-              this.clearAuth();
-            }
-          }
-        });
       }
+      // ...e lo riallinea col server: il ruolo nel token è quello del login e può
+      // essere cambiato nel frattempo (creazione team, inviti, cessione leadership).
+      this.getCurrentUser().subscribe({
+        error: (err) => {
+          if (err.status === 401) {
+            this.clearAuth();
+          }
+        }
+      });
     }
   }
 
@@ -85,6 +86,22 @@ export class AuthService {
   clearAuth(): void {
     localStorage.removeItem('hackhub_token');
     this.currentUserSubject.next(null);
+    this.clearApiCache();
+  }
+
+  /**
+   * Svuota le cache "dati" del service worker (risposte /api salvate per l'offline),
+   * così dopo il logout un altro utente dello stesso dispositivo non vede i dati
+   * del precedente. Le cache dell'app shell (JS/CSS) restano.
+   */
+  private clearApiCache(): void {
+    if (typeof caches === 'undefined') return;
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(key => key.startsWith('ngsw:') && key.includes(':data:'))
+          .map(key => caches.delete(key))
+      ))
+      .catch(() => { /* Cache Storage non disponibile: niente da pulire */ });
   }
 
   getCurrentUser(): Observable<UserDTO> {

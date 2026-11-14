@@ -33,7 +33,6 @@ public class RichiestaSupportoValidator extends AbstractValidator {
             return errors;
         }
 
-        validateRequired(request.getRichiestaId(), "ID Richiesta Supporto obbligatorio.", errors);
         validateRequired(request.getLinkCall(), "Il link per la call è obbligatorio.", errors);
 
         if (request.getDataCall() == null) {

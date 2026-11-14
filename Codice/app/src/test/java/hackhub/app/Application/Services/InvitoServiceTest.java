@@ -221,4 +221,88 @@ class InvitoServiceTest {
         assertEquals(Ruolo.MEMBRO_TEAM, destinatario.getRuolo());
         verify(invitoRepository).delete(invito);
     }
+
+    // --- inviaInvito: duplicati ---
+
+    @Test
+    void inviaInvito_shouldThrow_whenInvitoAlreadyPending() {
+        User leader = new User("Mario", "Rossi", "mario@hackhub.it", "hash", Ruolo.LEADER_TEAM);
+        leader.setId("leader-1");
+        Team team = new Team("Alpha", leader);
+        User destinatario = new User("Luca", "Verdi", "luca@test.it", "hash", Ruolo.UTENTE_SENZA_TEAM);
+        destinatario.setId("dest-1");
+
+        when(entityFinder.findTeamOrThrow("team-1")).thenReturn(team);
+        when(entityFinder.findUserOrThrow("leader-1")).thenReturn(leader);
+        when(unitOfWork.userRepository()).thenReturn(userRepository);
+        when(unitOfWork.invitoRepository()).thenReturn(invitoRepository);
+        when(userRepository.findByEmail("luca@test.it")).thenReturn(destinatario);
+        when(invitoRepository.findByTeam(team)).thenReturn(List.of(new Invito(team, destinatario, leader)));
+
+        BusinessRuleException ex = assertThrows(
+            BusinessRuleException.class,
+            () -> invitoService.inviaInvito(new CreaInvitoRequest("team-1", "luca@test.it"), "leader-1")
+        );
+        assertEquals("Questo utente ha già un invito in sospeso per il team.", ex.getMessage());
+        verify(invitoRepository, never()).save(any());
+    }
+
+    // --- ritiraInvito ---
+
+    private Invito invitoInviatoDa(User mittente, User leader) {
+        Team team = new Team("Alpha", leader);
+        User destinatario = new User("Luca", "Verdi", "luca@test.it", "hash", Ruolo.UTENTE_SENZA_TEAM);
+        destinatario.setId("dest-1");
+        return new Invito(team, destinatario, mittente);
+    }
+
+    @Test
+    void ritiraInvito_shouldDelete_whenRequesterIsSender() {
+        User leader = new User("Mario", "Rossi", "mario@hackhub.it", "hash", Ruolo.LEADER_TEAM);
+        leader.setId("leader-1");
+        User membro = new User("Anna", "Neri", "anna@test.it", "hash", Ruolo.MEMBRO_TEAM);
+        membro.setId("membro-1");
+        Invito invito = invitoInviatoDa(membro, leader);
+        when(unitOfWork.invitoRepository()).thenReturn(invitoRepository);
+        when(invitoRepository.findById("inv-1")).thenReturn(Optional.of(invito));
+
+        invitoService.ritiraInvito("inv-1", "membro-1");
+
+        verify(invitoRepository).delete(invito);
+    }
+
+    @Test
+    void ritiraInvito_shouldDelete_whenRequesterIsLeader() {
+        User leader = new User("Mario", "Rossi", "mario@hackhub.it", "hash", Ruolo.LEADER_TEAM);
+        leader.setId("leader-1");
+        User membro = new User("Anna", "Neri", "anna@test.it", "hash", Ruolo.MEMBRO_TEAM);
+        membro.setId("membro-1");
+        Invito invito = invitoInviatoDa(membro, leader);
+        when(unitOfWork.invitoRepository()).thenReturn(invitoRepository);
+        when(invitoRepository.findById("inv-1")).thenReturn(Optional.of(invito));
+
+        invitoService.ritiraInvito("inv-1", "leader-1");
+
+        verify(invitoRepository).delete(invito);
+    }
+
+    @Test
+    void ritiraInvito_shouldThrow_whenRequesterIsUnrelated() {
+        User leader = new User("Mario", "Rossi", "mario@hackhub.it", "hash", Ruolo.LEADER_TEAM);
+        leader.setId("leader-1");
+        Invito invito = invitoInviatoDa(leader, leader);
+        when(unitOfWork.invitoRepository()).thenReturn(invitoRepository);
+        when(invitoRepository.findById("inv-1")).thenReturn(Optional.of(invito));
+
+        assertThrows(UnauthorizedOperationException.class, () -> invitoService.ritiraInvito("inv-1", "dest-1"));
+        verify(invitoRepository, never()).delete(any());
+    }
+
+    @Test
+    void ritiraInvito_shouldThrow_whenInvitoNotFound() {
+        when(unitOfWork.invitoRepository()).thenReturn(invitoRepository);
+        when(invitoRepository.findById("missing")).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> invitoService.ritiraInvito("missing", "leader-1"));
+    }
 }

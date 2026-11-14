@@ -55,10 +55,6 @@
           </div>
         </div>
 
-        <div class="invitation-message" *ngIf="invitation.messaggio">
-          <p>{{ invitation.messaggio }}</p>
-        </div>
-
         <div class="invitation-actions">
           <button class="btn btn-success btn-sm" (click)="acceptInvitation(invitation.id)">
             Accept
@@ -91,20 +87,12 @@
           </div>
         </div>
 
-        <div class="invitation-message" *ngIf="invitation.messaggio">
-          <p>{{ invitation.messaggio }}</p>
-        </div>
-
+        <!-- Un invito esiste solo finché è in attesa: accettazione e rifiuto lo cancellano -->
         <div class="invitation-status">
-          <span class="status-badge" 
-                [class.status-pending]="invitation.stato === 'PENDING'"
-                [class.status-accepted]="invitation.stato === 'ACCEPTED'"
-                [class.status-rejected]="invitation.stato === 'REJECTED'">
-            {{ invitation.stato }}
-          </span>
+          <span class="status-badge status-pending">PENDING</span>
         </div>
 
-        <div class="invitation-actions" *ngIf="invitation.stato === 'PENDING'">
+        <div class="invitation-actions">
           <button class="btn btn-outline-secondary btn-sm" (click)="withdrawInvitation(invitation.id)">
             Withdraw
           </button>

@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HackathonSummaryDTO, CreaHackathonRequest, ClassificaTeamDTO, PartecipazioneDTO } from '../models/hackathon.model';
+import { HackathonSummaryDTO, CreaHackathonRequest, ClassificaTeamDTO } from '../models/hackathon.model';
+import { TeamDTO } from '../models/team.model';
+
+interface MessageResponse {
+  message: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -27,16 +32,21 @@ export class HackathonService {
     return this.http.get<ClassificaTeamDTO[]>(`${this.API_URL}/${hackathonId}/classifica`);
   }
 
-  terminaFaseValutazione(hackathonId: string): Observable<void> {
-    return this.http.patch<void>(`${this.API_URL}/${hackathonId}/status`, {});
+  /** Chiude la valutazione (giudice): il backend risponde con testo semplice. */
+  terminaFaseValutazione(hackathonId: string): Observable<string> {
+    return this.http.patch(`${this.API_URL}/${hackathonId}/status`, {}, { responseType: 'text' });
   }
 
-  proclamaVincitore(hackathonId: string, teamId: string): Observable<void> {
-    return this.http.post<void>(`${this.API_URL}/${hackathonId}/winner?teamId=${teamId}`, {});
+  /** Proclama il vincitore (organizzatore, IN_PREMIAZIONE): il backend risponde con testo semplice. */
+  proclamaVincitore(hackathonId: string, teamId: string): Observable<string> {
+    return this.http.post(`${this.API_URL}/${hackathonId}/winner`, {}, {
+      params: { teamId },
+      responseType: 'text'
+    });
   }
 
-  joinHackathon(hackathonId: string, teamId: string): Observable<PartecipazioneDTO> {
-    return this.http.post<PartecipazioneDTO>(`${this.API_URL}/${hackathonId}/join?teamId=${teamId}`, {});
+  joinHackathon(hackathonId: string, teamId: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.API_URL}/${hackathonId}/join`, {}, { params: { teamId } });
   }
 
   getMyHackathons(): Observable<HackathonSummaryDTO[]> {
@@ -58,9 +68,16 @@ export class HackathonService {
   }
 
   /**
+   * Recupera gli hackathon creati dall'organizzatore loggato.
+   */
+  getOrganizerHackathons(): Observable<HackathonSummaryDTO[]> {
+    return this.http.get<HackathonSummaryDTO[]>(`${this.API_URL}/organizer/my`);
+  }
+
+  /**
    * Recupera i team partecipanti a un hackathon.
    */
-  getParticipants(hackathonId: string): Observable<PartecipazioneDTO[]> {
-    return this.http.get<PartecipazioneDTO[]>(`${this.API_URL}/${hackathonId}/participants`);
+  getParticipants(hackathonId: string): Observable<TeamDTO[]> {
+    return this.http.get<TeamDTO[]>(`${this.API_URL}/${hackathonId}/participants`);
   }
 }
